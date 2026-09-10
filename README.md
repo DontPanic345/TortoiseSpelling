@@ -89,10 +89,16 @@ mandatory retype, and — the highest-risk item — that the answer field does *
 autocorrect a misspelling (`autoCorrectEnabled = false` with `KeyboardType.Ascii`
 holds up in practice).
 
-One bug was found and fixed: a misspelled input ("punchuation") produced a correct
-definition but the card kept the typo in the word field and example sentence. The
-lookup now asks Claude for the corrected spelling and adopts it; see the deviations
-table.
+Two lookup issues were found and fixed, both covered by the live-API test
+(`ClaudeIntegrationTest`, gated on `SPELLWISE_ANTHROPIC_KEY`):
+
+- A misspelled input ("punchuation") produced a correct definition but the card
+  kept the typo in the word field and example. The lookup now asks Claude for the
+  corrected spelling and adopts it.
+- The example sometimes used an inflected form ("received" for "receive"), which
+  the review screen can't blank inside a sentence. The prompt now requires the
+  exact spelled form as a standalone word; the test asserts `blankWordIn` can
+  actually blank it. The standalone-blanks fallback stays as defence.
 
 Still worth a manual check:
 

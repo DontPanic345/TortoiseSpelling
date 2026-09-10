@@ -1,5 +1,6 @@
 package com.falloon.spellwise.data.remote
 
+import com.falloon.spellwise.domain.blankWordIn
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -50,10 +51,7 @@ class ClaudeIntegrationTest {
             "definition should not give the word away: ${result.definition}",
             result.definition.contains("punctuation", ignoreCase = true),
         )
-        assertTrue(
-            "example should contain the word: ${result.example}",
-            result.example.contains("punctuation", ignoreCase = true),
-        )
+        assertExampleUsesExactForm(result)
     }
 
     @Test
@@ -70,10 +68,7 @@ class ClaudeIntegrationTest {
             "the example must not carry the misspelling: ${result.example}",
             result.example.contains("punchuation", ignoreCase = true),
         )
-        assertTrue(
-            "the example should use the corrected word: ${result.example}",
-            result.example.contains("punctuation", ignoreCase = true),
-        )
+        assertExampleUsesExactForm(result)
     }
 
     @Test
@@ -82,5 +77,28 @@ class ClaudeIntegrationTest {
         println("recieve -> $result")
         result as LookupResult.Success
         assertEquals("receive", result.word.lowercase())
+        assertExampleUsesExactForm(result)
+    }
+
+    @Test
+    fun `verbs come back in a blank-able form`() = runBlocking {
+        // "run" is easy to hand back only as "running" / "ran"; the prompt forbids that.
+        for (word in listOf("accommodate", "run", "occurrence")) {
+            val result = client.lookup(word, apiKey)
+            println("$word -> ${(result as LookupResult.Success).example}")
+            assertExampleUsesExactForm(result)
+        }
+    }
+
+    /**
+     * The review screen can only blank the word inside the example when the exact
+     * spelled form appears there as a whole word. This is the behaviour the prompt
+     * change exists to guarantee.
+     */
+    private fun assertExampleUsesExactForm(result: LookupResult.Success) {
+        assertTrue(
+            "example must contain \"${result.word}\" as a whole word: ${result.example}",
+            blankWordIn(result.example, result.word).didBlank,
+        )
     }
 }

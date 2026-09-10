@@ -248,8 +248,10 @@ class ClaudeClient(
             append("mistake fixed), ")
             append("\"definition\" (a clear dictionary-style gloss, under 25 words, that does ")
             append("NOT contain the word or an obvious derivative of it), ")
-            append("\"example\" (ONE natural sentence that uses the correctly spelled word ")
-            append("verbatim), ")
+            append("\"example\" (ONE natural sentence that contains the value of \"word\" ")
+            append("exactly as spelled there — the identical letters as a standalone word, ")
+            append("NOT a plural, tense, or any other inflected or derived form; if the ")
+            append("plain form reads awkwardly, use an imperative or \"to <word>\"), ")
             append("\"partOfSpeech\" (e.g. noun, verb, adjective).")
         }
 
