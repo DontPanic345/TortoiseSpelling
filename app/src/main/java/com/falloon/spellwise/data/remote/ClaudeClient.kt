@@ -142,7 +142,8 @@ class ClaudeClient(
 
     // --- model discovery ---
 
-    private fun resolveModel(apiKey: String): String {
+    /** Internal (not private) so integration tests can see which model discovery chose. */
+    internal fun resolveModel(apiKey: String): String {
         cachedModel?.let { return it }
         val resolved = discoverModel(apiKey) ?: LookupModel.FALLBACK
         cachedModel = resolved
