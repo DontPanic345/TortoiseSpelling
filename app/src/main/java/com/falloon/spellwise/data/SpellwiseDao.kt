@@ -33,6 +33,9 @@ interface SpellwiseDao {
     @Query("SELECT COUNT(*) FROM words")
     fun observeWordCount(): Flow<Int>
 
+    @Query("SELECT * FROM words ORDER BY createdAt")
+    suspend fun allWordsOnce(): List<Word>
+
     /** Words already in rotation and due on or before [today]. */
     @Query(
         """
