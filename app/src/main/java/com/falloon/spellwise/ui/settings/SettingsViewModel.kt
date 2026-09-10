@@ -58,11 +58,6 @@ class SettingsViewModel(
         publish()
     }
 
-    fun setLookupModel(value: String) {
-        store.setLookupModel(value)
-        publish()
-    }
-
     fun setNewWordsPerDay(value: Int) {
         store.setNewWordsPerDay(value)
         publish()
@@ -92,7 +87,7 @@ class SettingsViewModel(
         }
         _state.value = _state.value.copy(testingKey = true)
         viewModelScope.launch {
-            val result = claude.testKey(settings.apiKey, settings.lookupModel)
+            val result = claude.testKey(settings.apiKey)
             _state.value = _state.value.copy(
                 testingKey = false,
                 message = when (result) {

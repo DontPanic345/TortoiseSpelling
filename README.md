@@ -25,8 +25,19 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
 Before lookup works, open **Settings** and paste an Anthropic API key, then press
-**Test key**. Everything else — adding words by hand, reviewing, reminders — works
-with no key and no network.
+**Test key**. Settings has step-by-step instructions and a button that opens the
+Anthropic console. Everything else — adding words by hand, reviewing, reminders —
+works with no key and no network.
+
+### Which model lookups use
+
+There is no model picker. Lookups always run on the cheapest tier, chosen at
+runtime from `GET /v1/models`: the newest model whose id marks it as the fast,
+low-cost "haiku" tier. This means the app follows Anthropic's lineup on its own —
+a newer Haiku is adopted with no update, a retired one is never picked, and a
+lookup that 404s (model retired mid-session) re-runs discovery once. If discovery
+fails or the tier is renamed, it falls back to `LookupModel.FALLBACK`
+(`claude-haiku-4-5`) — a one-line bump in `ClaudeClient.kt`.
 
 ## Departures from HANDOFF.md
 
@@ -43,6 +54,8 @@ Each of these was a deliberate call, not an oversight.
 | Daily reminder | `PeriodicWorkRequest` | Self-rescheduling `OneTimeWorkRequest` | A periodic request re-fires 24h after each *actual* run, so every Doze delay permanently shifts the reminder later. Re-targeting an absolute clock time each run keeps it pinned. |
 | Blanking the target word | replace the word in the sentence | whole-word match via letter/digit lookarounds | Substring matching blanks "ate" inside "plate". |
 | Intervals | uncapped, unfuzzed | capped at 365 days, fuzzed above a week | Words added together and answered alike otherwise stay clumped on the same due dates forever, producing empty days beside unmanageable ones. |
+| Model choice | Settings dropdown (`claude-haiku-4-5` / `claude-sonnet-5` / `claude-opus-5`), user-changeable | No picker; cheapest tier resolved at runtime from `GET /v1/models` | Requested: one fewer decision, and the app keeps working as Anthropic's model lineup changes rather than pointing at an ID that will eventually retire. |
+| Lookup uses the typed word verbatim | prompt asked for "the exact given word form" | prompt asks for the **corrected** spelling; the returned `word` replaces what was typed | A misspelling like "punchuation" otherwise produced a correct definition attached to the wrong spelling — the card taught the typo. The user can still edit the word back. |
 
 ### Additions the handoff didn't specify
 
@@ -69,19 +82,25 @@ Each of these was a deliberate call, not an oversight.
   stopping point the app exists to provide.
 - **Free practice touches nothing** — no SM-2, no review log, no streak.
 
-## What still needs a real device
+## Verified on a real device
 
-The unit tests cover the scheduling, text and backup logic (59 tests, all pure JVM).
-Three things can only be confirmed by hand:
+Debugger testing confirmed the review flow, the blank-the-word rendering, the
+mandatory retype, and — the highest-risk item — that the answer field does **not**
+autocorrect a misspelling (`autoCorrectEnabled = false` with `KeyboardType.Ascii`
+holds up in practice).
 
-1. **The keyboard must not autocorrect.** This is the single highest-risk behaviour in
-   the app: if the IME silently repairs a misspelling, the exercise is worthless. The
-   field sets `autoCorrectEnabled = false` with `KeyboardType.Ascii`, which is the
-   strongest lever available without masking the text (`KeyboardType.Password` would
-   hide what you typed, defeating the point). Gboard's behaviour cannot be fully
-   guaranteed from the app side — **type a deliberate misspelling and confirm it stands.**
-2. **The reminder fires.** Set the time a couple of minutes out and leave the app.
-3. **Notification tap opens review**, including when the app is already running.
+One bug was found and fixed: a misspelled input ("punchuation") produced a correct
+definition but the card kept the typo in the word field and example sentence. The
+lookup now asks Claude for the corrected spelling and adopts it; see the deviations
+table.
+
+Still worth a manual check:
+
+1. **The reminder fires.** Set the time a couple of minutes out and leave the app.
+2. **Notification tap opens review**, including when the app is already running.
+3. **Model discovery.** With a key set, the first lookup calls `GET /v1/models`; if
+   that's blocked or slow, it should fall back to `claude-haiku-4-5` within ~10s
+   rather than hanging.
 
 ## Layout
 
@@ -98,5 +117,7 @@ com.falloon.spellwise
 └── notify/                 Reminder worker and scheduler
 ```
 
-`domain/` holds everything pure and is where the tests live. `Srs.kt` sits behind a
-`Scheduler` interface so FSRS can replace it later without the review UI noticing.
+`domain/` holds most of the pure logic and most of the 71 unit tests; the
+model-selection and response-parsing tests live under `data/remote/`. `Srs.kt` sits
+behind a `Scheduler` interface so FSRS can replace it later without the review UI
+noticing.

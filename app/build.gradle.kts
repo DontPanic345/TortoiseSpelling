@@ -81,4 +81,7 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    // Android bundles org.json but stubs it in local unit tests; the real jar lets the
+    // response-parsing logic be tested off-device.
+    testImplementation(libs.json)
 }

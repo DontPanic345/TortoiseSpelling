@@ -7,18 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/** Default model for add-word lookups. Cheap, and more than good enough for a gloss. */
-const val DEFAULT_LOOKUP_MODEL = "claude-haiku-4-5"
-
-val LOOKUP_MODELS = listOf(
-    "claude-haiku-4-5",
-    "claude-sonnet-5",
-    "claude-opus-5",
-)
-
 data class Settings(
     val apiKey: String = "",
-    val lookupModel: String = DEFAULT_LOOKUP_MODEL,
     val newWordsPerDay: Int = 10,
     val reminderEnabled: Boolean = true,
     val reminderHour: Int = 8,
@@ -51,7 +41,6 @@ class SettingsStore(context: Context) {
 
     private fun read() = Settings(
         apiKey = prefs.getString(KEY_API, null)?.let(SecretCipher::decrypt).orEmpty(),
-        lookupModel = prefs.getString(KEY_MODEL, DEFAULT_LOOKUP_MODEL) ?: DEFAULT_LOOKUP_MODEL,
         newWordsPerDay = prefs.getInt(KEY_NEW_PER_DAY, 10),
         reminderEnabled = prefs.getBoolean(KEY_REMINDER_ON, true),
         reminderHour = prefs.getInt(KEY_REMINDER_HOUR, 8),
@@ -71,8 +60,6 @@ class SettingsStore(context: Context) {
             putString(KEY_API, SecretCipher.encrypt(trimmed))
         }
     }
-
-    fun setLookupModel(value: String) = update { putString(KEY_MODEL, value) }
 
     fun setNewWordsPerDay(value: Int) = update { putInt(KEY_NEW_PER_DAY, value.coerceIn(1, 100)) }
 
@@ -108,7 +95,6 @@ class SettingsStore(context: Context) {
     private companion object {
         const val FILE = "spellwise-settings"
         const val KEY_API = "apiKey"
-        const val KEY_MODEL = "lookupModel"
         const val KEY_NEW_PER_DAY = "newWordsPerDay"
         const val KEY_REMINDER_ON = "reminderEnabled"
         const val KEY_REMINDER_HOUR = "reminderHour"

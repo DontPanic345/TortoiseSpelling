@@ -103,13 +103,24 @@ class AddWordViewModel(
 
         _state.value = snapshot.copy(lookingUp = true)
         viewModelScope.launch {
-            when (val result = claude.lookup(word, config.apiKey, config.lookupModel)) {
-                is LookupResult.Success -> _state.value = _state.value.copy(
-                    lookingUp = false,
-                    definition = result.definition,
-                    example = result.example,
-                    partOfSpeech = result.partOfSpeech.orEmpty(),
-                )
+            when (val result = claude.lookup(word, config.apiKey)) {
+                is LookupResult.Success -> {
+                    // Claude returns the corrected spelling; adopt it so the card teaches
+                    // the right word, not the typo. The user can still edit it back.
+                    val corrected = !result.word.equals(word, ignoreCase = true)
+                    _state.value = _state.value.copy(
+                        lookingUp = false,
+                        text = result.word,
+                        definition = result.definition,
+                        example = result.example,
+                        partOfSpeech = result.partOfSpeech.orEmpty(),
+                        message = if (corrected) {
+                            "Corrected spelling to “${result.word}”."
+                        } else {
+                            null
+                        },
+                    )
+                }
 
                 // Lenient by design: hand back whatever came back rather than discarding
                 // it, so the user can salvage it instead of retyping from scratch.

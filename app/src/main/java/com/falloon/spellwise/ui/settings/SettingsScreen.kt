@@ -7,6 +7,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,11 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuAnchorType
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -49,13 +46,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.falloon.spellwise.data.LOOKUP_MODELS
 import com.falloon.spellwise.ui.rememberAppContainer
 import java.io.BufferedReader
 
@@ -134,6 +131,14 @@ fun SettingsScreen(onBack: () -> Unit) {
         ) {
             SectionTitle("Claude lookup")
 
+            Text(
+                text = "Optional. With a key, “Look up with Claude” fills in the " +
+                    "definition and example when you add a word. Without one, you type " +
+                    "those yourself.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
             OutlinedTextField(
                 value = state.settings.apiKey,
                 onValueChange = viewModel::setApiKey,
@@ -174,10 +179,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                 Text("Test key")
             }
 
-            ModelDropdown(
-                selected = state.settings.lookupModel,
-                onSelect = viewModel::setLookupModel,
-            )
+            ApiKeyHelp()
 
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
             SectionTitle("Practice")
@@ -271,34 +273,22 @@ private fun SectionTitle(text: String) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ModelDropdown(selected: String, onSelect: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-    ) {
-        OutlinedTextField(
-            value = selected,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Lookup model") },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+private fun ApiKeyHelp() {
+    val uriHandler = LocalUriHandler.current
+    Column {
+        Text(
+            text = "No key yet? Sign in at console.anthropic.com, open " +
+                "Settings → API keys → Create key, then add a little credit under " +
+                "Billing. Lookups use the cheapest model and cost well under a cent each.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
-        ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-            LOOKUP_MODELS.forEach { model ->
-                DropdownMenuItem(
-                    text = { Text(model) },
-                    onClick = {
-                        onSelect(model)
-                        expanded = false
-                    },
-                )
-            }
+        TextButton(
+            onClick = { uriHandler.openUri("https://console.anthropic.com/settings/keys") },
+            contentPadding = PaddingValues(vertical = 4.dp),
+        ) {
+            Text("Open the Anthropic console")
         }
     }
 }
