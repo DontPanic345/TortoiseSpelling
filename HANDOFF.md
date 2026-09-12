@@ -1,4 +1,4 @@
-# Spellwise — Android app handoff
+# TortoiseSpelling — Android app handoff
 
 A native Android app for learning to spell words you don't already know. Built with the
 intent that you continue in a **fresh Claude Code session on Windows** with Android Studio.
@@ -49,8 +49,8 @@ concrete reasons, both of which this app must solve:
 | HTTP | OkHttp | |
 
 ### Package / naming
-- Application ID: `com.falloon.spellwise` (change if you like; it's cosmetic)
-- App name: **Spellwise**
+- Application ID: `com.falloon.tortoisespelling` (change if you like; it's cosmetic)
+- App name: **TortoiseSpelling**
 
 ---
 
@@ -60,7 +60,7 @@ concrete reasons, both of which this app must solve:
 - Android SDK is at `C:\Users\fallo\AppData\Local\Android\Sdk` (has build-tools, platform-tools,
   platforms, emulator, system-images already).
 - User: `fallo`.
-- Suggested project path: `C:\Users\fallo\AndroidStudioProjects\Spellwise`.
+- Suggested project path: `C:\Users\fallo\AndroidStudioProjects\TortoiseSpelling`.
 - For the Claude API call: **invoke the `claude-api` skill** and read `java/claude-api/README.md`
   before writing the network code, to confirm current model IDs, the `anthropic-version`
   header value, and whether to use structured outputs. Do not trust this file's API snippet
@@ -393,14 +393,14 @@ Plugins: `com.android.application`, `org.jetbrains.kotlin.android`,
 ## 10. Suggested source layout
 
 ```
-com.falloon.spellwise
-├── SpellwiseApp.kt            // Application; builds AppContainer; creates notif channel; re-enqueues worker
+com.falloon.tortoisespelling
+├── TortoiseSpellingApp.kt            // Application; builds AppContainer; creates notif channel; re-enqueues worker
 ├── di/AppContainer.kt         // db, repo, settings, okHttpClient, claudeClient
 ├── MainActivity.kt            // sets Compose content, NavHost, handles deep-link extra
 ├── data/
 │   ├── Word.kt  ReviewLog.kt
-│   ├── SpellwiseDao.kt
-│   ├── SpellwiseDatabase.kt
+│   ├── TortoiseSpellingDao.kt
+│   ├── TortoiseSpellingDatabase.kt
 │   ├── SettingsStore.kt       // EncryptedSharedPreferences / DataStore wrapper
 │   └── remote/ClaudeClient.kt // suspend fun lookup(word): LookupResult
 ├── domain/
@@ -426,11 +426,11 @@ ViewModels get the `AppContainer` via a simple `viewModelFactory { }` — no Hil
 
 ## 11. Build plan (do it in this order)
 
-1. **Scaffold.** Android Studio → New Project → Empty Activity (Compose), name Spellwise,
-   package `com.falloon.spellwise`, min SDK 26, Kotlin DSL. Confirm it builds and runs on an
+1. **Scaffold.** Android Studio → New Project → Empty Activity (Compose), name TortoiseSpelling,
+   package `com.falloon.tortoisespelling`, min SDK 26, Kotlin DSL. Confirm it builds and runs on an
    emulator.
 2. **Dependencies + plugins** (§9). Add KSP and serialization plugins. Sync, confirm build.
-3. **Data layer.** `Word`, `ReviewLog`, DAO, `SpellwiseDatabase`. Write an instrumented or
+3. **Data layer.** `Word`, `ReviewLog`, DAO, `TortoiseSpellingDatabase`. Write an instrumented or
    in-memory Room test that inserts and queries "due today".
 4. **SRS.** `Srs.kt` + `Scheduler` interface. **Unit test it** against the SM-2 examples
    (new word → 1d → 6d → ~15d; a lapse resets to 1d). This is pure and quick to get right.

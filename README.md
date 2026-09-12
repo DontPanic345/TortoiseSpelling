@@ -1,4 +1,4 @@
-# Spellwise
+# TortoiseSpelling
 
 A native Android app for learning to spell words you don't already know. You build
 your own word list, and the app drills you on it with spaced repetition, active
@@ -93,14 +93,14 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 key is present in the environment:
 
 ```bash
-SPELLWISE_ANTHROPIC_KEY=sk-ant-... ./gradlew testDebugUnitTest
+TORTOISESPELLING_ANTHROPIC_KEY=sk-ant-... ./gradlew testDebugUnitTest
 ```
 
 ## Project layout
 
 ```
-com.falloon.spellwise
-├── SpellwiseApp.kt         Application; builds AppContainer, creates the notification
+com.falloon.tortoisespelling
+├── TortoiseSpellingApp.kt         Application; builds AppContainer, creates the notification
 │                           channel, re-asserts the reminder schedule
 ├── MainActivity.kt         NavHost; handles the reminder deep-link extra
 ├── di/AppContainer.kt      Manual dependency graph (no Hilt)

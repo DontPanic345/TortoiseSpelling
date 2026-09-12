@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Spellwise"
+rootProject.name = "TortoiseSpelling"
 include(":app")

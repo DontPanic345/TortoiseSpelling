@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "com.falloon.spellwise"
+    namespace = "com.falloon.tortoisespelling"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.falloon.spellwise"
+        applicationId = "com.falloon.tortoisespelling"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
