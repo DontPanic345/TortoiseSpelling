@@ -121,3 +121,7 @@ later without the review UI noticing.
 
 Kotlin, Jetpack Compose, Navigation-Compose, Room (with KSP), WorkManager, OkHttp,
 kotlinx-serialization. `compileSdk` / `targetSdk` 36, `minSdk` 26. Manual DI.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
