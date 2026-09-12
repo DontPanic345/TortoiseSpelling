@@ -229,14 +229,18 @@ private fun AnswerField(
         },
         isError = phase is ReviewPhase.Corrective,
         // The single most important configuration in the app: if the keyboard
-        // autocorrects a misspelling into the right word, the exercise is worthless.
-        // autoCorrectEnabled is the lever that maps to NO_SUGGESTIONS; Ascii discourages
-        // the IME from offering completions without masking what was typed (Password
-        // type would hide it, which defeats the point).
+        // autocorrects a misspelling into the right word — or just offers it in the
+        // suggestion strip — the exercise is worthless. autoCorrectEnabled +
+        // KeyboardType.Ascii are widely ignored by Gboard and Samsung Keyboard, so
+        // we use Password type (TYPE_TEXT_VARIATION_VISIBLE_PASSWORD), the one flag
+        // both honour: no suggestion strip, no autocorrect, and the word is never
+        // learned into the personal dictionary. The text stays readable because the
+        // field keeps the default VisualTransformation.None (Compose does not mask
+        // on keyboard type alone), so the miss diff still works.
         keyboardOptions = KeyboardOptions(
             autoCorrectEnabled = false,
             capitalization = KeyboardCapitalization.None,
-            keyboardType = KeyboardType.Ascii,
+            keyboardType = KeyboardType.Password,
             imeAction = ImeAction.Done,
         ),
         keyboardActions = KeyboardActions(onDone = { onSubmit() }),

@@ -148,11 +148,16 @@ For each item:
   KeyboardOptions(
       autoCorrectEnabled = false,
       capitalization = KeyboardCapitalization.None,
-      keyboardType = KeyboardType.Ascii,   // suppresses suggestions without masking text
+      keyboardType = KeyboardType.Password, // TYPE_TEXT_VARIATION_VISIBLE_PASSWORD: the
+                                            // one flag Gboard + Samsung both honour
       imeAction = ImeAction.Done
   )
   ```
-  Do NOT use `KeyboardType.Password` (masks the text — user can't see their attempt).
+  `KeyboardType.Ascii` + `autoCorrectEnabled = false` were tried first but Gboard and
+  Samsung Keyboard ignore both, still autocorrecting misspellings and offering the word
+  in the suggestion strip. `KeyboardType.Password` does not mask the text on its own —
+  Compose only masks when you also set a password `VisualTransformation`, which we don't
+  — so the user still sees their attempt for the diff.
 - Progress: "3 / 12".
 
 On submit (trim, compare case-insensitively to `word.text`):
