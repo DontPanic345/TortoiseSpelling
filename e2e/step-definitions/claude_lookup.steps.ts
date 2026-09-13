@@ -16,7 +16,9 @@ Given('my Anthropic API key is saved in Settings', async () => {
         );
     }
     await settings.open();
-    await settings.apiKeyField().setValue(apiKey);
+    // mask keeps the key out of WebdriverIO's own logs; appium-log-filters.json covers
+    // the Appium server's.
+    await settings.apiKeyField().setValue(apiKey, { mask: true });
     await home.goBack();
 });
 

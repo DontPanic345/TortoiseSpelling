@@ -1,0 +1,12 @@
+[
+  {
+    "pattern": "sk-ant-[A-Za-z0-9_-]+",
+    "flags": "g",
+    "replacer": "sk-ant-**SECURE**"
+  },
+  {
+    "pattern": "\"value\":\\[[^\\]]*\\]",
+    "flags": "g",
+    "replacer": "\"value\":[\"**SECURE**\"]"
+  }
+]

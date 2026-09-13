@@ -134,6 +134,12 @@ and are mirrored in `support/testIds.ts`; change both together.
   opening it directly — the row turns "selected" and an action bar with a `Select` button
   appears instead of the picker closing. Tapping `Select` completes the same pick; check for
   it after the tap rather than assuming the picker always closes on the first click.
+- **Typed text is logged unless redacted.** The Appium server log records every
+  `setValue`, once as text and again split into single characters.
+  [`appium-log-filters.json`](appium-log-filters.json) (wired in via `logFilters` in
+  `wdio.conf.ts`) redacts Anthropic keys and every per-character copy; the `@live-api` step
+  also passes `{ mask: true }` to keep the key out of WebdriverIO's own logs. Keep both if
+  you touch that step, and never put a real secret in a step's text: step text is printed.
 - **Never press Back while a system dialog is in front.** UiAutomator only sees the front
   window, so the notification-permission prompt (which opens over Home) makes Home's title
   look absent, and a "Back until Home" loop dismisses the prompt, which Android records as

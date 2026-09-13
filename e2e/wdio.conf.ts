@@ -73,6 +73,11 @@ export const config: WebdriverIO.Config = {
                     // Allows `mobile: shell` for steps that act on the device rather than
                     // the app: killing the app's process, pushing files into Downloads.
                     allowInsecure: 'uiautomator2:adb_shell',
+                    // The Appium log records every typed value, both as text and again
+                    // split into single characters. appium-log-filters.json redacts
+                    // Anthropic keys and the per-character copies, so the @live-api key
+                    // never reaches logs/wdio-appium.log in the clear.
+                    logFilters: path.resolve(import.meta.dirname, 'appium-log-filters.json'),
                 },
             },
         ],
