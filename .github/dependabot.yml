@@ -1,0 +1,35 @@
+# Weekly dependency update PRs. Minor and patch updates are grouped into one PR per
+# ecosystem so they don't bury the repo; majors come one PR each, because they're the
+# ones that break things. CI runs on every one of these PRs.
+version: 2
+
+updates:
+  - package-ecosystem: gradle
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      # KSP's version is tied to Kotlin's (2.2.20-2.0.4 is KSP for Kotlin 2.2.20), so
+      # the two must move together or the build breaks.
+      kotlin-and-ksp:
+        patterns:
+          - "org.jetbrains.kotlin.*"
+          - "com.google.devtools.ksp*"
+      gradle-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /e2e
+    schedule:
+      interval: weekly
+    groups:
+      e2e-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
