@@ -1,0 +1,71 @@
+name: CI
+
+# Unit tests, lint and the device-free checks, on every push to main and every pull
+# request. release.yml calls this too, so a release can't be built from a commit whose
+# tests fail.
+#
+# The Appium e2e suite isn't run here: it needs an emulator. Run it locally (see
+# e2e/README.md). ClaudeIntegrationTest is skipped because there's no API key here.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  app:
+    name: Unit tests and lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+          # setup-java's own Gradle cache rather than gradle/actions/setup-gradle, whose
+          # v6 requires accepting Gradle's separate terms of use for its caching.
+          cache: gradle
+
+      - name: Unit tests and lint
+        run: ./gradlew testDebugUnitTest lintDebug
+
+      - name: Upload test and lint reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: app-reports
+          path: |
+            app/build/reports/
+            app/build/test-results/
+
+  scripts:
+    name: Release scripts and e2e checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Release script tests
+        run: node --test 'scripts/*.test.mjs'
+
+      - name: Install e2e dependencies
+        working-directory: e2e
+        run: npm ci
+
+      - name: Every e2e step is defined
+        working-directory: e2e
+        run: npm run check-steps
+
+      - name: Typecheck e2e
+        working-directory: e2e
+        run: npm run typecheck

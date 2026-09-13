@@ -17,7 +17,13 @@ Gradle needs `JAVA_HOME`; on this machine use Android Studio's JBR
 ./gradlew testDebugUnitTest                   # JVM unit tests (no device)
 ./gradlew testDebugUnitTest --tests '*SrsTest'                  # one class
 ./gradlew testDebugUnitTest --tests '*DaysTest.a quiet*'        # one method (backtick names)
+./gradlew lintDebug                           # CI fails on lint errors, not warnings
+node --test 'scripts/*.test.mjs'              # release script tests (quote the glob)
 ```
+
+- **CI** (`.github/workflows/ci.yml`) runs the unit tests, `lintDebug`, the script tests and
+  the e2e `check-steps`/`typecheck` on pushes to main and on PRs. It doesn't run the Appium
+  scenarios.
 
 - **Live API tests.** `ClaudeIntegrationTest` is skipped unless `TORTOISESPELLING_ANTHROPIC_KEY`
   is set. Gradle doesn't treat env vars as task inputs, so add `--rerun`; otherwise the task
@@ -128,6 +134,16 @@ need their own `testTagsAsResourceId`.
 
 Pushing a `v*` tag runs `.github/workflows/release.yml`. It builds a signed, R8-minified
 APK from four repo secrets and publishes it to GitHub Releases, to be sideloaded; there is
-no Play Store listing. Bump `versionCode` and `versionName` in `app/build.gradle.kts`
-first. The workflow deliberately has no manual trigger: the release is named after
-`github.ref_name`, so a manual run from a branch would create a tag called `main`.
+no Play Store listing. The workflow deliberately has no manual trigger: the release is
+named after `github.ref_name`, so a manual run from a branch would create a tag called `main`.
+
+- **Changelog.** `CHANGELOG.md` follows Keep a Changelog. Any user-visible change adds a
+  line under `[Unreleased]` in the same PR. The GitHub release notes are the version's
+  section, not generated notes.
+- **Version bump.** `node scripts/bump-version.mjs <major|minor|patch|X.Y.Z>` raises
+  `versionName` and `versionCode` and moves `[Unreleased]` under a dated heading. It
+  doesn't commit or tag, because the tag belongs on main after the bump is merged.
+- **Release gate.** `scripts/check-release.mjs` fails the release unless the tag is
+  `v<versionName>`, `versionCode` beats the previous tag's, and the changelog has notes. The
+  workflow also requires the tag to be on main and calls `ci.yml` before building. The
+  logic is in `scripts/version.mjs`, which is pure and covered by `version.test.mjs`.

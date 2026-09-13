@@ -90,6 +90,15 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 | Unit tests | `app/src/test/` | JVM, no device |
 | Live-API integration test | `ClaudeIntegrationTest` | JVM, real Anthropic API |
 | End-to-end BDD tests | [`e2e/`](e2e/README.md) | The real APK on an emulator |
+| Release script tests | `scripts/*.test.mjs` | Node, no device |
+
+[CI](.github/workflows/ci.yml) runs the unit tests, lint, the release script tests and
+the e2e suite's device-free checks on every push to main and every pull request. The e2e
+scenarios themselves need an emulator, so they run locally.
+
+```bash
+node --test 'scripts/*.test.mjs'
+```
 
 ### Live-API integration test
 
@@ -114,13 +123,28 @@ cd e2e && npm install && npm run e2e
 ## 📦 Releases
 
 There's no Play Store listing: releases are signed APKs on the GitHub Releases page,
-installed by sideloading. To cut one, bump `versionCode`/`versionName` in
-`app/build.gradle.kts`, commit, and push a `v*` tag:
+installed by sideloading. What changed in each version is in [CHANGELOG.md](CHANGELOG.md).
 
-```bash
-git tag v1.0.0 && git push origin v1.0.0
-```
+To cut one:
 
-The [release workflow](.github/workflows/release.yml) builds an R8-minified APK, signs it
-with the keystore held in the repo's Actions secrets, and publishes it. Every future
-update must be signed with that same keystore, so keep an offline backup of it.
+1. Check that [CHANGELOG.md](CHANGELOG.md) lists the changes under **[Unreleased]**.
+2. Bump the version. This raises `versionName` (major, minor or patch) and `versionCode`
+   in `app/build.gradle.kts`, and moves the notes under a heading dated today:
+
+   ```bash
+   node scripts/bump-version.mjs minor
+   ```
+
+3. Commit, and merge to main.
+4. Tag main with the new version and push the tag:
+
+   ```bash
+   git tag v0.1.0 && git push origin v0.1.0
+   ```
+
+The [release workflow](.github/workflows/release.yml) refuses a tag that isn't on main,
+doesn't match `versionName`, doesn't raise `versionCode`, or has no changelog notes. It
+runs the [CI](.github/workflows/ci.yml) tests, then builds an R8-minified APK, signs it
+with the keystore held in the repo's Actions secrets, and publishes it with that version's
+changelog section as the release notes. Every future update must be signed with that
+same keystore, so keep an offline backup of it.

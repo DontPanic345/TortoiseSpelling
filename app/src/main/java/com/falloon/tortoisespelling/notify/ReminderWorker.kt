@@ -90,8 +90,14 @@ class ReminderWorker(
             .setContentIntent(pending)
             .build()
 
-        NotificationManagerCompat.from(applicationContext)
-            .notify(ReminderScheduler.NOTIFICATION_ID, notification)
+        // The permission can be revoked between the check above and this call, and then
+        // posting throws. Today's notification is lost either way; swallowing it lets the
+        // run end as a success, and doWork's finally books tomorrow's run regardless.
+        try {
+            NotificationManagerCompat.from(applicationContext)
+                .notify(ReminderScheduler.NOTIFICATION_ID, notification)
+        } catch (ignored: SecurityException) {
+        }
     }
 
     companion object {

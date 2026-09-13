@@ -3,8 +3,13 @@ name: Release
 # Builds a signed release APK and publishes it to GitHub Releases. There's no Play
 # Store distribution for this app -- users sideload the APK from the release page.
 #
-# To cut a release: bump versionCode/versionName in app/build.gradle.kts, commit,
-# then push a tag matching v* (e.g. `git tag v1.1.0 && git push origin v1.1.0`).
+# To cut a release: run `node scripts/bump-version.mjs <major|minor|patch>`, commit, and
+# merge to main. Then tag main with the new version and push the tag (e.g.
+# `git tag v1.1.0 && git push origin v1.1.0`).
+#
+# Nothing is built unless the tag is on main, matches versionName, has a higher
+# versionCode than the previous release, and has notes in CHANGELOG.md; and unless the
+# CI workflow passes. The release notes are that CHANGELOG.md section.
 #
 # Tag pushes only, deliberately no workflow_dispatch: the release is named after
 # github.ref_name, so a manual run from a branch would publish a release -- and create
@@ -16,18 +21,64 @@ on:
       - "v*"
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  build-and-release:
+  check:
+    name: Check the tag
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          # Every tag and branch: the checks read main and the previous release's tag.
+          fetch-depth: 0
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      - name: The tagged commit is on main
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$TAG isn't on main. Merge the version bump, then tag main."
+            exit 1
+          fi
+
+      - name: Version and changelog match the tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: node scripts/check-release.mjs "$TAG"
+
+  test:
+    name: Tests
+    uses: ./.github/workflows/ci.yml
+
+  build-and-release:
+    needs: [check, test]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "17"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      - name: Release notes from CHANGELOG.md
+        env:
+          TAG: ${{ github.ref_name }}
+        run: node scripts/check-release.mjs "$TAG" "$RUNNER_TEMP/release-notes.md"
 
       - name: Decode release keystore
         env:
@@ -40,18 +91,18 @@ jobs:
           RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
           RELEASE_KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
-        run: |
-          chmod +x ./gradlew
-          ./gradlew assembleRelease
+        run: ./gradlew assembleRelease
 
       - name: Rename APK for the release asset
-        run: cp app/build/outputs/apk/release/app-release.apk "TortoiseSpelling-${{ github.ref_name }}.apk"
+        env:
+          TAG: ${{ github.ref_name }}
+        run: cp app/build/outputs/apk/release/app-release.apk "TortoiseSpelling-$TAG.apk"
 
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
         run: |
-          gh release create "${{ github.ref_name }}" \
-            "TortoiseSpelling-${{ github.ref_name }}.apk" \
-            --title "TortoiseSpelling ${{ github.ref_name }}" \
-            --generate-notes
+          gh release create "$TAG" "TortoiseSpelling-$TAG.apk" \
+            --title "TortoiseSpelling $TAG" \
+            --notes-file "$RUNNER_TEMP/release-notes.md"
