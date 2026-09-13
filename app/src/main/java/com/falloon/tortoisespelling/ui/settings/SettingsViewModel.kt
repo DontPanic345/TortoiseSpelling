@@ -1,6 +1,7 @@
 package com.falloon.tortoisespelling.ui.settings
 
 import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -19,10 +20,13 @@ import com.falloon.tortoisespelling.data.toBackup
 import com.falloon.tortoisespelling.data.toWord
 import com.falloon.tortoisespelling.di.AppContainer
 import com.falloon.tortoisespelling.notify.ReminderScheduler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.IOException
 
 data class SettingsUiState(
     val settings: Settings = Settings(),
@@ -110,42 +114,58 @@ class SettingsViewModel(
         say("Test reminder queued.")
     }
 
-    fun buildBackupJson(onReady: (String) -> Unit) {
-        viewModelScope.launch {
-            val words = repository.exportAll()
-            val backup = BackupFile(words = words.map { it.toBackup() })
-            onReady(BackupJson.encodeToString(BackupFile.serializer(), backup))
-        }
-    }
+    // Backup file I/O runs on Dispatchers.IO: the chosen document may live with a cloud
+    // provider such as Google Drive, whose streams can block on the network for seconds.
 
-    fun importBackupJson(raw: String) {
+    fun exportTo(uri: Uri) {
         _state.value = _state.value.copy(busy = true)
         viewModelScope.launch {
-            try {
-                val backup = parseBackup(raw)
-                val summary = repository.importWords(backup.words.map { it.toWord() })
-                _state.value = _state.value.copy(
-                    busy = false,
-                    message = buildString {
-                        append("Imported ${summary.added} word")
-                        if (summary.added != 1) append("s")
-                        if (summary.skipped > 0) {
-                            append(", skipped ${summary.skipped} already in your list")
-                        }
-                        append(".")
-                    },
-                )
-            } catch (error: BackupFormatException) {
-                _state.value = _state.value.copy(busy = false, message = error.message)
+            val message = try {
+                val backup = BackupFile(words = repository.exportAll().map { it.toBackup() })
+                val json = BackupJson.encodeToString(BackupFile.serializer(), backup)
+                withContext(Dispatchers.IO) {
+                    // "wt" truncates: plain "w" can leave a longer old file's tail behind.
+                    val stream = context.contentResolver.openOutputStream(uri, "wt")
+                        ?: throw IOException("No output stream for $uri")
+                    stream.use { it.write(json.toByteArray()) }
+                }
+                "Backup saved."
             } catch (error: Exception) {
-                _state.value = _state.value.copy(busy = false, message = "Couldn't read that file.")
+                "Couldn't write that file."
             }
+            _state.value = _state.value.copy(busy = false, message = message)
         }
     }
 
-    fun exportFailed() = say("Couldn't write that file.")
-
-    fun exportSucceeded() = say("Backup saved.")
+    fun importFrom(uri: Uri) {
+        _state.value = _state.value.copy(busy = true)
+        viewModelScope.launch {
+            val message = try {
+                val raw = withContext(Dispatchers.IO) {
+                    val stream = context.contentResolver.openInputStream(uri)
+                        ?: throw IOException("No input stream for $uri")
+                    stream.bufferedReader().use { it.readText() }
+                }
+                val backup = parseBackup(raw)
+                val summary = repository.importWords(backup.words.map { it.toWord() })
+                buildString {
+                    append("Imported ${summary.added} word")
+                    if (summary.added != 1) {
+                        append("s")
+                    }
+                    if (summary.skipped > 0) {
+                        append(", skipped ${summary.skipped} already in your list")
+                    }
+                    append(".")
+                }
+            } catch (error: BackupFormatException) {
+                error.message
+            } catch (error: Exception) {
+                "Couldn't read that file."
+            }
+            _state.value = _state.value.copy(busy = false, message = message)
+        }
+    }
 
     companion object {
         fun factory(context: Context, container: AppContainer): ViewModelProvider.Factory =

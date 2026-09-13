@@ -14,6 +14,6 @@ class TortoiseSpellingApp : Application() {
         container = AppContainer(this)
         ReminderScheduler.createChannel(this)
         // Re-assert the schedule on every launch so a dropped or cancelled worker heals.
-        ReminderScheduler.sync(this, container.settings.current())
+        ReminderScheduler.ensureScheduled(this, container.settings.current())
     }
 }

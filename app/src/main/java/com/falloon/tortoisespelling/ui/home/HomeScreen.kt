@@ -37,6 +37,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.falloon.tortoisespelling.ui.RequestNotificationPermissionIfNeeded
 import com.falloon.tortoisespelling.ui.complete.CompletionPanel
 import com.falloon.tortoisespelling.ui.rememberAppContainer
 
@@ -57,6 +58,8 @@ fun HomeScreen(
     // Counts move with the clock and with sessions finished elsewhere in the graph, so
     // they have to be re-read on resume rather than only when the screen is created.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
+
+    RequestNotificationPermissionIfNeeded(ready = !state.loading && state.hasWords)
 
     Scaffold(
         topBar = {

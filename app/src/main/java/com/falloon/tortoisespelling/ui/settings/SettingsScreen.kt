@@ -31,8 +31,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -42,6 +44,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,10 +54,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.falloon.tortoisespelling.notify.ReminderScheduler
+import com.falloon.tortoisespelling.ui.openNotificationSettings
 import com.falloon.tortoisespelling.ui.rememberAppContainer
-import java.io.BufferedReader
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,6 +72,7 @@ fun SettingsScreen(onBack: () -> Unit) {
         viewModel(factory = SettingsViewModel.factory(context, container))
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHost = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
     var keyVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.message) {
@@ -74,38 +82,52 @@ fun SettingsScreen(onBack: () -> Unit) {
         }
     }
 
+    // Permission can be revoked from system settings while this screen is backgrounded,
+    // so it is re-read on every resume rather than once.
+    var notificationsAllowed by remember {
+        mutableStateOf(ReminderScheduler.canPostNotifications(context))
+    }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        notificationsAllowed = ReminderScheduler.canPostNotifications(context)
+    }
+    // A switch that claims to be on while the system silently drops every notification
+    // is worse than an honest off, so it shows whether reminders can actually arrive.
+    val remindersOn = state.settings.reminderEnabled && notificationsAllowed
+
     val notificationPermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { granted ->
-        // Enable only on an actual grant; a switch that claims to be on while the
-        // system silently drops every notification is worse than an honest off.
+        notificationsAllowed = granted
         viewModel.setReminderEnabled(granted)
+        if (!granted) {
+            // After a second refusal Android stops showing the prompt at all, so the
+            // only way back is the system settings page.
+            coroutineScope.launch {
+                // Explicit duration: with an action, Material 3 defaults to Indefinite,
+                // which would park this over the Backup buttons and queue every later
+                // message behind it.
+                val result = snackbarHost.showSnackbar(
+                    message = "Notifications are blocked for TortoiseSpelling.",
+                    actionLabel = "Open settings",
+                    duration = SnackbarDuration.Long,
+                )
+                if (result == SnackbarResult.ActionPerformed) {
+                    openNotificationSettings(context)
+                }
+            }
+        }
     }
 
     val exportLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/json"),
     ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        viewModel.buildBackupJson { json ->
-            runCatching {
-                context.contentResolver.openOutputStream(uri)?.use { it.write(json.toByteArray()) }
-            }
-                .onSuccess { viewModel.exportSucceeded() }
-                .onFailure { viewModel.exportFailed() }
-        }
+        uri?.let(viewModel::exportTo)
     }
 
     val importLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument(),
     ) { uri ->
-        if (uri == null) return@rememberLauncherForActivityResult
-        runCatching {
-            context.contentResolver.openInputStream(uri)?.use { stream ->
-                stream.bufferedReader().use(BufferedReader::readText)
-            }
-        }
-            .onSuccess { text -> text?.let(viewModel::importBackupJson) }
-            .onFailure { viewModel.exportFailed() }
+        uri?.let(viewModel::importFrom)
     }
 
     Scaffold(
@@ -200,7 +222,7 @@ fun SettingsScreen(onBack: () -> Unit) {
             ) {
                 Text("Remind me daily", style = MaterialTheme.typography.bodyLarge)
                 Switch(
-                    checked = state.settings.reminderEnabled,
+                    checked = remindersOn,
                     onCheckedChange = { enabled ->
                         if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                             notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
@@ -225,7 +247,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                         true,
                     ).show()
                 },
-                enabled = state.settings.reminderEnabled,
+                enabled = remindersOn,
             ) {
                 Text("Reminder time: %02d:%02d".format(hour, minute))
             }

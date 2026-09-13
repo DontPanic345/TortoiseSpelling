@@ -37,7 +37,11 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // R8 strips the unused bulk of material-icons-extended and the other
+            // libraries. Every dependency here ships its own keep rules (Room, WorkManager,
+            // kotlinx-serialization, OkHttp), so proguard-rules.pro starts empty.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             if (releaseKeystorePath != null) {
                 signingConfig = signingConfigs.getByName("release")

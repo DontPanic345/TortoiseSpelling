@@ -48,6 +48,43 @@ class DaysTest {
     }
 
     @Test
+    fun `a quiet yesterday does not zero the streak before today's session`() {
+        assertEquals(
+            1,
+            Days.currentStreak(
+                studyDays = setOf(98L),
+                today = 100,
+                satisfiedDays = setOf(99L),
+            ),
+        )
+    }
+
+    @Test
+    fun `a run of quiet days keeps the streak`() {
+        // Long intervals leave whole stretches with nothing due, today included.
+        assertEquals(
+            2,
+            Days.currentStreak(
+                studyDays = setOf(94L, 95L),
+                today = 100,
+                satisfiedDays = setOf(96L, 97L, 98L, 99L, 100L),
+            ),
+        )
+    }
+
+    @Test
+    fun `quiet days after a real gap do not revive an old streak`() {
+        assertEquals(
+            0,
+            Days.currentStreak(
+                studyDays = setOf(90L),
+                today = 100,
+                satisfiedDays = setOf(98L, 99L),
+            ),
+        )
+    }
+
+    @Test
     fun `stale streak from long ago does not count`() {
         assertEquals(0, Days.currentStreak(setOf(50L, 51L), today = 100))
     }

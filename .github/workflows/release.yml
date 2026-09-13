@@ -5,12 +5,15 @@ name: Release
 #
 # To cut a release: bump versionCode/versionName in app/build.gradle.kts, commit,
 # then push a tag matching v* (e.g. `git tag v1.1.0 && git push origin v1.1.0`).
+#
+# Tag pushes only, deliberately no workflow_dispatch: the release is named after
+# github.ref_name, so a manual run from a branch would publish a release -- and create
+# a tag -- called "main".
 
 on:
   push:
     tags:
       - "v*"
-  workflow_dispatch:
 
 permissions:
   contents: write

@@ -34,7 +34,14 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        startInReview = intent?.getBooleanExtra(EXTRA_START_REVIEW, false) == true
+        // The launch intent is redelivered on every recreation (rotation, theme change,
+        // process-death restore) and when reopened from Recents, extras included. Acting
+        // on it again would drop the user back into review, so only a fresh launch counts.
+        val launchedFromHistory =
+            (intent.flags and Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) != 0
+        if (savedInstanceState == null && !launchedFromHistory) {
+            startInReview = intent.getBooleanExtra(EXTRA_START_REVIEW, false)
+        }
 
         setContent {
             TortoiseSpellingTheme {
@@ -70,7 +77,8 @@ private fun TortoiseSpellingNavHost(
     // an empty queue and forwards to the completion screen, so no guard is needed here.
     LaunchedEffect(startInReview) {
         if (startInReview) {
-            navController.navigate(Routes.REVIEW)
+            // Tapping the reminder while already reviewing must not stack a second session.
+            navController.navigate(Routes.REVIEW) { launchSingleTop = true }
             onReviewLaunchHandled()
         }
     }
