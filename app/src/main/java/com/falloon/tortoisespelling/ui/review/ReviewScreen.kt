@@ -48,8 +48,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.falloon.tortoisespelling.data.Word
+import com.falloon.tortoisespelling.domain.BLANK_PLACEHOLDER
 import com.falloon.tortoisespelling.domain.SpellingDiff
-import com.falloon.tortoisespelling.domain.blanksFor
 import com.falloon.tortoisespelling.ui.rememberAppContainer
 import com.falloon.tortoisespelling.ui.theme.BlankStyle
 import com.falloon.tortoisespelling.ui.theme.LocalFeedbackColors
@@ -190,7 +190,7 @@ private fun Prompt(word: Word, phase: ReviewPhase, blanked: String?) {
                 Text(blanked, style = BlankStyle)
 
             else -> Column {
-                Text(blanksFor(word.text.length), style = BlankStyle)
+                Text(BLANK_PLACEHOLDER, style = BlankStyle)
                 Text(
                     "type the word",
                     style = MaterialTheme.typography.labelMedium,

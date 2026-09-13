@@ -3,8 +3,13 @@ package com.falloon.tortoisespelling.domain
 /** Result of hiding a target word inside a longer piece of text. */
 data class BlankedText(val text: String, val didBlank: Boolean)
 
-/** The visual placeholder for a word of [length] characters: "_ _ _ _". */
-fun blanksFor(length: Int): String = "_ ".repeat(length).trim()
+/**
+ * The visual placeholder for a blanked word.
+ *
+ * Fixed regardless of the word's length — sizing it to match would tell the user
+ * how many letters to guess.
+ */
+const val BLANK_PLACEHOLDER: String = "_____"
 
 /**
  * Regex matching [word] only as a whole word.
@@ -30,11 +35,10 @@ fun blankWordIn(sentence: String, word: String): BlankedText {
     if (sentence.isBlank() || word.isBlank()) {
         return BlankedText(sentence, didBlank = false)
     }
-    val blanks = blanksFor(word.length)
     var matched = false
     val replaced = wholeWordRegex(word).replace(sentence) {
         matched = true
-        blanks
+        BLANK_PLACEHOLDER
     }
     return BlankedText(replaced, didBlank = matched)
 }
