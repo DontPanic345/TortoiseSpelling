@@ -62,6 +62,8 @@ android {
 
     buildFeatures {
         compose = true
+        // For BuildConfig.VERSION_NAME in Settings' About section.
+        buildConfig = true
     }
 
     packaging {

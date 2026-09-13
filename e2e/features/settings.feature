@@ -37,3 +37,7 @@ Feature: Settings
     When I enter the API key "sk-ant-fake-key-for-e2e"
     And I choose "Test key"
     Then I am told "Key rejected (401). Check it and try again."
+
+  Scenario: Settings links to the privacy policy and the source code
+    Then Settings shows "Privacy policy"
+    And Settings shows "Source code"

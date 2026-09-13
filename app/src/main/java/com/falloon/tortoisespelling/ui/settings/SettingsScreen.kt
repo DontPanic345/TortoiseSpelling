@@ -59,6 +59,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.falloon.tortoisespelling.BuildConfig
 import com.falloon.tortoisespelling.notify.ReminderScheduler
 import com.falloon.tortoisespelling.ui.TestTags
 import com.falloon.tortoisespelling.ui.openNotificationSettings
@@ -286,6 +287,10 @@ fun SettingsScreen(onBack: () -> Unit) {
                 }
             }
 
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+            SectionTitle("About")
+            About()
+
             Spacer(Modifier.height(32.dp))
         }
     }
@@ -320,6 +325,41 @@ private fun ApiKeyHelp() {
         }
     }
 }
+
+@Composable
+private fun About() {
+    val uriHandler = LocalUriHandler.current
+    Column {
+        Text(
+            text = "TortoiseSpelling ${BuildConfig.VERSION_NAME}",
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Text(
+            text = "Free and open source under the MIT licence. No ads, no accounts, no " +
+                "tracking: your words stay on this device.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Row {
+            TextButton(
+                onClick = { uriHandler.openUri(PRIVACY_POLICY_URL) },
+                contentPadding = PaddingValues(vertical = 4.dp),
+            ) {
+                Text("Privacy policy")
+            }
+            Spacer(Modifier.size(16.dp))
+            TextButton(
+                onClick = { uriHandler.openUri(SOURCE_CODE_URL) },
+                contentPadding = PaddingValues(vertical = 4.dp),
+            ) {
+                Text("Source code")
+            }
+        }
+    }
+}
+
+private const val SOURCE_CODE_URL = "https://github.com/DontPanic345/TortoiseSpelling"
+private const val PRIVACY_POLICY_URL = "$SOURCE_CODE_URL/blob/main/PRIVACY.md"
 
 @Composable
 private fun Stepper(label: String, value: Int, onChange: (Int) -> Unit) {

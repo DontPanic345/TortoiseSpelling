@@ -21,6 +21,7 @@ reminder so the habit sticks. Slow and steady wins the race 🐢.
   13+ the app asks for notification permission once you've added your first word.
 
 Everything except word lookup works fully offline with no account and no API key.
+There are no ads, no analytics and no tracking: see the [privacy policy](PRIVACY.md).
 
 ## 🐰 Spaced repetition
 
@@ -35,6 +36,8 @@ Anki 🃏 — reviewing a word right as you're about to forget it.
 - 🎲 **Fuzzed intervals** so words added together don't all come due the same day.
 - 🐰🐇 **Two rabbits, one tortoise.** The hares sprint ahead early, but SM-2 makes
   sure the tortoise 🐢 wins: small, correctly-spaced daily reviews beat cramming.
+- 🌱 **New words trickle in.** Adding a whole bunch at once? Limit how many new words
+  you get each day in ⚙️ Settings so you don't get overwhelmed.
 
 ## 📱 Screens
 

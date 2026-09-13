@@ -9,6 +9,11 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+### Added
+
+- A privacy policy, and an About section at the bottom of Settings with the app's
+  version and links to the privacy policy and the source code.
+
 ### Changed
 
 - Home has more on it: a greeting, today's words on a card with the tortoise, a week

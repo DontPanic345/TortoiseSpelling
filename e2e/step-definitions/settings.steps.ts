@@ -2,6 +2,7 @@ import { Given, Then, When } from '@wdio/cucumber-framework';
 import { expect } from '@wdio/globals';
 import { typeInto } from '../support/actions.ts';
 import { settings } from '../support/screens/settings.ts';
+import { scrollToText } from '../support/selectors.ts';
 
 Given('I open Settings', async () => {
     await settings.open();
@@ -60,4 +61,9 @@ Given('the reminder time is set to {int} minutes from now', async (minutesFromNo
     const targetHour = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
     const targetMinute = String(totalMinutes % 60).padStart(2, '0');
     await settings.setReminderTime(`${targetHour}:${targetMinute}`);
+});
+
+/** For the parts of Settings below the fold, e.g. the About section's links. */
+Then('Settings shows {string}', async (text: string) => {
+    await expect(scrollToText(text)).toBeDisplayed();
 });
