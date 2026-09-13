@@ -1,4 +1,3 @@
-@todo
 Feature: Backing up the word list
   As a learner whose word list can't be recreated
   I want to export it to a file and import it back

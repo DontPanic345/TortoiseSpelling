@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -50,6 +51,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.falloon.tortoisespelling.data.Word
 import com.falloon.tortoisespelling.domain.BLANK_PLACEHOLDER
 import com.falloon.tortoisespelling.domain.SpellingDiff
+import com.falloon.tortoisespelling.ui.TestTags
 import com.falloon.tortoisespelling.ui.rememberAppContainer
 import com.falloon.tortoisespelling.ui.theme.BlankStyle
 import com.falloon.tortoisespelling.ui.theme.LocalFeedbackColors
@@ -148,7 +150,9 @@ fun ReviewScreen(
             Button(
                 onClick = viewModel::submit,
                 enabled = state.input.isNotBlank() || state.phase is ReviewPhase.Correct,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(TestTags.REVIEW_SUBMIT),
             ) {
                 Text(
                     when (state.phase) {
@@ -215,7 +219,8 @@ private fun AnswerField(
         onValueChange = onValueChange,
         modifier = Modifier
             .fillMaxWidth()
-            .focusRequester(focusRequester),
+            .focusRequester(focusRequester)
+            .testTag(TestTags.REVIEW_ANSWER),
         readOnly = phase is ReviewPhase.Correct,
         singleLine = true,
         textStyle = WordStyle,

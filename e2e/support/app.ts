@@ -28,7 +28,11 @@ export const resetApp = async (): Promise<void> => {
     await driver.activateApp(APP_ID);
 };
 
-/** Uninstall and reinstall: no data and no permission decisions, like a first install. */
+/**
+ * Uninstall and reinstall: no data and no permission decisions, like a first install.
+ * A reinstall alone resets POST_NOTIFICATIONS to not-granted with no user-decision flags
+ * (checked with `dumpsys package`), so the app's prompt appears exactly as on a new phone.
+ */
 export const freshInstall = async (): Promise<void> => {
     await driver.removeApp(APP_ID);
     await driver.installApp(APK_PATH);

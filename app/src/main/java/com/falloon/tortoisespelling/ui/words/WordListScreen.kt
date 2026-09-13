@@ -35,12 +35,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.falloon.tortoisespelling.data.Word
 import com.falloon.tortoisespelling.ui.EmptyState
+import com.falloon.tortoisespelling.ui.TestTags
 import com.falloon.tortoisespelling.ui.rememberAppContainer
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,7 +80,8 @@ fun WordListScreen(
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .testTag(TestTags.WORD_LIST_SEARCH),
             )
 
             when {
@@ -143,6 +146,7 @@ private fun WordListItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .testTag(TestTags.wordRow(row.word.normalizedText))
             .clickable(onClick = onClick)
             .padding(start = 16.dp, top = 10.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -161,7 +165,13 @@ private fun WordListItem(
             )
             AssistChip(
                 onClick = onClick,
-                label = { Text(row.status, style = MaterialTheme.typography.labelSmall) },
+                label = {
+                    Text(
+                        text = row.status,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.testTag(TestTags.wordRowStatus(row.word.normalizedText)),
+                    )
+                },
                 colors = AssistChipDefaults.assistChipColors(),
             )
         }

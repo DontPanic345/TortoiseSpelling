@@ -1,4 +1,4 @@
-@todo @live-api
+@live-api
 Feature: Looking words up with Claude
   As a learner who doesn't want to write definitions
   I want Claude to fill in the definition and example, and fix my spelling of the word

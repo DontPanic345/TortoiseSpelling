@@ -1,7 +1,9 @@
-import { Given, Then, When } from '@wdio/cucumber-framework';
+import { DataTable, Given, Then, When } from '@wdio/cucumber-framework';
 import { expect } from '@wdio/globals';
-import { fieldValue } from '../support/actions.ts';
+import { fieldValue, typeInto } from '../support/actions.ts';
+import { scenarioState } from '../support/scenarioState.ts';
 import { addWord } from '../support/screens/addWord.ts';
+import { wordList } from '../support/screens/wordList.ts';
 import { byText } from '../support/selectors.ts';
 
 Given('I have no words yet', async () => {
@@ -11,6 +13,22 @@ Given('I have no words yet', async () => {
 /** Arrange: the word must end up in the list, so this waits for the form to clear. */
 Given('I have added the word {string} defined as {string}', async (word: string, definition: string) => {
     await addWord.addAndConfirm({ word, definition });
+    scenarioState.recordAddedWord({ word, definition });
+});
+
+Given(
+    'I have added the word {string} defined as {string} with the example {string}',
+    async (word: string, definition: string, example: string) => {
+        await addWord.addAndConfirm({ word, definition, example });
+        scenarioState.recordAddedWord({ word, definition });
+    },
+);
+
+Given('I have added these words:', async (dataTable: DataTable) => {
+    for (const row of dataTable.hashes()) {
+        await addWord.addAndConfirm({ word: row.word, definition: row.definition });
+        scenarioState.recordAddedWord({ word: row.word, definition: row.definition });
+    }
 });
 
 /** Act: the outcome (added, or refused as a duplicate) is left to the Then steps. */
@@ -36,4 +54,60 @@ Then('I cannot save the word', async () => {
 
 Then('looking it up with Claude is unavailable', async () => {
     await expect(addWord.lookUpButton()).toBeDisabled();
+});
+
+// --- word list ---
+
+Given('I open the word list', async () => {
+    await wordList.open();
+});
+
+When('I search for {string}', async (query: string) => {
+    await wordList.search(query);
+});
+
+Then('{string} is listed', async (word: string) => {
+    await expect(byText(word)).toBeDisplayed();
+});
+
+Then('{string} is not listed', async (word: string) => {
+    await expect(byText(word)).not.toBeDisplayed();
+});
+
+Then('{string} is listed as {string}', async (word: string, status: string) => {
+    await expect(byText(word)).toBeDisplayed();
+    await expect(wordList.rowStatus(word)).toHaveText(status);
+});
+
+Then('{string} is listed with the definition {string}', async (word: string, definition: string) => {
+    await expect(byText(word)).toBeDisplayed();
+    await expect(byText(definition)).toBeDisplayed();
+});
+
+When('I suspend {string}', async (word: string) => {
+    await wordList.suspend(word);
+});
+
+When('I resume {string}', async (word: string) => {
+    await wordList.resume(word);
+});
+
+When('I ask to delete {string}', async (word: string) => {
+    await wordList.askToDelete(word);
+});
+
+When('I open {string}', async (word: string) => {
+    await wordList.openWord(word);
+});
+
+When('I change the definition to {string}', async (definition: string) => {
+    await typeInto(addWord.definitionField(), definition);
+});
+
+When('I change the word to {string}', async (word: string) => {
+    await typeInto(addWord.wordField(), word);
+});
+
+When('I save the changes', async () => {
+    await addWord.save();
 });

@@ -1,4 +1,3 @@
-@todo
 Feature: New words arrive in small daily batches
   As a learner who adds words in bursts
   I want only a few new words introduced each day

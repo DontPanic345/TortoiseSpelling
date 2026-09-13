@@ -50,6 +50,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -59,6 +60,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.falloon.tortoisespelling.notify.ReminderScheduler
+import com.falloon.tortoisespelling.ui.TestTags
 import com.falloon.tortoisespelling.ui.openNotificationSettings
 import com.falloon.tortoisespelling.ui.rememberAppContainer
 import kotlinx.coroutines.launch
@@ -166,7 +168,9 @@ fun SettingsScreen(onBack: () -> Unit) {
                 onValueChange = viewModel::setApiKey,
                 label = { Text("Anthropic API key") },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(TestTags.SETTINGS_API_KEY),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 visualTransformation = if (keyVisible) {
                     VisualTransformation.None
@@ -230,6 +234,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                             viewModel.setReminderEnabled(enabled)
                         }
                     },
+                    modifier = Modifier.testTag(TestTags.SETTINGS_REMINDER_SWITCH),
                 )
             }
 
@@ -248,6 +253,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                     ).show()
                 },
                 enabled = remindersOn,
+                modifier = Modifier.testTag(TestTags.SETTINGS_REMINDER_TIME_BUTTON),
             ) {
                 Text("Reminder time: %02d:%02d".format(hour, minute))
             }
@@ -324,13 +330,23 @@ private fun Stepper(label: String, value: Int, onChange: (Int) -> Unit) {
     ) {
         Text(label, style = MaterialTheme.typography.bodyLarge)
         Row(verticalAlignment = Alignment.CenterVertically) {
-            OutlinedButton(onClick = { onChange(value - 1) }, enabled = value > 1) { Text("−") }
+            OutlinedButton(
+                onClick = { onChange(value - 1) },
+                enabled = value > 1,
+                modifier = Modifier.testTag(TestTags.SETTINGS_NEW_WORDS_DECREASE),
+            ) { Text("−") }
             Text(
                 text = value.toString(),
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 16.dp),
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .testTag(TestTags.SETTINGS_NEW_WORDS_VALUE),
             )
-            OutlinedButton(onClick = { onChange(value + 1) }, enabled = value < 100) { Text("+") }
+            OutlinedButton(
+                onClick = { onChange(value + 1) },
+                enabled = value < 100,
+                modifier = Modifier.testTag(TestTags.SETTINGS_NEW_WORDS_INCREASE),
+            ) { Text("+") }
         }
     }
 }

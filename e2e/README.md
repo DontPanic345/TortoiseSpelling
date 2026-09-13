@@ -102,6 +102,50 @@ and are mirrored in `support/testIds.ts`; change both together.
   `terminateApp` — that force-stops the app, which also cancels its scheduled reminders.
 - **Failures:** read `logs/<scenario>.xml` (the screen as text); the `.png` beside it is for
   humans. The Appium server log is `logs/wdio-appium.log`.
+- **`clearValue()` and `setValue()` both return before Compose's recomposition catches up.**
+  Typing immediately after `clearValue()` can land on the stale value (renaming "rhythm" to
+  "necessary" this way once produced "rhythmnecessary"), and clicking a button whose enabled
+  state derives from the field (e.g. Save) immediately after `setValue()` can click while it
+  is still disabled from the pre-edit state. `support/actions.ts`'s `typeInto()` waits for
+  the field to read back empty, then waits for it to read back the typed length, closing both
+  races. Length, not exact text: a masked field (`PasswordVisualTransformation`, e.g. the
+  Settings API key) reports a run of bullet characters, never the literal string.
+- **Click the row, not the word.** A small text node's tap bounds can be stale for a moment
+  after a list appears; the whole row (tagged, e.g. `TestTags.wordRow(normalizedText)`) is a
+  much safer target, and lets per-row icons be scoped independently of it
+  (`byTestIdWithDescendantDescription`).
+- **`home.goBack()` needs to tolerate a cold start.** Right after a fresh app (re)launch,
+  Home's title may not have rendered yet; an instant `isDisplayed()` check can send Back
+  before it does, potentially exiting the app entirely. Poll with `waitForDisplayed({timeout})`
+  per attempt, and fall back to `driver.activateApp(APP_ID)` if repeated Back presses still
+  don't reveal Home (recovers from having backed out to the launcher).
+- **`mobile: shell` with `command: 'sh', args: ['-c', '...']` does not reliably expand a glob**
+  on this emulator: a standalone script confirmed `rm -f /sdcard/Download/e2e-* || true` sent
+  that way deletes nothing, silently, while the identical pattern sent as `command: 'rm', args:
+  ['-f', '/sdcard/Download/e2e-*']` (no inner shell) does. Skip the `sh -c` wrapper; the
+  device's own implicit remote shell still expands the glob, and `-f` already makes a
+  no-match a no-op rather than an error, so no `|| true` is needed either.
+- **A raw filesystem delete doesn't update MediaStore.** `rm` on a file it indexed (e.g.
+  anything under Downloads) leaves a ghost entry in DocumentsUI's listing; left unscanned,
+  the Storage Access Framework then avoids that illusory name clash by saving the next export
+  as `e2e-backup (2).json` instead of the exact name asked for. Media-scan after deleting, not
+  only after pushing a file.
+- **DocumentsUI's picker can occasionally treat a tap on a file as a multi-select** instead of
+  opening it directly — the row turns "selected" and an action bar with a `Select` button
+  appears instead of the picker closing. Tapping `Select` completes the same pick; check for
+  it after the tap rather than assuming the picker always closes on the first click.
+- **Never press Back while a system dialog is in front.** UiAutomator only sees the front
+  window, so the notification-permission prompt (which opens over Home) makes Home's title
+  look absent, and a "Back until Home" loop dismisses the prompt, which Android records as
+  a *refusal*. It looks exactly like "the dialog never appeared": `dumpsys` shows
+  `granted=false`, and the failure comes and goes with the race between Home rendering and
+  the prompt opening. `home.goBack()` checks `driver.getCurrentPackage()` for the permission
+  controller and stops there. A clean reinstall does reset the permission (no `USER_SET`
+  flag), so `freshInstall()` needs no extra revoke.
+- **After an `adb reboot`, Appium's own helper apps can come up crashed** (`io.appium.settings`,
+  `io.appium.uiautomator2.server`, `io.appium.uiautomator2.server.test`), failing the next
+  session with `Appium Settings app is not running` or `instrumentation process is not
+  running`. `adb uninstall` all three; Appium reinstalls fresh copies on the next session.
 
 ## Writing scenarios
 

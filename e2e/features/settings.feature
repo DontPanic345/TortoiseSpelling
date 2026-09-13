@@ -1,4 +1,3 @@
-@todo
 Feature: Settings
   As a learner
   I want to tune how many new words I get and when I'm reminded

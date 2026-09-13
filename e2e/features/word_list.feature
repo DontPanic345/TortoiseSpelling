@@ -1,4 +1,3 @@
-@todo
 Feature: Managing the word list
   As a learner
   I want to browse, search, edit, pause and delete my words

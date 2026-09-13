@@ -1,4 +1,3 @@
-@todo
 Feature: A clear finish line
   As a learner
   I want an unmistakable "you're done" once today's words are practised

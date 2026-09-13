@@ -20,4 +20,22 @@ object TestTags {
     const val ADD_WORD_PART_OF_SPEECH = "add_word_part_of_speech"
     const val ADD_WORD_SAVE = "add_word_save"
     const val ADD_WORD_LOOK_UP = "add_word_look_up"
+
+    const val WORD_LIST_SEARCH = "word_list_search"
+
+    /** Scopes a row's per-row icons (identical content-descs on every row). */
+    fun wordRow(normalizedText: String) = "word_row_$normalizedText"
+
+    /** The status chip's label, tagged because two rows can share the same status text. */
+    fun wordRowStatus(normalizedText: String) = "word_row_status_$normalizedText"
+
+    const val SETTINGS_API_KEY = "settings_api_key"
+    const val SETTINGS_NEW_WORDS_VALUE = "settings_new_words_value"
+    const val SETTINGS_NEW_WORDS_DECREASE = "settings_new_words_decrease"
+    const val SETTINGS_NEW_WORDS_INCREASE = "settings_new_words_increase"
+    const val SETTINGS_REMINDER_SWITCH = "settings_reminder_switch"
+    const val SETTINGS_REMINDER_TIME_BUTTON = "settings_reminder_time_button"
+
+    const val REVIEW_ANSWER = "review_answer"
+    const val REVIEW_SUBMIT = "review_submit"
 }

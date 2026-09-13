@@ -1,4 +1,3 @@
-@todo
 Feature: Daily reminder
   As a learner who forgets to open the app
   I want one notification a day when words are due

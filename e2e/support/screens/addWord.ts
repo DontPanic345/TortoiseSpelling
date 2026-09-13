@@ -19,11 +19,12 @@ export const addWord = {
     /** Tagged because a button's label is a child TextView that is always "enabled". */
     lookUpButton: () => byTestId(testIds.addWordLookUp),
 
-    /** Opens the Add word screen from Home, or stays put if it is already open. */
+    /** Opens the Add word screen from any screen, or stays put if it is already open. */
     open: async (): Promise<void> => {
         if (await addWord.wordField().isDisplayed()) {
             return;
         }
+        await home.goBack();
         await home.addWordButton().click();
         await addWord.wordField().waitForDisplayed();
     },

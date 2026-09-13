@@ -27,3 +27,21 @@ export const scrollToText = (text: string) =>
         'android=new UiScrollable(new UiSelector().scrollable(true))' +
             `.scrollIntoView(new UiSelector().text(${quoted(text)}))`,
     );
+
+/**
+ * A resource-id one of several possible values, e.g. Android's two differently-named
+ * permission "deny" buttons (first refusal vs. "don't ask again").
+ */
+export const byResourceIdMatching = (pattern: string) =>
+    $(`android=new UiSelector().resourceIdMatches(${quoted(pattern)})`);
+
+/** For system UI (e.g. Android's document picker) that carries no test tags of its own. */
+export const byClassName = (className: string) =>
+    $(`android=new UiSelector().className(${quoted(className)})`);
+
+/** Scopes a per-row icon: rows share identical content-descriptions, so find within the row. */
+export const byTestIdWithDescendantDescription = (testId: string, description: string) =>
+    $(
+        `android=new UiSelector().resourceId(${quoted(testId)})` +
+            `.childSelector(new UiSelector().description(${quoted(description)}))`,
+    );

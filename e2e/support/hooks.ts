@@ -3,8 +3,10 @@ import path from 'node:path';
 import { After, Before } from '@wdio/cucumber-framework';
 import { resetApp } from './app.ts';
 import { LOG_DIR } from './config.ts';
+import { scenarioState } from './scenarioState.ts';
 
 Before(async () => {
+    scenarioState.reset();
     await resetApp();
 });
 
@@ -20,4 +22,12 @@ After(async (scenario) => {
     await fs.mkdir(LOG_DIR, { recursive: true });
     await fs.writeFile(path.join(LOG_DIR, `${name}.xml`), await driver.getPageSource());
     await driver.saveScreenshot(path.join(LOG_DIR, `${name}.png`));
+});
+
+/**
+ * A scenario that rotates the device (the reminder-tap-then-rotate scenario) must not
+ * leave the emulator in landscape for whatever runs next, even if it fails partway.
+ */
+After(async () => {
+    await driver.setOrientation('PORTRAIT').catch(() => undefined);
 });
