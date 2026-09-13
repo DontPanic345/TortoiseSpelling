@@ -6,6 +6,10 @@
 export const testIds = {
     homePracticeCount: 'home_practice_count',
     homeAddWord: 'home_add_word',
+    /** The week strip; each day's dot is described as e.g. "Today, practised". */
+    homeWeek: 'home_week',
+    /** The words card; its progress bar is described as e.g. "0 known, 1 learning, 0 new". */
+    homeProgress: 'home_progress',
 
     addWordText: 'add_word_text',
     addWordDefinition: 'add_word_definition',

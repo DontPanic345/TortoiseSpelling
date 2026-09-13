@@ -1,13 +1,17 @@
 package com.falloon.tortoisespelling.data
 
 import com.falloon.tortoisespelling.domain.Days
+import com.falloon.tortoisespelling.domain.MarkedDay
 import com.falloon.tortoisespelling.domain.Scheduler
 import com.falloon.tortoisespelling.domain.Sm2Scheduler
 import com.falloon.tortoisespelling.domain.SrsState
+import com.falloon.tortoisespelling.domain.WordProgress
 import com.falloon.tortoisespelling.domain.fuzzedDueDay
 import com.falloon.tortoisespelling.domain.hideWordInDefinition
 import com.falloon.tortoisespelling.domain.interleaveSession
+import com.falloon.tortoisespelling.domain.recentDays
 import com.falloon.tortoisespelling.domain.remainingNewToday
+import com.falloon.tortoisespelling.domain.wordProgress
 import kotlinx.coroutines.flow.Flow
 
 /** What today's session looks like before it starts. */
@@ -169,6 +173,17 @@ class WordRepository(
         satisfiedDays = settings.satisfiedDays(),
     )
 
+    /** The last week, day by day, for Home's week strip. */
+    suspend fun lastWeek(): List<MarkedDay> = recentDays(
+        today = Days.today(),
+        studyDays = dao.recentStudyDays(WEEK_DAYS).toSet(),
+        satisfiedDays = settings.satisfiedDays(),
+        firstDay = dao.firstCreatedAt()?.let { Days.dayOf(it) },
+        count = WEEK_DAYS,
+    )
+
+    suspend fun progress(): WordProgress = wordProgress(dao.allWordsOnce())
+
     /** Epoch day of the next scheduled review, or null if nothing is scheduled. */
     suspend fun nextDueDay(): Long? = dao.nextDueDay()
 
@@ -200,6 +215,7 @@ class WordRepository(
 
     private companion object {
         const val STREAK_WINDOW_DAYS = 400
+        const val WEEK_DAYS = 7
     }
 }
 

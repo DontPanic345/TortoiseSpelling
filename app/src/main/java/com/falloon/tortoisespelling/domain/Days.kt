@@ -1,6 +1,8 @@
 package com.falloon.tortoisespelling.domain
 
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 
 /**
  * Day arithmetic for scheduling. Days roll over at local midnight — a session at
@@ -10,6 +12,10 @@ object Days {
     fun today(): Long = LocalDate.now().toEpochDay()
 
     fun plus(day: Long, days: Long): Long = day + days
+
+    /** The local day a millisecond timestamp falls on. */
+    fun dayOf(millis: Long, zone: ZoneId = ZoneId.systemDefault()): Long =
+        Instant.ofEpochMilli(millis).atZone(zone).toLocalDate().toEpochDay()
 
     /** "today", "tomorrow", "in 5 days", "3 days ago". */
     fun relativeLabel(day: Long, today: Long = today()): String = when (val delta = day - today) {

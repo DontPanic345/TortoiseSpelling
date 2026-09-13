@@ -9,6 +9,11 @@ val EvergreenDark = Color(0xFF163A30)
 val Parchment = Color(0xFFF7F4EE)
 val Ink = Color(0xFF1B1C1A)
 
+// A warm accent from the tortoise's shell, for the one place a third colour is needed:
+// new words in Home's progress bar.
+val ShellAmber = Color(0xFF8A5A1F)
+val ShellAmberDark = Color(0xFFE7BE8A)
+
 val CorrectGreen = Color(0xFF2E7D52)
 val CorrectGreenContainer = Color(0xFFD3EFDF)
 val WrongRed = Color(0xFFB3261E)

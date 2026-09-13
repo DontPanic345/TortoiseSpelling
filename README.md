@@ -40,7 +40,7 @@ Anki 🃏 — reviewing a word right as you're about to forget it.
 
 | Screen | What it does |
 |---|---|
-| 🏠 **Home / Today** | Words to practice, Start button, streak. |
+| 🏠 **Home / Today** | Today's words and Start, the week's practice and streak, and how many words are known. |
 | 🎯 **Review** | Definition + blanked example, one text field, diff on a miss. |
 | 🏁 **Completion** | "All done" state with the next review date. |
 | ➕ **Add word** | Type a word, optionally look it up with Claude, Save. |

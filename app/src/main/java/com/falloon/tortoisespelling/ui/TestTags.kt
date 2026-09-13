@@ -13,6 +13,8 @@ package com.falloon.tortoisespelling.ui
 object TestTags {
     const val HOME_PRACTICE_COUNT = "home_practice_count"
     const val HOME_ADD_WORD = "home_add_word"
+    const val HOME_WEEK = "home_week"
+    const val HOME_PROGRESS = "home_progress"
 
     const val ADD_WORD_TEXT = "add_word_text"
     const val ADD_WORD_DEFINITION = "add_word_definition"

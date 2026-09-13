@@ -36,6 +36,10 @@ interface TortoiseSpellingDao {
     @Query("SELECT * FROM words ORDER BY createdAt")
     suspend fun allWordsOnce(): List<Word>
 
+    /** When the oldest word was added (millis), or null with no words. */
+    @Query("SELECT MIN(createdAt) FROM words")
+    suspend fun firstCreatedAt(): Long?
+
     /** Words already in rotation and due on or before [today]. */
     @Query(
         """

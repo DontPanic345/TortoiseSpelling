@@ -9,6 +9,14 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+### Changed
+
+- Home has more on it: a greeting, today's words on a card with the tortoise, a week
+  strip showing which days you practised, and a bar of how many of your words are
+  known, still being learned, or new. First-run Home explains how the app works.
+- Menus, dialogs, the review progress bar and the top bars now use the app's own
+  colours throughout, instead of Material's default purple in places.
+
 ### Fixed
 
 - The daily reminder no longer fails if notification permission is revoked at the

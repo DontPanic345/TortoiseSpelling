@@ -28,6 +28,13 @@ export const scrollToText = (text: string) =>
             `.scrollIntoView(new UiSelector().text(${quoted(text)}))`,
     );
 
+/** Scrolls the screen's scrollable container until the tagged element is on screen. */
+export const scrollToTestId = (testId: string) =>
+    $(
+        'android=new UiScrollable(new UiSelector().scrollable(true))' +
+            `.scrollIntoView(new UiSelector().resourceId(${quoted(testId)}))`,
+    );
+
 /**
  * A resource-id one of several possible values, e.g. Android's two differently-named
  * permission "deny" buttons (first refusal vs. "don't ask again").
