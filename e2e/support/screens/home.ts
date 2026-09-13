@@ -1,5 +1,5 @@
 import { APP_ID } from '../config.ts';
-import { byDescription, byTestId, byText } from '../selectors.ts';
+import { byDescription, byTestId, byText, byTextInApp } from '../selectors.ts';
 import { testIds } from '../testIds.ts';
 
 const MAX_BACK_PRESSES = 5;
@@ -20,8 +20,12 @@ const isPermissionDialogShowing = async (): Promise<boolean> =>
     (await driver.getCurrentPackage()).endsWith('permissioncontroller');
 
 export const home = {
-    /** Home is the only screen whose top bar reads "TortoiseSpelling". */
-    title: () => byText('TortoiseSpelling'),
+    /**
+     * Home is the only screen whose top bar reads "TortoiseSpelling". Scoped to the app:
+     * the launcher's icon label reads the same, and goBack() pressing Back during a slow
+     * cold start lands on the launcher, where an unscoped match would pass for Home.
+     */
+    title: () => byTextInApp('TortoiseSpelling'),
     practiceCount: () => byTestId(testIds.homePracticeCount),
     addWordButton: () => byTestId(testIds.homeAddWord),
     startButton: () => byText('Start'),

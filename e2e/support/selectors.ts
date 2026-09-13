@@ -7,9 +7,18 @@
  * changes, e.g. a text field whose label is replaced by its value.
  */
 
+import { APP_ID } from './config.ts';
+
 const quoted = (value: string): string => JSON.stringify(value);
 
 export const byText = (text: string) => $(`android=new UiSelector().text(${quoted(text)})`);
+
+/**
+ * Text inside this app's own windows only. For text another app can also show: the
+ * launcher labels the app's icon "TortoiseSpelling", the same text as Home's title.
+ */
+export const byTextInApp = (text: string) =>
+    $(`android=new UiSelector().packageName(${quoted(APP_ID)}).text(${quoted(text)})`);
 
 export const byTextContaining = (text: string) =>
     $(`android=new UiSelector().textContains(${quoted(text)})`);
