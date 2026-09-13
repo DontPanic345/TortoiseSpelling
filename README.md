@@ -17,7 +17,8 @@ reminder so the habit sticks. Slow and steady wins the race 🐢.
   [Spaced repetition](#-spaced-repetition) below.
 - 🏁 **A real finish line.** Sessions end with an explicit "see you tomorrow" screen;
   an optional "practice more" mode doesn't touch your schedule.
-- 🔔 **Daily reminder.** One local notification, only when words are due.
+- 🔔 **Daily reminder.** One local notification, only when words are due. On Android
+  13+ the app asks for notification permission once you've added your first word.
 
 Everything except word lookup works fully offline with no account and no API key.
 
@@ -82,11 +83,44 @@ The debug APK lands in `app/build/outputs/apk/debug/`. To install it:
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 ```
 
-### 🧪 Live-API integration test
+## 🧪 Testing
+
+| Layer | Where | Runs on |
+|---|---|---|
+| Unit tests | `app/src/test/` | JVM, no device |
+| Live-API integration test | `ClaudeIntegrationTest` | JVM, real Anthropic API |
+| End-to-end BDD tests | [`e2e/`](e2e/README.md) | The real APK on an emulator |
+
+### Live-API integration test
 
 `ClaudeIntegrationTest` exercises the real lookup flow and is skipped unless an API
-key is present in the environment:
+key is present in the environment. `--rerun` makes Gradle run it even when nothing but
+the environment has changed:
 
 ```bash
-TORTOISESPELLING_ANTHROPIC_KEY=sk-ant-... ./gradlew testDebugUnitTest
+TORTOISESPELLING_ANTHROPIC_KEY=sk-ant-... ./gradlew testDebugUnitTest --tests '*ClaudeIntegrationTest' --rerun
 ```
+
+### End-to-end BDD tests
+
+Gherkin scenarios ("When I add the word … Then Home shows 1 word to practice today") run
+against the installed app with Appium, WebdriverIO and Cucumber. See
+[`e2e/README.md`](e2e/README.md) for setup, commands and conventions.
+
+```bash
+cd e2e && npm install && npm run e2e
+```
+
+## 📦 Releases
+
+There's no Play Store listing: releases are signed APKs on the GitHub Releases page,
+installed by sideloading. To cut one, bump `versionCode`/`versionName` in
+`app/build.gradle.kts`, commit, and push a `v*` tag:
+
+```bash
+git tag v1.0.0 && git push origin v1.0.0
+```
+
+The [release workflow](.github/workflows/release.yml) builds an R8-minified APK, signs it
+with the keystore held in the repo's Actions secrets, and publishes it. Every future
+update must be signed with that same keystore, so keep an offline backup of it.

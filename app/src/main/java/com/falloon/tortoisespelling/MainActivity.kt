@@ -9,6 +9,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -83,7 +86,13 @@ private fun TortoiseSpellingNavHost(
         }
     }
 
-    NavHost(navController = navController, startDestination = Routes.HOME) {
+    NavHost(
+        navController = navController,
+        startDestination = Routes.HOME,
+        // Exposes TestTags to UiAutomator as resource-ids for the e2e suite. Dialogs and
+        // popups are separate windows and need the same modifier set on their content.
+        modifier = Modifier.semantics { testTagsAsResourceId = true },
+    ) {
         composable(Routes.HOME) {
             HomeScreen(
                 onStartReview = { navController.navigate(Routes.REVIEW) },

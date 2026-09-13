@@ -36,11 +36,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.falloon.tortoisespelling.ui.TestTags
 import com.falloon.tortoisespelling.ui.rememberAppContainer
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -114,7 +116,8 @@ fun AddWordScreen(
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .focusRequester(wordFocus),
+                    .focusRequester(wordFocus)
+                    .testTag(TestTags.ADD_WORD_TEXT),
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.None,
                     imeAction = ImeAction.Next,
@@ -136,7 +139,9 @@ fun AddWordScreen(
                 label = { Text("Definition") },
                 supportingText = { Text("Shown as the prompt. Should not contain the word.") },
                 minLines = 2,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(TestTags.ADD_WORD_DEFINITION),
             )
 
             OutlinedTextField(
@@ -145,7 +150,9 @@ fun AddWordScreen(
                 label = { Text("Example sentence (optional)") },
                 supportingText = { Text("The word is blanked out during review.") },
                 minLines = 2,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(TestTags.ADD_WORD_EXAMPLE),
             )
 
             OutlinedTextField(
@@ -153,14 +160,18 @@ fun AddWordScreen(
                 onValueChange = viewModel::onPartOfSpeechChange,
                 label = { Text("Part of speech (optional)") },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(TestTags.ADD_WORD_PART_OF_SPEECH),
             )
 
             Spacer(Modifier.height(4.dp))
             Button(
                 onClick = viewModel::save,
                 enabled = state.canSave,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(TestTags.ADD_WORD_SAVE),
             ) {
                 Text(if (state.isEditing) "Save changes" else "Add word")
             }
@@ -189,7 +200,11 @@ private fun LookupRow(
             verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            OutlinedButton(onClick = onLookUp, enabled = enabled) {
+            OutlinedButton(
+                onClick = onLookUp,
+                enabled = enabled,
+                modifier = Modifier.testTag(TestTags.ADD_WORD_LOOK_UP),
+            ) {
                 if (loading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(16.dp),

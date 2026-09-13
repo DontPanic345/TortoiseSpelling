@@ -30,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,6 +39,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.falloon.tortoisespelling.ui.RequestNotificationPermissionIfNeeded
+import com.falloon.tortoisespelling.ui.TestTags
 import com.falloon.tortoisespelling.ui.complete.CompletionPanel
 import com.falloon.tortoisespelling.ui.rememberAppContainer
 
@@ -89,6 +91,7 @@ fun HomeScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAddWord,
+                modifier = Modifier.testTag(TestTags.HOME_ADD_WORD),
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
                 text = { Text("Add word") },
             )
@@ -144,6 +147,7 @@ private fun TodayPanel(
     ) {
         Text(
             text = count.toString(),
+            modifier = Modifier.testTag(TestTags.HOME_PRACTICE_COUNT),
             fontSize = 92.sp,
             style = MaterialTheme.typography.displayLarge,
             color = MaterialTheme.colorScheme.primary,
