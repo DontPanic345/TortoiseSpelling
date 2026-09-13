@@ -11,3 +11,8 @@
 local.properties
 
 apikey
+
+# Release signing key material must never be committed; CI gets it from secrets.
+*.keystore
+*.jks
+keystore.properties
