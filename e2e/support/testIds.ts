@@ -33,4 +33,5 @@ export const testIds = {
 
     reviewAnswer: 'review_answer',
     reviewSubmit: 'review_submit',
+    reviewCorrectWord: 'review_correct_word',
 } as const;

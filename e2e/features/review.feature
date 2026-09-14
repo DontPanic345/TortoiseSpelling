@@ -19,7 +19,7 @@ Feature: Reviewing words
     And I go back to Home
     When I start today's session
     And I spell it "necessary"
-    Then I am told "Correct: necessary"
+    Then I am told the correct word "necessary"
     And the example reads "It is necessary to sleep."
     And the session moves on by itself to the finish line
     And I see "You practiced 1 word today."
@@ -29,7 +29,7 @@ Feature: Reviewing words
     And I go back to Home
     When I start today's session
     And I spell it "NECESSARY"
-    Then I am told "Correct: necessary"
+    Then I am told the correct word "necessary"
 
   Scenario: A miss shows where it went wrong and demands a clean retype
     Given I have added the word "necessary" defined as "needed or required"

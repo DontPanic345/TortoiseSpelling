@@ -21,6 +21,12 @@ Then('the example reads {string}', async (example: string) => {
     await expect(byText(example)).toBeDisplayed();
 });
 
+/** The hit card: a small "Correct" label above the word, in the feedback colour. */
+Then('I am told the correct word {string}', async (word: string) => {
+    await expect(byText('Correct')).toBeDisplayed();
+    await expect(review.correctWord()).toHaveText(word);
+});
+
 /** Act only, and quick: a correct answer auto-advances after ~1.1s. */
 When('I spell it {string}', async (attempt: string) => {
     await review.answer(attempt);

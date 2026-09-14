@@ -40,4 +40,5 @@ object TestTags {
 
     const val REVIEW_ANSWER = "review_answer"
     const val REVIEW_SUBMIT = "review_submit"
+    const val REVIEW_CORRECT_WORD = "review_correct_word"
 }

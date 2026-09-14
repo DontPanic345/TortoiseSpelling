@@ -11,8 +11,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -38,6 +40,8 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -46,6 +50,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.falloon.tortoisespelling.data.Word
@@ -186,12 +191,12 @@ private fun Prompt(word: Word, phase: ReviewPhase, blanked: String?) {
         val revealed = phase is ReviewPhase.Correct
         when {
             // Once answered, show the sentence intact: seeing the word in context is
-            // most of the value of having an example at all.
+            // most of the value of having an example at all. It stays in the body
+            // face, same as the blanked sentence below, so nothing jumps.
             revealed && word.example.isNotBlank() ->
                 Text(word.example, style = MaterialTheme.typography.bodyLarge)
 
-            blanked != null ->
-                Text(blanked, style = BlankStyle)
+            blanked != null -> BlankedExample(blanked)
 
             else -> Column {
                 Text(BLANK_PLACEHOLDER, style = BlankStyle)
@@ -203,6 +208,59 @@ private fun Prompt(word: Word, phase: ReviewPhase, blanked: String?) {
             }
         }
     }
+}
+
+/** Tag identifying the blanked word within [BlankedExample]'s inline content map. */
+private const val BLANK_INLINE_CONTENT_ID = "blank"
+
+/**
+ * Renders an example sentence in the normal body face, with [BLANK_PLACEHOLDER]
+ * swapped for a fixed-width underline instead of literal underscores — underscores
+ * in body text read as stray punctuation, not a blank to fill in.
+ *
+ * The underline is drawn by [InlineTextContent], a placeholder composable Compose
+ * lays out inline with the text. Its width is fixed regardless of the hidden word's
+ * length, so it can't give the answer away. [BLANK_PLACEHOLDER] is still passed as
+ * the placeholder's alternate text, which is what ends up in the [AnnotatedString]'s
+ * own text — and therefore in the accessibility tree — so screen readers and the e2e
+ * suite still see "_____" even though the underline, not underscores, is painted.
+ */
+@Composable
+private fun BlankedExample(sentence: String) {
+    val underlineColor = MaterialTheme.colorScheme.onSurface
+    val inlineContent = remember(underlineColor) {
+        mapOf(
+            BLANK_INLINE_CONTENT_ID to InlineTextContent(
+                Placeholder(
+                    width = 3.5.em,
+                    height = 0.15.em,
+                    placeholderVerticalAlign = PlaceholderVerticalAlign.AboveBaseline,
+                ),
+            ) {
+                Box(Modifier.fillMaxSize().background(underlineColor))
+            },
+        )
+    }
+
+    val annotated = buildAnnotatedString {
+        var remaining = sentence
+        while (true) {
+            val blankAt = remaining.indexOf(BLANK_PLACEHOLDER)
+            if (blankAt < 0) {
+                append(remaining)
+                break
+            }
+            append(remaining.substring(0, blankAt))
+            appendInlineContent(BLANK_INLINE_CONTENT_ID, alternateText = BLANK_PLACEHOLDER)
+            remaining = remaining.substring(blankAt + BLANK_PLACEHOLDER.length)
+        }
+    }
+
+    Text(
+        text = annotated,
+        style = MaterialTheme.typography.bodyLarge,
+        inlineContent = inlineContent,
+    )
 }
 
 @Composable
@@ -265,13 +323,25 @@ private fun Feedback(word: Word, phase: ReviewPhase) {
     when (phase) {
         ReviewPhase.Prompting -> Unit
 
-        ReviewPhase.Correct -> Box(
+        // A small caption above the word, matching DiffRow's label below — not
+        // "Correct: word" in WordStyle, which ran two lines for a long word.
+        ReviewPhase.Correct -> Column(
             Modifier
                 .fillMaxWidth()
                 .background(feedback.correctContainer, RoundedCornerShape(12.dp))
                 .padding(16.dp),
         ) {
-            Text("Correct: ${word.text}", color = feedback.correct, style = WordStyle)
+            Text(
+                "Correct",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                word.text,
+                color = feedback.correct,
+                style = WordStyle,
+                modifier = Modifier.testTag(TestTags.REVIEW_CORRECT_WORD),
+            )
         }
 
         is ReviewPhase.Corrective -> Column(
@@ -287,7 +357,16 @@ private fun Feedback(word: Word, phase: ReviewPhase) {
                 color = feedback.wrong,
             )
             DiffRow(label = "You typed", text = phase.attempt, diff = phase.diff, isAttempt = true)
-            DiffRow(label = "Correct", text = word.text, diff = phase.diff, isAttempt = false)
+            // Its own inset in correctContainer, so the right answer doesn't read as
+            // just more of the wrongContainer card around it.
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .background(feedback.correctContainer, RoundedCornerShape(8.dp))
+                    .padding(8.dp),
+            ) {
+                DiffRow(label = "Correct", text = word.text, diff = phase.diff, isAttempt = false)
+            }
             if (phase.retypeMissed) {
                 Text(
                     "Not yet: type it exactly as shown above.",
@@ -319,7 +398,12 @@ private fun DiffRow(label: String, text: String, diff: SpellingDiff, isAttempt: 
                         SpanStyle(
                             color = if (diverged) highlight else muted,
                             background = if (index == diff.firstDivergence) {
-                                highlight.copy(alpha = 0.22f)
+                                // Both rows now sit on a same-hue container (wrong on
+                                // wrongContainer, correct on correctContainer), so this
+                                // needs more than the 0.22 alpha that was legible on a
+                                // plain background — checked against all four
+                                // container/highlight pairs, light and dark.
+                                highlight.copy(alpha = 0.35f)
                             } else {
                                 Color.Transparent
                             },

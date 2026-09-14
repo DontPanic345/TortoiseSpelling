@@ -7,6 +7,8 @@ export const review = {
     answerField: () => byTestId(testIds.reviewAnswer),
     submitButton: () => byTestId(testIds.reviewSubmit),
     endSessionButton: () => byDescription('End session'),
+    /** The word shown in the hit card, below its small "Correct" label. */
+    correctWord: () => byTestId(testIds.reviewCorrectWord),
 
     /** Types an answer and submits it, without waiting for the outcome. */
     answer: async (attempt: string): Promise<void> => {
@@ -40,7 +42,7 @@ export const review = {
             const word = await review.currentWord();
             await review.answer(word);
             await driver.waitUntil(
-                async () => (await driver.getPageSource()).includes(`Correct: ${word}`),
+                async () => (await review.correctWord().getText().catch(() => '')) === word,
                 { timeoutMsg: `"${word}" was not marked correct` },
             );
             // The button now reads "Continue"; tapping it advances immediately rather
