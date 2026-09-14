@@ -1,4 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.TortoiseSpelling" parent="android:Theme.Material.Light.NoActionBar" />
+    <!--
+      Shared by every qualified variant below (values-night, values-night-v27,
+      values-v31, values-night-v31), so the launch window background is set once
+      instead of being repeated in each. Its parent must stay this exact framework
+      theme everywhere: the daily-reminder TimePickerDialog is styled by it and the
+      user is happy with how it looks. The qualified variants only add window-level
+      attributes, which is safe because dialogs use their own dialog theme.
+    -->
+    <style name="Base.Theme.TortoiseSpelling" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/launch_background</item>
+    </style>
+
+    <style name="Theme.TortoiseSpelling" parent="Base.Theme.TortoiseSpelling" />
 </resources>

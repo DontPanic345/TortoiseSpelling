@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- On an API 31+ device in dark mode, this is the only Theme.TortoiseSpelling
+         definition that applies (it wins over values-night and values-night-v27, and
+         a qualified style fully replaces rather than merges with a less-specific
+         one), so it carries every night-mode window item plus the splash backdrop. -->
+    <style name="Theme.TortoiseSpelling" parent="Base.Theme.TortoiseSpelling">
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowSplashScreenBackground">@color/launch_background</item>
+    </style>
+</resources>

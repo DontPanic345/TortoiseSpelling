@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Launch window background (the colour the window and, on API 31+, the system
+      splash screen paint before Compose draws its first frame). Must match the
+      Compose dark background: `background` in ui/theme/Theme.kt's DarkScheme. Keep
+      the two in sync.
+    -->
+    <color name="launch_background">#141615</color>
+</resources>

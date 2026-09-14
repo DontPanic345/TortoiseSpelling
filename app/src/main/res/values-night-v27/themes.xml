@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Same as values-night/themes.xml, plus windowLightNavigationBar (API 27+),
+         since this file fully replaces that one on matching devices. -->
+    <style name="Theme.TortoiseSpelling" parent="Base.Theme.TortoiseSpelling">
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+</resources>

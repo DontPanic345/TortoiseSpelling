@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      windowLightStatusBar needs API 23 (already covered by minSdk 26), so it lives
+      here unqualified. windowLightNavigationBar (API 27+) and
+      windowSplashScreenBackground (API 31+) are set by values-night-v27 and
+      values-night-v31 instead, each of which must repeat these items: a qualified
+      style resource fully replaces this one rather than merging with it.
+    -->
+    <style name="Theme.TortoiseSpelling" parent="Base.Theme.TortoiseSpelling">
+        <!-- The parent is a Light theme, so status bar icons default to dark; the
+             launch window is dark here, so make them light instead. -->
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

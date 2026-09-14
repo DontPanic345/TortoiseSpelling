@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Makes the API 31+ system splash screen backdrop match the launch window
+         (values/colors.xml). No icon item is set, so the splash keeps the app's
+         default launcher icon. -->
+    <style name="Theme.TortoiseSpelling" parent="Base.Theme.TortoiseSpelling">
+        <item name="android:windowSplashScreenBackground">@color/launch_background</item>
+    </style>
+</resources>
