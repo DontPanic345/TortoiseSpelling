@@ -1,7 +1,7 @@
 import { Given, When } from '@wdio/cucumber-framework';
 import { backup } from '../support/screens/backup.ts';
 
-Given('Downloads has no TortoiseSpelling test files', async () => {
+Given('Downloads has no Tortoise Spelling test files', async () => {
     await backup.clearTestFiles();
 });
 

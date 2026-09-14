@@ -6,7 +6,7 @@ import { scenarioState } from '../support/scenarioState.ts';
 import { review } from '../support/screens/review.ts';
 import { byResourceIdMatching, byTestId, byText, byTextContaining } from '../support/selectors.ts';
 
-const PERMISSION_PROMPT = 'Allow TortoiseSpelling to send you notifications?';
+const PERMISSION_PROMPT = 'Allow Tortoise Spelling to send you notifications?';
 const ALLOW_BUTTON = 'com.android.permissioncontroller:id/permission_allow_button';
 const DENY_BUTTON_PATTERN = '.*:id/permission_deny.*';
 
@@ -33,8 +33,8 @@ When('I refuse notifications', async () => {
     await byResourceIdMatching(DENY_BUTTON_PATTERN).click();
 });
 
-Then('Android\'s notification settings for TortoiseSpelling are shown', async () => {
-    await expect(byTextContaining('All TortoiseSpelling notifications')).toBeDisplayed();
+Then('Android\'s notification settings for Tortoise Spelling are shown', async () => {
+    await expect(byTextContaining('All Tortoise Spelling notifications')).toBeDisplayed();
 });
 
 Then('a notification {string} arrives saying {string}', async (title: string, body: string) => {

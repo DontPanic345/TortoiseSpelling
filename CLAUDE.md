@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-TortoiseSpelling is a single-module native Android app (Kotlin, Jetpack Compose, min SDK 26,
+Tortoise Spelling is a single-module native Android app (Kotlin, Jetpack Compose, min SDK 26,
 target 36) for learning to spell your own word list with SM-2 spaced repetition, a daily
 reminder, and optional word lookup through the Anthropic API. User-facing overview: `README.md`.
 

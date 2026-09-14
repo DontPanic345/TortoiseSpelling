@@ -104,5 +104,5 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           gh release create "$TAG" "TortoiseSpelling-$TAG.apk" \
-            --title "TortoiseSpelling $TAG" \
+            --title "Tortoise Spelling $TAG" \
             --notes-file "$RUNNER_TEMP/release-notes.md"

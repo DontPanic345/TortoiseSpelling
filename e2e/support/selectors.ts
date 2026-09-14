@@ -15,7 +15,7 @@ export const byText = (text: string) => $(`android=new UiSelector().text(${quote
 
 /**
  * Text inside this app's own windows only. For text another app can also show: the
- * launcher labels the app's icon "TortoiseSpelling", the same text as Home's title.
+ * launcher labels the app's icon "Tortoise Spelling", the same text as Home's title.
  */
 export const byTextInApp = (text: string) =>
     $(`android=new UiSelector().packageName(${quoted(APP_ID)}).text(${quoted(text)})`);

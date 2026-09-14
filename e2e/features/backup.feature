@@ -6,7 +6,7 @@ Feature: Backing up the word list
   # Files go through Android's document picker, in the emulator's Downloads folder.
 
   Background:
-    Given Downloads has no TortoiseSpelling test files
+    Given Downloads has no Tortoise Spelling test files
     And I have added the word "necessary" defined as "needed or required"
     And I open Settings
 
@@ -26,9 +26,9 @@ Feature: Backing up the word list
   Scenario: A file that isn't a backup is refused
     Given Downloads has a text file "e2e-notes.txt" containing "hello"
     When I import "e2e-notes.txt" from Downloads
-    Then I am told "That file isn't a TortoiseSpelling backup."
+    Then I am told "That file isn't a Tortoise Spelling backup."
 
   Scenario: A backup from a newer version of the app is refused
     Given Downloads has a version 99 backup "e2e-future.json"
     When I import "e2e-future.json" from Downloads
-    Then I am told "That backup was made by a newer version of TortoiseSpelling (v99)."
+    Then I am told "That backup was made by a newer version of Tortoise Spelling (v99)."

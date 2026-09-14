@@ -1,6 +1,6 @@
 # Privacy policy
 
-TortoiseSpelling has no accounts, no ads, no analytics and no tracking. Your word list
+Tortoise Spelling has no accounts, no ads, no analytics and no tracking. Your word list
 stays on your phone. The only time anything leaves it is when you ask Claude to look up
 a word, using your own Anthropic API key.
 

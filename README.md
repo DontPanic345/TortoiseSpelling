@@ -1,4 +1,4 @@
-# 🐢 TortoiseSpelling
+# 🐢 Tortoise Spelling
 
 A native Android app for learning to spell words you don't already know. You build
 your own word list, and the app drills you with spaced repetition and a once-a-day
@@ -25,7 +25,7 @@ There are no ads, no analytics and no tracking: see the [privacy policy](PRIVACY
 
 ## 🐰 Spaced repetition
 
-TortoiseSpelling schedules reviews with **SM-2**, the algorithm behind apps like
+Tortoise Spelling schedules reviews with **SM-2**, the algorithm behind apps like
 Anki 🃏 — reviewing a word right as you're about to forget it.
 
 - 🎯 **Per-word schedule.** Each word tracks its own repetition count, ease factor,

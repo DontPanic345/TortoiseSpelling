@@ -77,7 +77,7 @@ class BackupTest {
     @Test
     fun `a file that is not a backup is rejected clearly`() {
         val error = assertThrows(BackupFormatException::class.java) { parseBackup("not json") }
-        assertTrue(error.message.orEmpty().contains("isn't a TortoiseSpelling backup"))
+        assertTrue(error.message.orEmpty().contains("isn't a Tortoise Spelling backup"))
     }
 
     @Test

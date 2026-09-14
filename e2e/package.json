@@ -2,7 +2,7 @@
   "name": "tortoisespelling-e2e",
   "private": true,
   "type": "module",
-  "description": "BDD end-to-end tests for the TortoiseSpelling Android app: Cucumber features driven by WebdriverIO through Appium's UiAutomator2 driver.",
+  "description": "BDD end-to-end tests for the Tortoise Spelling Android app: Cucumber features driven by WebdriverIO through Appium's UiAutomator2 driver.",
   "scripts": {
     "e2e": "wdio run ./wdio.conf.ts",
     "e2e:slow": "wdio run ./wdio.conf.ts --cucumberOpts.tags=@slow",

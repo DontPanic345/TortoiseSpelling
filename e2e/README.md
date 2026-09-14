@@ -1,6 +1,6 @@
 # 🧪 End-to-end tests
 
-Behaviour-driven tests for TortoiseSpelling: Gherkin features in [`features/`](features/),
+Behaviour-driven tests for Tortoise Spelling: Gherkin features in [`features/`](features/),
 run against the real APK on an Android emulator by **WebdriverIO + Cucumber**, driving
 the app through **Appium's UiAutomator2** driver.
 

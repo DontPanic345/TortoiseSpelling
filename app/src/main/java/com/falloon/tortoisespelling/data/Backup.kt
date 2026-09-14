@@ -80,18 +80,18 @@ fun BackupWord.toWord() = Word(
     suspended = suspended,
 )
 
-/** Thrown when a file is not a TortoiseSpelling backup, or is from a newer app version. */
+/** Thrown when a file is not a Tortoise Spelling backup, or is from a newer app version. */
 class BackupFormatException(message: String) : Exception(message)
 
 fun parseBackup(raw: String): BackupFile {
     val backup = try {
         BackupJson.decodeFromString(BackupFile.serializer(), raw)
     } catch (error: Exception) {
-        throw BackupFormatException("That file isn't a TortoiseSpelling backup.")
+        throw BackupFormatException("That file isn't a Tortoise Spelling backup.")
     }
     if (backup.version > BackupFile.CURRENT_VERSION) {
         throw BackupFormatException(
-            "That backup was made by a newer version of TortoiseSpelling (v${backup.version}).",
+            "That backup was made by a newer version of Tortoise Spelling (v${backup.version}).",
         )
     }
     return backup

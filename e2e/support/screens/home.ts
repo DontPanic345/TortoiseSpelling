@@ -21,11 +21,11 @@ const isPermissionDialogShowing = async (): Promise<boolean> =>
 
 export const home = {
     /**
-     * Home is the only screen whose top bar reads "TortoiseSpelling". Scoped to the app:
+     * Home is the only screen whose top bar reads "Tortoise Spelling". Scoped to the app:
      * the launcher's icon label reads the same, and goBack() pressing Back during a slow
      * cold start lands on the launcher, where an unscoped match would pass for Home.
      */
-    title: () => byTextInApp('TortoiseSpelling'),
+    title: () => byTextInApp('Tortoise Spelling'),
     practiceCount: () => byTestId(testIds.homePracticeCount),
     addWordButton: () => byTestId(testIds.homeAddWord),
     startButton: () => byText('Start'),

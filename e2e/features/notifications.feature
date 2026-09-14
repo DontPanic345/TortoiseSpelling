@@ -43,7 +43,7 @@ Feature: Daily reminder
     Then I am told "Notifications are blocked for TortoiseSpelling."
     And the daily reminder is off
     When I choose "Open settings"
-    Then Android's notification settings for TortoiseSpelling are shown
+    Then Android's notification settings for Tortoise Spelling are shown
 
   Scenario: A test notification arrives even when nothing is due
     Given I open Settings
