@@ -9,14 +9,21 @@ updates:
     schedule:
       interval: weekly
     groups:
-      # KSP's version is tied to Kotlin's (2.2.20-2.0.4 is KSP for Kotlin 2.2.20), so
-      # the two must move together or the build breaks.
+      # Kotlin and KSP land together so one PR proves the pair builds. (KSP 2.3+ no
+      # longer spells a Kotlin version into its own, but it still has to support ours.)
       kotlin-and-ksp:
         patterns:
           - "org.jetbrains.kotlin.*"
           - "com.google.devtools.ksp*"
       gradle-minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # CodeQL builds the app to analyse it, and its Kotlin extractor refuses anything
+      # newer than it knows: "Kotlin version 2.4.20 is too recent. CodeQL currently
+      # supports versions below 2.4.20". Stay on 2.4.10 until a github/codeql-action
+      # release lists 2.4.20 as supported, then remove this.
+      - dependency-name: "org.jetbrains.kotlin*"
+        versions: [">= 2.4.20"]
 
   - package-ecosystem: npm
     directory: /e2e
