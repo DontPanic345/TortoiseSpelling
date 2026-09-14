@@ -25,6 +25,25 @@ updates:
     groups:
       e2e-minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # @wdio/cucumber-framework still requires @cucumber/cucumber ^10.3.1 as of its
+      # latest release (9.31.9) and its 9.32.0 alpha builds, so a bare devDependency
+      # bump to 13.x leaves two incompatible @cucumber/messages copies in the tree:
+      # @cucumber/cucumber@13's own @cucumber/pretty-formatter has no declared
+      # @cucumber/messages dependency of its own (it assumes the newer one cucumber@13
+      # ships alongside), but npm hoists the older @cucumber/messages@26.0.1 that
+      # @wdio/cucumber-framework's nested cucumber@10.9.0 needs, and that version has
+      # no `HookType` export, so `npm run check-steps` throws
+      # "Cannot read properties of undefined (reading 'BEFORE_TEST_RUN')". Watch for a
+      # @wdio/cucumber-framework release that drops the ^10.3.1 pin before retrying.
+      - dependency-name: "@cucumber/cucumber"
+        update-types: ["version-update:semver-major"]
+      # The e2e suite runs on Node 22 (CI uses Node 22; README requires 20.19+ or
+      # 22.12+). A major @types/node bump tracks a newer Node line and would let code
+      # typecheck against APIs that don't exist on the runtime CI actually uses. Bump
+      # this once the suite's supported Node major does.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: github-actions
     directory: /
