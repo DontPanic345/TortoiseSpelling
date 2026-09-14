@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
-    "@cucumber/cucumber": "~10.9.0",
+    "@cucumber/cucumber": "~13.2.1",
     "@types/node": "~22.20.2",
     "@wdio/appium-service": "~9.31.8",
     "@wdio/cli": "~9.31.8",
