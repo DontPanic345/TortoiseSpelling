@@ -88,11 +88,14 @@ fun WordListScreen(
                     .testTag(TestTags.WORD_LIST_SEARCH),
             )
 
-            WordFilterRow(
-                selected = state.filter,
-                counts = state.filterCounts,
-                onSelect = viewModel::onFilterChange,
-            )
+            // With no words at all, six chips reading 0 would only crowd "No words yet".
+            if ((state.filterCounts[WordFilter.ALL] ?: 0) > 0) {
+                WordFilterRow(
+                    selected = state.filter,
+                    counts = state.filterCounts,
+                    onSelect = viewModel::onFilterChange,
+                )
+            }
 
             when {
                 state.loading -> Unit

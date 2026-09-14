@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to TortoiseSpelling are documented here. The format is based on
+All notable changes to Tortoise Spelling are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -13,8 +13,22 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 - A privacy policy, and an About section at the bottom of Settings with the app's
   version and links to the privacy policy and the source code.
+- A **Back up to Google account** switch in Settings, off by default. Until now Android
+  copied your words to your Google account without asking. Moving to a new phone by
+  direct transfer still brings your words across either way.
+- Filters on the word list: all, due, new, learning, known and suspended, each with a
+  count. They work together with the search.
 
 ### Changed
+
+- The app is now called "Tortoise Spelling", with a space, on the launcher and
+  everywhere else it's named.
+- Settings starts with the daily reminder, then practice, Claude lookup, backup and
+  About, and the API key warning now says what the actual risk is.
+- On the review screen, the example sentence is in the normal typeface with a plain
+  underline for the blank, a right answer shows a small "Correct" label above the word,
+  and after a miss the correct spelling sits on green so it's the first thing you see.
+- The word list's status is a plain badge instead of a chip that looked tappable.
 
 - Home has more on it: a greeting, today's words on a card with the tortoise, a week
   strip showing which days you practised, and a bar of how many of your words are
@@ -24,6 +38,7 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ### Fixed
 
+- Opening the app in dark theme no longer flashes white.
 - The daily reminder no longer fails if notification permission is revoked at the
   exact moment it's being posted.
 

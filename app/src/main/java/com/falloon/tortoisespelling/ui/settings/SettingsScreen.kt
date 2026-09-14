@@ -300,11 +300,10 @@ fun SettingsScreen(onBack: () -> Unit) {
                 )
             }
             Text(
-                text = "Also backs up your words and settings to your Google account, so " +
-                    "Android can restore them after a factory reset or on a new phone. Off " +
-                    "by default, and separate from Export above. Your Anthropic API key " +
-                    "never comes back this way: it's encrypted with a key that stays on " +
-                    "this phone.",
+                text = "Includes your words and settings in your phone's Google backup, so " +
+                    "they come back after a reset or on a new phone. This is separate from " +
+                    "Export. Your Anthropic API key is never restored this way, because " +
+                    "it's locked to this phone.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

@@ -26,7 +26,7 @@ Feature: Managing the word list
     And I see "Nothing in your list matches “xyz”."
 
   Scenario: Filtering narrows the list to the selected status
-    Given Downloads has no TortoiseSpelling test files
+    Given Downloads has no Tortoise Spelling test files
     And Downloads has a backup "e2e-word-progress.json" containing these words with progress:
       | word    | definition                   | intervalDays | due |
       | glisten | shines with a soft light     | 5            | yes |
@@ -41,7 +41,7 @@ Feature: Managing the word list
     And "glisten" is not listed
 
   Scenario: A filter combines with search
-    Given Downloads has no TortoiseSpelling test files
+    Given Downloads has no Tortoise Spelling test files
     And Downloads has a backup "e2e-word-progress.json" containing these words with progress:
       | word    | definition                   | intervalDays | due |
       | glisten | shines with a soft light     | 5            | yes |
