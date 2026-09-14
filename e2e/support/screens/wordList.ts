@@ -7,6 +7,8 @@ import { home } from './home.ts';
 
 export const wordList = {
     searchField: () => byTestId(testIds.wordListSearch),
+    /** A filter chip, by its label, e.g. "Due" -> the chip tagged word_filter_due. */
+    filterChip: (label: string) => byTestId(testIds.wordFilter(label.toLowerCase())),
     row: (word: string) => byTestId(testIds.wordRow(normalizeWord(word))),
     rowStatus: (word: string) => byTestId(testIds.wordRowStatus(normalizeWord(word))),
     suspendIcon: (word: string) =>
@@ -23,6 +25,10 @@ export const wordList = {
 
     search: async (query: string): Promise<void> => {
         await wordList.searchField().setValue(query);
+    },
+
+    filterBy: async (label: string): Promise<void> => {
+        await wordList.filterChip(label).click();
     },
 
     suspend: async (word: string): Promise<void> => {

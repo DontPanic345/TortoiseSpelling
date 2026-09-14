@@ -14,12 +14,51 @@ data class WordProgress(val new: Int, val learning: Int, val known: Int) {
     val total: Int get() = new + learning + known
 }
 
-fun wordProgress(words: List<Word>): WordProgress {
-    val active = words.filterNot { it.suspended }
-    val new = active.count { it.isNew }
-    val known = active.count { !it.isNew && it.intervalDays >= KNOWN_INTERVAL_DAYS }
-    return WordProgress(new = new, learning = active.size - new - known, known = known)
+/** Where an active (non-suspended) word sits between new and known. */
+enum class LearningStage { NEW, LEARNING, KNOWN }
+
+/** [null] for a suspended word: it isn't counted at any stage. */
+fun learningStage(word: Word): LearningStage? = when {
+    word.suspended -> null
+    word.isNew -> LearningStage.NEW
+    word.intervalDays >= KNOWN_INTERVAL_DAYS -> LearningStage.KNOWN
+    else -> LearningStage.LEARNING
 }
+
+fun wordProgress(words: List<Word>): WordProgress {
+    val stages = words.mapNotNull { learningStage(it) }
+    return WordProgress(
+        new = stages.count { it == LearningStage.NEW },
+        learning = stages.count { it == LearningStage.LEARNING },
+        known = stages.count { it == LearningStage.KNOWN },
+    )
+}
+
+/**
+ * The word list's filter chips. [DUE] overlaps [LEARNING] and [KNOWN] (a due word can be
+ * either), which is fine because the chips are single-select rather than a partition.
+ */
+enum class WordFilter(val label: String) {
+    ALL("All"),
+    DUE("Due"),
+    NEW("New"),
+    LEARNING("Learning"),
+    KNOWN("Known"),
+    SUSPENDED("Suspended"),
+}
+
+fun WordFilter.matches(word: Word, today: Long): Boolean = when (this) {
+    WordFilter.ALL -> true
+    WordFilter.DUE -> !word.suspended && !word.isNew && word.dueOn <= today
+    WordFilter.NEW -> learningStage(word) == LearningStage.NEW
+    WordFilter.LEARNING -> learningStage(word) == LearningStage.LEARNING
+    WordFilter.KNOWN -> learningStage(word) == LearningStage.KNOWN
+    WordFilter.SUSPENDED -> word.suspended
+}
+
+/** Each filter's count over the whole list, for the chip labels. Ignores search. */
+fun wordFilterCounts(words: List<Word>, today: Long): Map<WordFilter, Int> =
+    WordFilter.entries.associateWith { filter -> words.count { filter.matches(it, today) } }
 
 enum class DayMark {
     /** At least one review. */

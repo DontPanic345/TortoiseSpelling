@@ -10,6 +10,9 @@ import com.falloon.tortoisespelling.data.WordRepository
 import com.falloon.tortoisespelling.data.normalizeWord
 import com.falloon.tortoisespelling.di.AppContainer
 import com.falloon.tortoisespelling.domain.Days
+import com.falloon.tortoisespelling.domain.WordFilter
+import com.falloon.tortoisespelling.domain.matches
+import com.falloon.tortoisespelling.domain.wordFilterCounts
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,11 +22,14 @@ data class WordRow(val word: Word, val status: String)
 
 data class WordListUiState(
     val query: String = "",
+    val filter: WordFilter = WordFilter.ALL,
+    val filterCounts: Map<WordFilter, Int> = emptyMap(),
     val rows: List<WordRow> = emptyList(),
     val totalCount: Int = 0,
     val loading: Boolean = true,
 ) {
-    val isFiltering: Boolean get() = query.isNotBlank()
+    /** True when the query and filter together, not the filter alone, narrow the list. */
+    val isFiltering: Boolean get() = query.isNotBlank() || filter != WordFilter.ALL
 }
 
 /** Short human-readable scheduling state for the list. */
@@ -32,6 +38,16 @@ fun statusLabel(word: Word, today: Long = Days.today()): String = when {
     word.isNew -> "new"
     word.dueOn <= today -> "due today"
     else -> Days.relativeLabel(word.dueOn, today)
+}
+
+/** The empty state's body when the query and filter together match nothing. */
+fun noMatchesBody(query: String, filter: WordFilter): String {
+    val filterPhrase = if (filter == WordFilter.ALL) null else "${filter.label.lowercase()} words"
+    return when {
+        filterPhrase == null -> "Nothing in your list matches “$query”."
+        query.isBlank() -> "No $filterPhrase."
+        else -> "No $filterPhrase match “$query”."
+    }
 }
 
 class WordListViewModel(private val repository: WordRepository) : ViewModel() {
@@ -45,24 +61,35 @@ class WordListViewModel(private val repository: WordRepository) : ViewModel() {
         viewModelScope.launch {
             repository.observeWords().collect { words ->
                 allWords = words
+                val today = Days.today()
                 _state.value = _state.value.copy(
                     loading = false,
                     totalCount = words.size,
-                    rows = filtered(words, _state.value.query),
+                    filterCounts = wordFilterCounts(words, today),
+                    rows = filtered(words, _state.value.query, _state.value.filter, today),
                 )
             }
         }
     }
 
     fun onQueryChange(query: String) {
-        _state.value = _state.value.copy(query = query, rows = filtered(allWords, query))
+        _state.value = _state.value.copy(query = query, rows = filtered(allWords, query, _state.value.filter))
     }
 
-    private fun filtered(words: List<Word>, query: String): List<WordRow> {
+    fun onFilterChange(filter: WordFilter) {
+        _state.value = _state.value.copy(filter = filter, rows = filtered(allWords, _state.value.query, filter))
+    }
+
+    private fun filtered(
+        words: List<Word>,
+        query: String,
+        filter: WordFilter,
+        today: Long = Days.today(),
+    ): List<WordRow> {
         val needle = normalizeWord(query)
-        val today = Days.today()
         return words
             .filter { needle.isEmpty() || it.normalizedText.contains(needle) }
+            .filter { filter.matches(it, today) }
             .map { WordRow(it, statusLabel(it, today)) }
     }
 

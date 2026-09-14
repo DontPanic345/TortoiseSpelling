@@ -6,7 +6,25 @@ interface BackupWordSpec {
     text: string;
     definition: string;
     dueOn?: number;
+    intervalDays?: number;
+    isNew?: boolean;
 }
+
+/** A word list filter scenario's seed: a word already past new, with a given interval. */
+export interface ProgressWordSpec {
+    text: string;
+    definition: string;
+    intervalDays: number;
+    /** Whether the word's due date is in the past (due today) or far in the future. */
+    due: boolean;
+}
+
+/**
+ * Far enough in the future to never be "due", regardless of when the suite runs — the
+ * epoch-day equivalent of "not due" without having to compute today's epoch day (and
+ * risk a timezone mismatch between the test runner and the emulator) to build it.
+ */
+const FAR_FUTURE_DUE_ON = 999_999;
 
 /** Builds the on-disk backup JSON (data/Backup.kt): version, exportedAt, words[]. */
 const buildBackupJson = (words: BackupWordSpec[], version = 1): string =>
@@ -21,12 +39,12 @@ const buildBackupJson = (words: BackupWordSpec[], version = 1): string =>
             createdAt: Date.now(),
             repetitions: 0,
             easeFactor: 2.5,
-            intervalDays: 0,
+            intervalDays: word.intervalDays ?? 0,
             dueOn: word.dueOn ?? 0,
             lapses: 0,
             lastReviewedAt: null,
             firstReviewedOn: null,
-            isNew: true,
+            isNew: word.isNew ?? true,
             suspended: false,
         })),
     });
@@ -66,6 +84,22 @@ export const backup = {
 
     pushWords: async (filename: string, words: BackupWordSpec[]): Promise<void> => {
         await pushToDownloads(filename, buildBackupJson(words));
+    },
+
+    /** Seeds words already past new, e.g. for word list filter scenarios. */
+    pushWordsWithProgress: async (filename: string, words: ProgressWordSpec[]): Promise<void> => {
+        await pushToDownloads(
+            filename,
+            buildBackupJson(
+                words.map((word) => ({
+                    text: word.text,
+                    definition: word.definition,
+                    intervalDays: word.intervalDays,
+                    dueOn: word.due ? 0 : FAR_FUTURE_DUE_ON,
+                    isNew: false,
+                })),
+            ),
+        );
     },
 
     pushVersion: async (filename: string, version: number): Promise<void> => {

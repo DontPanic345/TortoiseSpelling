@@ -25,6 +25,42 @@ Feature: Managing the word list
     Then I see "No matches"
     And I see "Nothing in your list matches “xyz”."
 
+  Scenario: Filtering narrows the list to the selected status
+    Given Downloads has no TortoiseSpelling test files
+    And Downloads has a backup "e2e-word-progress.json" containing these words with progress:
+      | word    | definition                   | intervalDays | due |
+      | glisten | shines with a soft light     | 5            | yes |
+      | opaque  | not able to be seen through  | 30           | no  |
+    And I open Settings
+    And I import "e2e-word-progress.json" from Downloads
+    And I open the word list
+    When I filter by "Known"
+    Then "opaque" is listed
+    And "rhythm" is not listed
+    And "necessary" is not listed
+    And "glisten" is not listed
+
+  Scenario: A filter combines with search
+    Given Downloads has no TortoiseSpelling test files
+    And Downloads has a backup "e2e-word-progress.json" containing these words with progress:
+      | word    | definition                   | intervalDays | due |
+      | glisten | shines with a soft light     | 5            | yes |
+      | opaque  | not able to be seen through  | 30           | no  |
+    And I open Settings
+    And I import "e2e-word-progress.json" from Downloads
+    And I open the word list
+    When I filter by "New"
+    And I search for "e"
+    Then "necessary" is listed
+    And "rhythm" is not listed
+    And "opaque" is not listed
+    And "glisten" is not listed
+
+  Scenario: A filter with no matches shows the empty state
+    When I filter by "Suspended"
+    Then I see "No matches"
+    And I see "No suspended words."
+
   Scenario: Suspending a word takes it out of today's practice
     When I suspend "rhythm"
     Then "rhythm" is listed as "suspended"

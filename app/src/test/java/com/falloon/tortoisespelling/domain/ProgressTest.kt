@@ -6,12 +6,17 @@ import org.junit.Test
 
 class ProgressTest {
 
-    private fun word(isNew: Boolean = false, intervalDays: Int = 0, suspended: Boolean = false) = Word(
+    private fun word(
+        isNew: Boolean = false,
+        intervalDays: Int = 0,
+        suspended: Boolean = false,
+        dueOn: Long = 0,
+    ) = Word(
         text = "cat",
         normalizedText = "cat",
         definition = "An animal.",
         example = "",
-        dueOn = 0,
+        dueOn = dueOn,
         isNew = isNew,
         intervalDays = intervalDays,
         suspended = suspended,
@@ -36,6 +41,58 @@ class ProgressTest {
     fun `suspended words are left out`() {
         val progress = wordProgress(listOf(word(isNew = true, suspended = true), word(intervalDays = 30, suspended = true)))
         assertEquals(WordProgress(new = 0, learning = 0, known = 0), progress)
+    }
+
+    @Test
+    fun `the New, Learning and Known filters agree with wordProgress for the same list`() {
+        val words = listOf(
+            word(isNew = true),
+            word(intervalDays = 1),
+            word(intervalDays = 20),
+            word(intervalDays = 21),
+            word(intervalDays = 200),
+            word(isNew = true, suspended = true),
+            word(intervalDays = 30, suspended = true),
+        )
+        val progress = wordProgress(words)
+        val counts = wordFilterCounts(words, today = 0)
+        assertEquals(progress.new, counts.getValue(WordFilter.NEW))
+        assertEquals(progress.learning, counts.getValue(WordFilter.LEARNING))
+        assertEquals(progress.known, counts.getValue(WordFilter.KNOWN))
+    }
+
+    @Test
+    fun `the Due filter matches an unsuspended, non-new word due on or before today`() {
+        assertEquals(true, WordFilter.DUE.matches(word(dueOn = 100), today = 100))
+        assertEquals(true, WordFilter.DUE.matches(word(dueOn = 95), today = 100))
+        assertEquals(false, WordFilter.DUE.matches(word(dueOn = 101), today = 100))
+        assertEquals(false, WordFilter.DUE.matches(word(isNew = true, dueOn = 100), today = 100))
+        assertEquals(false, WordFilter.DUE.matches(word(dueOn = 100, suspended = true), today = 100))
+    }
+
+    @Test
+    fun `the Suspended filter matches only suspended words, regardless of their other state`() {
+        assertEquals(true, WordFilter.SUSPENDED.matches(word(suspended = true), today = 100))
+        assertEquals(true, WordFilter.SUSPENDED.matches(word(isNew = true, suspended = true), today = 100))
+        assertEquals(false, WordFilter.SUSPENDED.matches(word(), today = 100))
+    }
+
+    @Test
+    fun `the All filter matches everything`() {
+        assertEquals(true, WordFilter.ALL.matches(word(), today = 100))
+        assertEquals(true, WordFilter.ALL.matches(word(suspended = true), today = 100))
+        assertEquals(true, WordFilter.ALL.matches(word(isNew = true), today = 100))
+    }
+
+    @Test
+    fun `filter counts are over the whole list and each word counts for exactly one learning stage`() {
+        val words = listOf(word(isNew = true), word(intervalDays = 1), word(intervalDays = 21), word(suspended = true))
+        val counts = wordFilterCounts(words, today = 0)
+        assertEquals(4, counts.getValue(WordFilter.ALL))
+        assertEquals(1, counts.getValue(WordFilter.NEW))
+        assertEquals(1, counts.getValue(WordFilter.LEARNING))
+        assertEquals(1, counts.getValue(WordFilter.KNOWN))
+        assertEquals(1, counts.getValue(WordFilter.SUSPENDED))
     }
 
     @Test

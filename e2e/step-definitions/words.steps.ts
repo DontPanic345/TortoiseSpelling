@@ -66,6 +66,10 @@ When('I search for {string}', async (query: string) => {
     await wordList.search(query);
 });
 
+When('I filter by {string}', async (label: string) => {
+    await wordList.filterBy(label);
+});
+
 Then('{string} is listed', async (word: string) => {
     await expect(byText(word)).toBeDisplayed();
 });

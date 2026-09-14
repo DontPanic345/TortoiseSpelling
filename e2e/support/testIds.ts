@@ -19,6 +19,8 @@ export const testIds = {
     addWordLookUp: 'add_word_look_up',
 
     wordListSearch: 'word_list_search',
+    /** One tag per filter chip, e.g. "word_filter_due". */
+    wordFilter: (name: string): string => `word_filter_${name}`,
     /** Scopes a row's per-row icons (identical content-descs on every row). */
     wordRow: (normalizedText: string): string => `word_row_${normalizedText}`,
     /** The status chip's label, tagged because two rows can share the same status text. */

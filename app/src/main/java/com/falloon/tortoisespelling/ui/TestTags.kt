@@ -25,6 +25,9 @@ object TestTags {
 
     const val WORD_LIST_SEARCH = "word_list_search"
 
+    /** One tag per filter chip, e.g. "word_filter_due". */
+    fun wordFilter(name: String) = "word_filter_$name"
+
     /** Scopes a row's per-row icons (identical content-descs on every row). */
     fun wordRow(normalizedText: String) = "word_row_$normalizedText"
 

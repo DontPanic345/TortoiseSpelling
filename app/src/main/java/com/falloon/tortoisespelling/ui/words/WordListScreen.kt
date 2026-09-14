@@ -1,6 +1,7 @@
 package com.falloon.tortoisespelling.ui.words
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.MenuBook
@@ -16,15 +19,15 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -41,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.falloon.tortoisespelling.data.Word
+import com.falloon.tortoisespelling.domain.WordFilter
 import com.falloon.tortoisespelling.ui.EmptyState
 import com.falloon.tortoisespelling.ui.TestTags
 import com.falloon.tortoisespelling.ui.rememberAppContainer
@@ -84,13 +88,19 @@ fun WordListScreen(
                     .testTag(TestTags.WORD_LIST_SEARCH),
             )
 
+            WordFilterRow(
+                selected = state.filter,
+                counts = state.filterCounts,
+                onSelect = viewModel::onFilterChange,
+            )
+
             when {
                 state.loading -> Unit
 
                 state.rows.isEmpty() && state.isFiltering -> EmptyState(
                     icon = Icons.AutoMirrored.Filled.MenuBook,
                     title = "No matches",
-                    body = "Nothing in your list matches “${state.query}”.",
+                    body = noMatchesBody(state.query, state.filter),
                 )
 
                 state.rows.isEmpty() -> EmptyState(
@@ -136,6 +146,32 @@ fun WordListScreen(
     }
 }
 
+/** A single-select, horizontally scrolling row of filter chips, each showing its count. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WordFilterRow(
+    selected: WordFilter,
+    counts: Map<WordFilter, Int>,
+    onSelect: (WordFilter) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        WordFilter.entries.forEach { filter ->
+            FilterChip(
+                selected = filter == selected,
+                onClick = { onSelect(filter) },
+                label = { Text("${filter.label} ${counts[filter] ?: 0}") },
+                modifier = Modifier.testTag(TestTags.wordFilter(filter.name.lowercase())),
+            )
+        }
+    }
+}
+
 @Composable
 private fun WordListItem(
     row: WordRow,
@@ -163,17 +199,7 @@ private fun WordListItem(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            AssistChip(
-                onClick = onClick,
-                label = {
-                    Text(
-                        text = row.status,
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier.testTag(TestTags.wordRowStatus(row.word.normalizedText)),
-                    )
-                },
-                colors = AssistChipDefaults.assistChipColors(),
-            )
+            StatusBadge(row)
         }
         IconButton(onClick = onToggleSuspended) {
             Icon(
@@ -188,5 +214,30 @@ private fun WordListItem(
         IconButton(onClick = onDelete) {
             Icon(Icons.Default.Delete, contentDescription = "Delete word")
         }
+    }
+}
+
+/**
+ * A row's scheduling status, as a small tonal badge rather than an `AssistChip` — a chip
+ * looks tappable, and tapping it did nothing. Suspended gets a muted treatment since it
+ * isn't a word making progress.
+ */
+@Composable
+private fun StatusBadge(row: WordRow) {
+    val colors = MaterialTheme.colorScheme
+    val containerColor = if (row.word.suspended) colors.surfaceVariant else colors.secondaryContainer
+    val contentColor = if (row.word.suspended) colors.onSurfaceVariant else colors.onSecondaryContainer
+    Surface(
+        color = containerColor,
+        contentColor = contentColor,
+        shape = RoundedCornerShape(6.dp),
+    ) {
+        Text(
+            text = row.status,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier
+                .padding(horizontal = 8.dp, vertical = 3.dp)
+                .testTag(TestTags.wordRowStatus(row.word.normalizedText)),
+        )
     }
 }

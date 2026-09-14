@@ -47,7 +47,7 @@ Anki 🃏 — reviewing a word right as you're about to forget it.
 | 🎯 **Review** | Definition + blanked example, one text field, diff on a miss. |
 | 🏁 **Completion** | "All done" state with the next review date. |
 | ➕ **Add word** | Type a word, optionally look it up with Claude, Save. |
-| 📚 **Word list** | Browse/search words by state; edit, suspend, or delete. |
+| 📚 **Word list** | Search, or filter by status (due, new, learning, known, suspended); edit, suspend, or delete. |
 | ⚙️ **Settings** | API key, new words per day, reminder time, export/import. |
 
 ## 🤖 Word lookup with Claude
