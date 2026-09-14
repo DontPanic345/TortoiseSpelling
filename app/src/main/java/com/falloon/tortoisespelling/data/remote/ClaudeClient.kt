@@ -172,7 +172,7 @@ class ClaudeClient(
                     if (!response.isSuccessful) {
                         return null
                     }
-                    val data = JSONObject(response.body?.string().orEmpty())
+                    val data = JSONObject(response.body.string())
                         .optJSONArray("data")
                         ?: return null
                     val candidates = (0 until data.length())
@@ -213,7 +213,7 @@ class ClaudeClient(
 
         return try {
             http.newCall(request).execute().use { response ->
-                val text = response.body?.string().orEmpty()
+                val text = response.body.string()
                 if (response.isSuccessful) {
                     HttpOutcome.Body(JSONObject(text))
                 } else {

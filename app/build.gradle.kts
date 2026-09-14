@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
@@ -8,7 +7,10 @@ plugins {
 
 android {
     namespace = "com.falloon.tortoisespelling"
-    compileSdk = 36
+    // androidx.core 1.19.0 and androidx.compose.ui 1.12.1 (pulled in by the compose BOM
+    // bump) require compiling against API 37; AGP 8.13's max recommended compileSdk was
+    // 36, which is why this needed AGP 9 too.
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.falloon.tortoisespelling"
@@ -54,12 +56,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-        }
-    }
-
     buildFeatures {
         compose = true
         // For BuildConfig.VERSION_NAME in Settings' About section.
@@ -70,6 +66,15 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+}
+
+// AGP 9's built-in Kotlin support (replacing the org.jetbrains.kotlin.android plugin)
+// exposes compiler options through this top-level `kotlin` extension rather than
+// android.kotlinOptions.
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 
