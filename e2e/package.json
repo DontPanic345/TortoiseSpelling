@@ -11,7 +11,7 @@
   },
   "devDependencies": {
     "@cucumber/cucumber": "~10.9.0",
-    "@types/node": "~22.20.2",
+    "@types/node": "~26.5.1",
     "@wdio/appium-service": "~9.31.8",
     "@wdio/cli": "~9.31.8",
     "@wdio/cucumber-framework": "~9.31.7",
