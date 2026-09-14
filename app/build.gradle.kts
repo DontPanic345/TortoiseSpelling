@@ -6,14 +6,14 @@ plugins {
 }
 
 android {
-    namespace = "com.falloon.tortoisespelling"
+    namespace = "io.github.dontpanic345.tortoisespelling"
     // androidx.core 1.19.0 and androidx.compose.ui 1.12.1 (pulled in by the compose BOM
     // bump) require compiling against API 37; AGP 8.13's max recommended compileSdk was
     // 36, which is why this needed AGP 9 too.
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.falloon.tortoisespelling"
+        applicationId = "io.github.dontpanic345.tortoisespelling"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

@@ -73,7 +73,7 @@ APK=../app/build/outputs/apk/release/app-release.apk npm run e2e
 | `support/hooks.ts` | Before: reset. After a failure: page source and screenshot into `logs/` |
 | `support/screens/` | One object per screen: its elements and the actions on it |
 | `support/selectors.ts` | `byText`, `byDescription`, `byTestId`, `scrollToText` (all UiSelector) |
-| `support/testIds.ts` | Mirror of the app's [`TestTags.kt`](../app/src/main/java/com/falloon/tortoisespelling/ui/TestTags.kt) |
+| `support/testIds.ts` | Mirror of the app's [`TestTags.kt`](../app/src/main/java/io/github/dontpanic345/tortoisespelling/ui/TestTags.kt) |
 | `scripts/checkSteps.ts` | The `check-steps` dry run |
 
 Each feature file gets a fresh Appium session with the APK reinstalled. Each scenario

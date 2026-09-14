@@ -11,7 +11,7 @@ import {
 
 const gradle = `
     defaultConfig {
-        applicationId = "com.falloon.tortoisespelling"
+        applicationId = "io.github.dontpanic345.tortoisespelling"
         versionCode = 3
         versionName = "0.2.1"
     }

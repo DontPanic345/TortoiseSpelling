@@ -21,6 +21,10 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ### Changed
 
+- **The app's package name is now `io.github.dontpanic345.tortoisespelling`.** Android
+  treats this as a different app, so it won't update over 0.0.1: in the old app, export
+  a backup from Settings, install this version, import the backup, then uninstall the
+  old app. (The Claude API key isn't in backups, so enter it again.)
 - The app is now called "Tortoise Spelling", with a space, on the launcher and
   everywhere else it's named.
 - Settings starts with the daily reminder, then practice, Claude lookup, backup and

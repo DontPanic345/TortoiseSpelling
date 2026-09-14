@@ -1,5 +1,5 @@
 /**
- * Mirrors app/src/main/java/com/falloon/tortoisespelling/ui/TestTags.kt — change both
+ * Mirrors app/src/main/java/io/github/dontpanic345/tortoisespelling/ui/TestTags.kt — change both
  * together. The app exposes each Compose test tag as the node's resource-id, verbatim
  * (no package prefix), so find these with byTestId() rather than Appium's `id=` strategy.
  */

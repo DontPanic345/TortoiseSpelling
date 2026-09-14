@@ -1,7 +1,7 @@
 import path from 'node:path';
 
 /** The application id from app/build.gradle.kts. */
-export const APP_ID = 'com.falloon.tortoisespelling';
+export const APP_ID = 'io.github.dontpanic345.tortoisespelling';
 
 /**
  * The APK under test. Defaults to the debug build; point APK at a release build to

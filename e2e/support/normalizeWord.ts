@@ -1,5 +1,5 @@
 /**
- * Mirrors com.falloon.tortoisespelling.data.normalizeWord: lowercased, trimmed,
+ * Mirrors io.github.dontpanic345.tortoisespelling.data.normalizeWord: lowercased, trimmed,
  * internal-whitespace-collapsed. Used to rebuild a word's row test tag
  * (TestTags.wordRow / wordRowStatus) from the word text a step is given.
  */
