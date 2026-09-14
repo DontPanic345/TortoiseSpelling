@@ -139,6 +139,18 @@ re-opens Review.
 Mirror every tag in `e2e/support/testIds.ts`. Dialogs and popups are separate windows and
 need their own `testTagsAsResourceId`.
 
+## Workflow
+
+There are no pull requests and no branch protection; main is the only long-lived branch.
+
+- Each change gets its own branch from main: `feature/…`, `bugfix/…` or `chore/…`.
+- Once it's verified (unit tests and lint, plus the e2e suite if it touches the app or
+  `e2e/`), land it on main as one commit and push main. Then delete the branch, locally
+  and on GitHub. Push as you go instead of batching up local commits.
+- Dependabot still opens PRs. Take their updates on a branch like any other change;
+  Dependabot closes its own PRs once main has the new versions. An update that can't be
+  taken gets an `ignore` entry in `.github/dependabot.yml`, with the reason in a comment.
+
 ## Release
 
 Pushing a `v*` tag runs `.github/workflows/release.yml`. It builds a signed, R8-minified
@@ -147,7 +159,7 @@ no Play Store listing. The workflow deliberately has no manual trigger: the rele
 named after `github.ref_name`, so a manual run from a branch would create a tag called `main`.
 
 - **Changelog.** `CHANGELOG.md` follows Keep a Changelog. Any user-visible change adds a
-  line under `[Unreleased]` in the same PR. The GitHub release notes are the version's
+  line under `[Unreleased]` in the same commit. The GitHub release notes are the version's
   section, not generated notes.
 - **Version bump.** `node scripts/bump-version.mjs <major|minor|patch|X.Y.Z>` raises
   `versionName` and `versionCode` and moves `[Unreleased]` under a dated heading. It
