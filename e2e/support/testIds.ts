@@ -32,6 +32,7 @@ export const testIds = {
     settingsNewWordsIncrease: 'settings_new_words_increase',
     settingsReminderSwitch: 'settings_reminder_switch',
     settingsReminderTimeButton: 'settings_reminder_time_button',
+    settingsCloudBackupSwitch: 'settings_cloud_backup_switch',
 
     reviewAnswer: 'review_answer',
     reviewSubmit: 'review_submit',

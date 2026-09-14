@@ -9,14 +9,19 @@ export const settings = {
     newWordsIncrease: () => byTestId(testIds.settingsNewWordsIncrease),
     reminderSwitch: () => byTestId(testIds.settingsReminderSwitch),
     reminderTimeButton: () => byTestId(testIds.settingsReminderTimeButton),
+    cloudBackupSwitch: () => byTestId(testIds.settingsCloudBackupSwitch),
 
-    /** Opens Settings from any screen, or stays put if it is already open. */
+    /**
+     * Opens Settings from any screen, or stays put if it is already open. Checked via
+     * the reminder switch rather than the API key field: Daily reminder is the first
+     * section, so it's on screen without scrolling regardless of screen height.
+     */
     open: async (): Promise<void> => {
-        if (await settings.apiKeyField().isDisplayed()) {
+        if (await settings.reminderSwitch().isDisplayed()) {
             return;
         }
         await home.openViaMenu('Settings');
-        await settings.apiKeyField().waitForDisplayed();
+        await settings.reminderSwitch().waitForDisplayed();
     },
 
     setNewWordsPerDay: async (target: number): Promise<void> => {

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Pre-Android-12 (API 23-30) equivalent of data_extraction_rules.xml. Deliberately empty:
+  TortoiseSpellingBackupAgent (android:backupAgent, android:fullBackupOnly="true") decides
+  whether a backup pass runs at all, so no file needs excluding here. Present only to
+  satisfy the AllowBackup lint check and to keep behaviour consistent for devices below
+  API 31, which never consult data_extraction_rules.xml.
+-->
+<full-backup-content>
+</full-backup-content>

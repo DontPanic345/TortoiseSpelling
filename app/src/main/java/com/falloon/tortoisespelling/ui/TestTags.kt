@@ -40,6 +40,7 @@ object TestTags {
     const val SETTINGS_NEW_WORDS_INCREASE = "settings_new_words_increase"
     const val SETTINGS_REMINDER_SWITCH = "settings_reminder_switch"
     const val SETTINGS_REMINDER_TIME_BUTTON = "settings_reminder_time_button"
+    const val SETTINGS_CLOUD_BACKUP_SWITCH = "settings_cloud_backup_switch"
 
     const val REVIEW_ANSWER = "review_answer"
     const val REVIEW_SUBMIT = "review_submit"

@@ -40,7 +40,7 @@ Feature: Daily reminder
     And I open Settings
     When I turn the daily reminder on
     And I refuse notifications
-    Then I am told "Notifications are blocked for TortoiseSpelling."
+    Then I am told "Notifications are blocked for Tortoise Spelling."
     And the daily reminder is off
     When I choose "Open settings"
     Then Android's notification settings for Tortoise Spelling are shown

@@ -2,7 +2,8 @@ import { Given, Then, When } from '@wdio/cucumber-framework';
 import { expect } from '@wdio/globals';
 import { typeInto } from '../support/actions.ts';
 import { settings } from '../support/screens/settings.ts';
-import { scrollToText } from '../support/selectors.ts';
+import { scrollToText, scrollToTestId } from '../support/selectors.ts';
+import { testIds } from '../support/testIds.ts';
 
 Given('I open Settings', async () => {
     await settings.open();
@@ -51,6 +52,9 @@ Then('I cannot change the reminder time', async () => {
 });
 
 When('I enter the API key {string}', async (apiKey: string) => {
+    // The Claude lookup section is below the fold now that Settings leads with Daily
+    // reminder and Practice.
+    await scrollToTestId(testIds.settingsApiKey);
     await typeInto(settings.apiKeyField(), apiKey);
 });
 
@@ -66,4 +70,19 @@ Given('the reminder time is set to {int} minutes from now', async (minutesFromNo
 /** For the parts of Settings below the fold, e.g. the About section's links. */
 Then('Settings shows {string}', async (text: string) => {
     await expect(scrollToText(text)).toBeDisplayed();
+});
+
+When('I turn cloud backup {word}', async (state: string) => {
+    const shouldBeOn = state === 'on';
+    await scrollToTestId(testIds.settingsCloudBackupSwitch);
+    const isOn = (await settings.cloudBackupSwitch().getAttribute('checked')) === 'true';
+    if (isOn !== shouldBeOn) {
+        await settings.cloudBackupSwitch().click();
+    }
+});
+
+Then('cloud backup is {word}', async (state: string) => {
+    const expected = state === 'on' ? 'true' : 'false';
+    await scrollToTestId(testIds.settingsCloudBackupSwitch);
+    await expect(settings.cloudBackupSwitch()).toHaveAttribute('checked', expected);
 });

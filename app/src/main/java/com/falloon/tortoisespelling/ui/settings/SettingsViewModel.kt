@@ -1,5 +1,6 @@
 package com.falloon.tortoisespelling.ui.settings
 
+import android.app.backup.BackupManager
 import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
@@ -83,6 +84,14 @@ class SettingsViewModel(
         ReminderScheduler.sync(context, settings)
     }
 
+    fun setCloudBackupEnabled(enabled: Boolean) {
+        store.setCloudBackupEnabled(enabled)
+        publish()
+        // Tells the system there is new data to back up, so the next scheduled Auto
+        // Backup pass picks up the change instead of waiting for one to happen anyway.
+        BackupManager(context).dataChanged()
+    }
+
     fun testKey() {
         val settings = store.current()
         if (!settings.hasApiKey) {
@@ -105,7 +114,7 @@ class SettingsViewModel(
 
     fun sendTestNotification() {
         if (!ReminderScheduler.canPostNotifications(context)) {
-            say("Notifications are blocked for TortoiseSpelling in Android settings.")
+            say("Notifications are blocked for Tortoise Spelling in Android settings.")
             return
         }
         // Fire the real worker path rather than a bespoke notification, so this actually

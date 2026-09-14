@@ -41,3 +41,12 @@ Feature: Settings
   Scenario: Settings links to the privacy policy and the source code
     Then Settings shows "Privacy policy"
     And Settings shows "Source code"
+
+  Scenario: Back up to Google account is off by default
+    Then cloud backup is off
+
+  Scenario: Turning on Back up to Google account persists after leaving and returning
+    When I turn cloud backup on
+    And I go back to Home
+    And I open Settings
+    Then cloud backup is on

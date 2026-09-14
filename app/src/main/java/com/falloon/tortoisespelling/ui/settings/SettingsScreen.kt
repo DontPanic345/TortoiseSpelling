@@ -110,7 +110,7 @@ fun SettingsScreen(onBack: () -> Unit) {
                 // which would park this over the Backup buttons and queue every later
                 // message behind it.
                 val result = snackbarHost.showSnackbar(
-                    message = "Notifications are blocked for TortoiseSpelling.",
+                    message = "Notifications are blocked for Tortoise Spelling.",
                     actionLabel = "Open settings",
                     duration = SnackbarDuration.Long,
                 )
@@ -154,70 +154,6 @@ fun SettingsScreen(onBack: () -> Unit) {
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            SectionTitle("Claude lookup")
-
-            Text(
-                text = "Optional. With a key, “Look up with Claude” fills in the " +
-                    "definition and example when you add a word. Without one, you type " +
-                    "those yourself.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            OutlinedTextField(
-                value = state.settings.apiKey,
-                onValueChange = viewModel::setApiKey,
-                label = { Text("Anthropic API key") },
-                singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag(TestTags.SETTINGS_API_KEY),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                visualTransformation = if (keyVisible) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
-                },
-                trailingIcon = {
-                    IconButton(onClick = { keyVisible = !keyVisible }) {
-                        Icon(
-                            imageVector = if (keyVisible) {
-                                Icons.Default.VisibilityOff
-                            } else {
-                                Icons.Default.Visibility
-                            },
-                            contentDescription = if (keyVisible) "Hide key" else "Show key",
-                        )
-                    }
-                },
-            )
-            Text(
-                text = "Stored encrypted on this device only. Never share this build with " +
-                    "your key in it; if it ever leaks, rotate it in the Anthropic console.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            OutlinedButton(onClick = viewModel::testKey, enabled = !state.testingKey) {
-                if (state.testingKey) {
-                    CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                    Spacer(Modifier.size(8.dp))
-                }
-                Text("Test key")
-            }
-
-            ApiKeyHelp()
-
-            HorizontalDivider(Modifier.padding(vertical = 8.dp))
-            SectionTitle("Practice")
-
-            Stepper(
-                label = "New words per day",
-                value = state.settings.newWordsPerDay,
-                onChange = viewModel::setNewWordsPerDay,
-            )
-
-            HorizontalDivider(Modifier.padding(vertical = 8.dp))
             SectionTitle("Daily reminder")
 
             Row(
@@ -264,6 +200,70 @@ fun SettingsScreen(onBack: () -> Unit) {
             }
 
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
+            SectionTitle("Practice")
+
+            Stepper(
+                label = "New words per day",
+                value = state.settings.newWordsPerDay,
+                onChange = viewModel::setNewWordsPerDay,
+            )
+
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+            SectionTitle("Claude lookup")
+
+            Text(
+                text = "Optional. With a key, “Look up with Claude” fills in the " +
+                    "definition and example when you add a word. Without one, you type " +
+                    "those yourself.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            OutlinedTextField(
+                value = state.settings.apiKey,
+                onValueChange = viewModel::setApiKey,
+                label = { Text("Anthropic API key") },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(TestTags.SETTINGS_API_KEY),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                visualTransformation = if (keyVisible) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation()
+                },
+                trailingIcon = {
+                    IconButton(onClick = { keyVisible = !keyVisible }) {
+                        Icon(
+                            imageVector = if (keyVisible) {
+                                Icons.Default.VisibilityOff
+                            } else {
+                                Icons.Default.Visibility
+                            },
+                            contentDescription = if (keyVisible) "Hide key" else "Show key",
+                        )
+                    }
+                },
+            )
+            Text(
+                text = "Anyone with this key can spend your Anthropic credit. If it " +
+                    "leaks, delete it in the Anthropic console.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            OutlinedButton(onClick = viewModel::testKey, enabled = !state.testingKey) {
+                if (state.testingKey) {
+                    CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                    Spacer(Modifier.size(8.dp))
+                }
+                Text("Test key")
+            }
+
+            ApiKeyHelp()
+
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
             SectionTitle("Backup")
 
             Text(
@@ -286,6 +286,28 @@ fun SettingsScreen(onBack: () -> Unit) {
                     Text("Import")
                 }
             }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text("Back up to Google account", style = MaterialTheme.typography.bodyLarge)
+                Switch(
+                    checked = state.settings.cloudBackupEnabled,
+                    onCheckedChange = viewModel::setCloudBackupEnabled,
+                    modifier = Modifier.testTag(TestTags.SETTINGS_CLOUD_BACKUP_SWITCH),
+                )
+            }
+            Text(
+                text = "Also backs up your words and settings to your Google account, so " +
+                    "Android can restore them after a factory reset or on a new phone. Off " +
+                    "by default, and separate from Export above. Your Anthropic API key " +
+                    "never comes back this way: it's encrypted with a key that stays on " +
+                    "this phone.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
 
             HorizontalDivider(Modifier.padding(vertical = 8.dp))
             SectionTitle("About")
@@ -331,7 +353,7 @@ private fun About() {
     val uriHandler = LocalUriHandler.current
     Column {
         Text(
-            text = "TortoiseSpelling ${BuildConfig.VERSION_NAME}",
+            text = "Tortoise Spelling ${BuildConfig.VERSION_NAME}",
             style = MaterialTheme.typography.bodyLarge,
         )
         Text(

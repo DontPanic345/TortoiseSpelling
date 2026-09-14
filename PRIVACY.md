@@ -28,10 +28,14 @@ These requests go straight from your phone to Anthropic under your own account, 
 [Anthropic's privacy policy](https://www.anthropic.com/legal/privacy) covers them. The
 developer can't see them.
 
-**Android's own backup.** If backup is turned on for your device, Android may include
-the app's data in your backup to your Google account. The app takes no part in this;
-it's between you and Google. Your API key can't be read after a restore, because its
-encryption key stays behind on the old device, so you'd enter it again.
+**Android's own backup.** Off by default. **Back up to Google account** in Settings →
+Backup opts in to Android including your words, their scheduling and your other settings
+in your device's backup to your Google account, so they can be restored after a factory
+reset or on a new phone; it's between you and Google, the developer never sees it. Your
+API key never comes back this way, because its encryption key stays behind on the old
+device, so you'd enter it again. Moving to a new phone directly (Android's own
+device-to-device transfer, over USB or Wi-Fi, with no Google server involved) always
+carries your words and settings across, whether or not this switch is on.
 
 **Backups you export.** **Export** in Settings writes your words and progress to a file
 wherever you choose. It doesn't include your API key.

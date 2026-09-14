@@ -1,6 +1,6 @@
 import { Then, When } from '@wdio/cucumber-framework';
 import { expect } from '@wdio/globals';
-import { byText } from '../support/selectors.ts';
+import { byText, scrollToText } from '../support/selectors.ts';
 
 // Steps about what is on screen, shared by every feature. Keep them phrased from the
 // user's side ("I am told", "I see") so feature files read as behaviour, not UI.
@@ -14,9 +14,21 @@ Then('I see {string}', async (text: string) => {
     await expect(byText(text)).toBeDisplayed();
 });
 
-/** Taps any button, menu item or dialog action found by its visible text. */
+/**
+ * Taps any button, menu item or dialog action found by its visible text. Falls back to
+ * scrolling first when the label isn't on screen yet, e.g. a button below the fold on a
+ * long screen such as Settings; every other screen's labels are already visible, so this
+ * behaves exactly as a plain click for them.
+ */
 When('I choose {string}', async (label: string) => {
-    await byText(label).click();
+    const target = byText(label);
+    if (await target.isDisplayed().catch(() => false)) {
+        await target.click();
+        return;
+    }
+    await scrollToText(label)
+        .click()
+        .catch(() => target.click());
 });
 
 /** A screen's top app bar title, e.g. "All words (2)", "Edit word". */

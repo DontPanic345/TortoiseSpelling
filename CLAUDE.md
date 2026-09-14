@@ -117,6 +117,15 @@ re-opens Review.
   so any entity change needs a version bump and a real `Migration`.
 - Backups are versioned JSON (`data/Backup.kt`); import merges and never overwrites
   existing words' progress.
+- Android Auto Backup is gated behind `Settings.cloudBackupEnabled` (off by default) via
+  `TortoiseSpellingBackupAgent` (`android:backupAgent`, `android:fullBackupOnly="true"`),
+  which calls `super.onFullBackup` only when the switch is on, or the pass is a
+  device-to-device transfer (`FullBackupDataOutput.transportFlags`, API 28+; mirrored as a
+  pure function in `domain/BackupPolicy.kt`) — a D2D transfer never touches Google's
+  servers, so it runs regardless of the switch. During a backup pass Android runs the
+  process in restricted mode and never creates `TortoiseSpellingApp`, so the agent reads
+  the switch straight out of `SettingsStore`'s SharedPreferences file rather than through
+  `AppContainer`.
 
 **Review screen details that look wrong but aren't.**
 - The answer field uses `KeyboardType.Password` so Gboard and Samsung Keyboard can't

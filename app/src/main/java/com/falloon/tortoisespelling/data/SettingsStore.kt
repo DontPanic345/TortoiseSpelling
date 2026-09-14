@@ -13,6 +13,7 @@ data class Settings(
     val reminderEnabled: Boolean = true,
     val reminderHour: Int = 8,
     val reminderMinute: Int = 0,
+    val cloudBackupEnabled: Boolean = false,
 ) {
     val hasApiKey: Boolean get() = apiKey.isNotBlank()
 }
@@ -45,6 +46,7 @@ class SettingsStore(context: Context) {
         reminderEnabled = prefs.getBoolean(KEY_REMINDER_ON, true),
         reminderHour = prefs.getInt(KEY_REMINDER_HOUR, 8),
         reminderMinute = prefs.getInt(KEY_REMINDER_MINUTE, 0),
+        cloudBackupEnabled = prefs.getBoolean(KEY_CLOUD_BACKUP_ENABLED, false),
     )
 
     private fun update(block: SharedPreferences.Editor.() -> Unit) {
@@ -70,6 +72,8 @@ class SettingsStore(context: Context) {
         putInt(KEY_REMINDER_MINUTE, minute.coerceIn(0, 59))
     }
 
+    fun setCloudBackupEnabled(value: Boolean) = update { putBoolean(KEY_CLOUD_BACKUP_ENABLED, value) }
+
     // --- streak bookkeeping ---
 
     /**
@@ -92,7 +96,10 @@ class SettingsStore(context: Context) {
         }
     }
 
-    private companion object {
+    // Internal, not private: TortoiseSpellingBackupAgent reads KEY_CLOUD_BACKUP_ENABLED
+    // straight out of this same SharedPreferences file during a backup pass, when the
+    // process is restricted and this class cannot be reached through AppContainer.
+    internal companion object {
         const val FILE = "tortoisespelling-settings"
         const val KEY_API = "apiKey"
         const val KEY_NEW_PER_DAY = "newWordsPerDay"
@@ -100,6 +107,7 @@ class SettingsStore(context: Context) {
         const val KEY_REMINDER_HOUR = "reminderHour"
         const val KEY_REMINDER_MINUTE = "reminderMinute"
         const val KEY_SATISFIED_DAYS = "satisfiedDays"
+        const val KEY_CLOUD_BACKUP_ENABLED = "cloudBackupEnabled"
         const val SATISFIED_WINDOW_DAYS = 400L
     }
 }

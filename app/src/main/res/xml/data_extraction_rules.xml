@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+ (API 31+) full-backup rules. Both sections are left at their default (fully
+  enabled, everything under the app's private storage) on purpose: TortoiseSpellingBackupAgent
+  (android:backupAgent, android:fullBackupOnly="true") is what decides whether a cloud
+  backup pass runs at all, gated on the "Back up to Google account" switch, while a
+  device-to-device transfer always runs regardless of that switch. Nothing here should
+  exclude a file the agent has already decided to back up.
+-->
+<data-extraction-rules>
+    <cloud-backup />
+    <device-transfer />
+</data-extraction-rules>
