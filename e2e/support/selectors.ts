@@ -45,6 +45,19 @@ export const scrollToTestId = (testId: string) =>
     );
 
 /**
+ * Scrolls a horizontally-scrolling row (its own resource-id, e.g. a filter chip row)
+ * until the tagged element inside it is on screen. `UiScrollable.scrollable(true)` alone
+ * assumes a vertical list, so a row that only scrolls sideways needs `setAsHorizontalList()`
+ * and its own selector to avoid matching the screen's outer (vertical) scroll container.
+ */
+export const scrollToTestIdInRow = (rowTestId: string, testId: string) =>
+    $(
+        `android=new UiScrollable(new UiSelector().resourceId(${quoted(rowTestId)}))` +
+            '.setAsHorizontalList()' +
+            `.scrollIntoView(new UiSelector().resourceId(${quoted(testId)}))`,
+    );
+
+/**
  * A resource-id one of several possible values, e.g. Android's two differently-named
  * permission "deny" buttons (first refusal vs. "don't ask again").
  */

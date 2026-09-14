@@ -19,6 +19,8 @@ export const testIds = {
     addWordLookUp: 'add_word_look_up',
 
     wordListSearch: 'word_list_search',
+    /** The horizontally scrolling row of filter chips. */
+    wordFilterRow: 'word_filter_row',
     /** One tag per filter chip, e.g. "word_filter_due". */
     wordFilter: (name: string): string => `word_filter_${name}`,
     /** Scopes a row's per-row icons (identical content-descs on every row). */

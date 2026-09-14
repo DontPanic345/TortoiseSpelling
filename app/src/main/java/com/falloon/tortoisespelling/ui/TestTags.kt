@@ -25,6 +25,9 @@ object TestTags {
 
     const val WORD_LIST_SEARCH = "word_list_search"
 
+    /** The horizontally scrolling row of filter chips, so e2e can scroll it into view. */
+    const val WORD_FILTER_ROW = "word_filter_row"
+
     /** One tag per filter chip, e.g. "word_filter_due". */
     fun wordFilter(name: String) = "word_filter_$name"
 

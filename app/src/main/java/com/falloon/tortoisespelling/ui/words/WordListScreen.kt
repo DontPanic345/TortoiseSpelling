@@ -160,6 +160,7 @@ private fun WordFilterRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .testTag(TestTags.WORD_FILTER_ROW)
             .horizontalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),

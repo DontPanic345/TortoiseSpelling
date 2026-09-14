@@ -1,6 +1,6 @@
 import { fieldValue } from '../actions.ts';
 import { normalizeWord } from '../normalizeWord.ts';
-import { byTestId, byTestIdWithDescendantDescription } from '../selectors.ts';
+import { byTestId, byTestIdWithDescendantDescription, scrollToTestIdInRow } from '../selectors.ts';
 import { testIds } from '../testIds.ts';
 import { addWord } from './addWord.ts';
 import { home } from './home.ts';
@@ -27,7 +27,13 @@ export const wordList = {
         await wordList.searchField().setValue(query);
     },
 
+    /**
+     * The chips (All, Due, New, Learning, Known, Suspended) live in a horizontally
+     * scrolling row, and UiAutomator only sees on-screen nodes: scroll the row until the
+     * target chip is visible before clicking it, rather than assuming it already is.
+     */
     filterBy: async (label: string): Promise<void> => {
+        await scrollToTestIdInRow(testIds.wordFilterRow, testIds.wordFilter(label.toLowerCase()));
         await wordList.filterChip(label).click();
     },
 
