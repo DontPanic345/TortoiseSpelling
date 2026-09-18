@@ -8,7 +8,6 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.dontpanic345.tortoisespelling.data.TodayPlan
 import io.github.dontpanic345.tortoisespelling.data.WordRepository
 import io.github.dontpanic345.tortoisespelling.di.AppContainer
-import io.github.dontpanic345.tortoisespelling.domain.Days
 import io.github.dontpanic345.tortoisespelling.domain.MarkedDay
 import io.github.dontpanic345.tortoisespelling.domain.WordProgress
 import io.github.dontpanic345.tortoisespelling.domain.greeting
@@ -72,11 +71,6 @@ class HomeViewModel(private val repository: WordRepository) : ViewModel() {
                 dateLabel = LocalDate.now().format(DATE_FORMAT),
             )
         }
-    }
-
-    fun nextReviewLabel(): String {
-        val next = _state.value.nextDueDay ?: return "nothing scheduled yet"
-        return Days.relativeLabel(next)
     }
 
     companion object {

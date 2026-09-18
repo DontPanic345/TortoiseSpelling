@@ -47,7 +47,7 @@ fun CompletionScreen(
                 CompletionPanel(
                     reviewedCount = state.reviewedToday,
                     streak = state.streak,
-                    nextReviewLabel = viewModel.nextReviewLabel(),
+                    nextDueDay = state.nextDueDay,
                     onPracticeMore = onPracticeMore,
                 )
                 Spacer(Modifier.height(8.dp))

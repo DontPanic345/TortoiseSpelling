@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import io.github.dontpanic345.tortoisespelling.domain.Days
 
 /**
  * The "you are finished" state.
@@ -26,10 +27,11 @@ import androidx.compose.ui.unit.dp
 fun CompletionPanel(
     reviewedCount: Int,
     streak: Int,
-    nextReviewLabel: String,
+    nextDueDay: Long?,
     onPracticeMore: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
+    val today = Days.today()
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -40,7 +42,7 @@ fun CompletionPanel(
         Text("🎉", style = MaterialTheme.typography.displaySmall)
         Spacer(Modifier.height(12.dp))
         Text(
-            text = "All done — see you tomorrow",
+            text = completionHeadline(nextDueDay, today),
             style = MaterialTheme.typography.headlineSmall,
             textAlign = TextAlign.Center,
         )
@@ -74,7 +76,7 @@ fun CompletionPanel(
 
         Spacer(Modifier.height(4.dp))
         Text(
-            text = "Next review: $nextReviewLabel",
+            text = "Next review: ${nextDueDay?.let { Days.relativeLabel(it, today) } ?: "nothing scheduled yet"}",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -94,3 +96,7 @@ fun CompletionPanel(
         }
     }
 }
+
+/** "See you tomorrow" only when there is something for tomorrow. */
+internal fun completionHeadline(nextDueDay: Long?, today: Long): String =
+    if (nextDueDay == today + 1) "All done — see you tomorrow" else "All done for today"

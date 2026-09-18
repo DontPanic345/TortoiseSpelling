@@ -150,7 +150,7 @@ fun HomeScreen(
                                 // The week card just below shows the streak; saying it
                                 // twice on one screen is noise.
                                 streak = 0,
-                                nextReviewLabel = viewModel.nextReviewLabel(),
+                                nextDueDay = state.nextDueDay,
                                 onPracticeMore = onPracticeMore,
                             )
                         }

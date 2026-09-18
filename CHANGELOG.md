@@ -13,6 +13,8 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 - A new tortoise app icon, including a themed icon for Android 13+ and a matching
   notification icon.
+- The finish line only says "see you tomorrow" when a word is due tomorrow; otherwise
+  it says "All done for today".
 
 ## [0.1.0] - 2026-09-15
 
