@@ -13,8 +13,6 @@ export const wordList = {
     rowStatus: (word: string) => byTestId(testIds.wordRowStatus(normalizeWord(word))),
     suspendIcon: (word: string) =>
         byTestIdWithDescendantDescription(testIds.wordRow(normalizeWord(word)), 'Suspend word'),
-    resumeIcon: (word: string) =>
-        byTestIdWithDescendantDescription(testIds.wordRow(normalizeWord(word)), 'Resume word'),
     deleteIcon: (word: string) =>
         byTestIdWithDescendantDescription(testIds.wordRow(normalizeWord(word)), 'Delete word'),
 
@@ -39,10 +37,6 @@ export const wordList = {
 
     suspend: async (word: string): Promise<void> => {
         await wordList.suspendIcon(word).click();
-    },
-
-    resume: async (word: string): Promise<void> => {
-        await wordList.resumeIcon(word).click();
     },
 
     askToDelete: async (word: string): Promise<void> => {

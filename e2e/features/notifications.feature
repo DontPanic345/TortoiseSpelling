@@ -13,59 +13,35 @@ Feature: Daily reminder
     When I add the word "necessary" defined as "needed or required"
     And I go back to Home
     Then I am asked to allow notifications
-
-  Scenario: Allowing notifications keeps the daily reminder on
-    Given the app is freshly installed
-    And I have added the word "necessary" defined as "needed or required"
-    When I go back to Home
-    And I allow notifications
+    When I allow notifications
     And I open Settings
     Then the daily reminder is on
 
-  Scenario: Refusing notifications turns the daily reminder off, and it stays asked
+  Scenario: Refusing notifications turns the reminder off, and a second refusal points to the system page
     Given the app is freshly installed
     And I have added the word "necessary" defined as "needed or required"
-    When I go back to Home
-    And I refuse notifications
+    And I go back to Home
+    When I refuse notifications
     And I open Settings
     Then the daily reminder is off
     When I go back to Home
     Then I am not asked to allow notifications
-
-  Scenario: After a second refusal, Settings points to the system page
-    Given the app is freshly installed
-    And I have added the word "necessary" defined as "needed or required"
-    And I go back to Home
-    And I refuse notifications
-    And I open Settings
-    When I turn the daily reminder on
+    When I open Settings
+    And I turn the daily reminder on
     And I refuse notifications
     Then I am told "Notifications are blocked for Tortoise Spelling."
     And the daily reminder is off
     When I choose "Open settings"
     Then Android's notification settings for Tortoise Spelling are shown
 
-  Scenario: A test notification arrives even when nothing is due
-    Given I open Settings
-    When I choose "Send a test notification"
-    Then I am told "Test reminder queued."
-    And a notification "Reminders are working" arrives saying "Nothing is due right now."
-
-  Scenario: Tapping the reminder opens today's session
+  Scenario: Tapping the reminder opens today's session, once
     Given I have added the word "necessary" defined as "needed or required"
     And I open Settings
     And I choose "Send a test notification"
     And a notification "Time to practice spelling" arrives saying "1 word ready"
     When I tap that notification
     Then the session title reads "1 / 1"
-
-  Scenario: Rotating a reminder-opened session does not stack a second one
-    Given I have added the word "necessary" defined as "needed or required"
-    And I open Settings
-    And I choose "Send a test notification"
-    And a notification "Time to practice spelling" arrives saying "1 word ready"
-    When I tap that notification
-    And I rotate the device
+    When I rotate the device
     Then the session title reads "1 / 1"
     When I press the system Back button
     Then I am not in a session

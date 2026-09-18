@@ -32,11 +32,6 @@ When('I spell it {string}', async (attempt: string) => {
     await review.answer(attempt);
 });
 
-When('I spell the current word correctly', async () => {
-    const word = await review.currentWord();
-    await review.answer(word);
-});
-
 When('I retype it as {string}', async (attempt: string) => {
     await review.answer(attempt);
 });
@@ -50,10 +45,6 @@ Then('I see my attempt {string} beside the correct spelling {string}', async (at
 
 Then('the session moves on by itself to the finish line', async () => {
     await byText('All done — see you tomorrow').waitForDisplayed();
-});
-
-When('I end the session', async () => {
-    await review.endSessionButton().click();
 });
 
 /** Arrange: plays out every word left in today's session, correctly. */

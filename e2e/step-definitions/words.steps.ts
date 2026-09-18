@@ -3,6 +3,7 @@ import { expect } from '@wdio/globals';
 import { fieldValue, typeInto } from '../support/actions.ts';
 import { scenarioState } from '../support/scenarioState.ts';
 import { addWord } from '../support/screens/addWord.ts';
+import { seedWords } from '../support/seed.ts';
 import { wordList } from '../support/screens/wordList.ts';
 import { byText } from '../support/selectors.ts';
 
@@ -10,25 +11,24 @@ Given('I have no words yet', async () => {
     await expect(byText('No words yet')).toBeDisplayed();
 });
 
-/** Arrange: the word must end up in the list, so this waits for the form to clear. */
+/** Arrange: seeded rather than typed, see seedWords. */
 Given('I have added the word {string} defined as {string}', async (word: string, definition: string) => {
-    await addWord.addAndConfirm({ word, definition });
+    await seedWords([{ word, definition }]);
     scenarioState.recordAddedWord({ word, definition });
 });
 
 Given(
     'I have added the word {string} defined as {string} with the example {string}',
     async (word: string, definition: string, example: string) => {
-        await addWord.addAndConfirm({ word, definition, example });
+        await seedWords([{ word, definition, example }]);
         scenarioState.recordAddedWord({ word, definition });
     },
 );
 
 Given('I have added these words:', async (dataTable: DataTable) => {
-    for (const row of dataTable.hashes()) {
-        await addWord.addAndConfirm({ word: row.word, definition: row.definition });
-        scenarioState.recordAddedWord({ word: row.word, definition: row.definition });
-    }
+    const words = dataTable.hashes().map((row) => ({ word: row.word, definition: row.definition }));
+    await seedWords(words);
+    words.forEach((word) => scenarioState.recordAddedWord(word));
 });
 
 /** Act: the outcome (added, or refused as a duplicate) is left to the Then steps. */
@@ -46,14 +46,6 @@ When('I start adding the word {string} without a definition', async (word: strin
 Then('the add-word form is cleared, ready for the next word', async () => {
     expect(await fieldValue(addWord.wordField())).toBe('');
     expect(await fieldValue(addWord.definitionField())).toBe('');
-});
-
-Then('I cannot save the word', async () => {
-    await expect(addWord.saveButton()).toBeDisabled();
-});
-
-Then('looking it up with Claude is unavailable', async () => {
-    await expect(addWord.lookUpButton()).toBeDisabled();
 });
 
 // --- word list ---
@@ -92,10 +84,6 @@ When('I suspend {string}', async (word: string) => {
     await wordList.suspend(word);
 });
 
-When('I resume {string}', async (word: string) => {
-    await wordList.resume(word);
-});
-
 When('I ask to delete {string}', async (word: string) => {
     await wordList.askToDelete(word);
 });
@@ -106,10 +94,6 @@ When('I open {string}', async (word: string) => {
 
 When('I change the definition to {string}', async (definition: string) => {
     await typeInto(addWord.definitionField(), definition);
-});
-
-When('I change the word to {string}', async (word: string) => {
-    await typeInto(addWord.wordField(), word);
 });
 
 When('I save the changes', async () => {

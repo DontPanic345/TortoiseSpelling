@@ -6,30 +6,25 @@ Feature: Reviewing words
   # Timing: a correct answer stays on screen for only ~1.1 s before the session
   # auto-advances, so the Then steps straight after "I spell it" must not dawdle.
 
-  Scenario: The prompt hides the word
+  Scenario: Spelling a word correctly, through to the finish line
     Given I have added the word "necessary" defined as "needed or required" with the example "It is necessary to sleep."
     And I go back to Home
     When I start today's session
     Then the session title reads "1 / 1"
     And I am shown the definition "needed or required"
     And the example reads "It is _____ to sleep."
-
-  Scenario: Spelling a word correctly on the first try
-    Given I have added the word "necessary" defined as "needed or required" with the example "It is necessary to sleep."
-    And I go back to Home
-    When I start today's session
-    And I spell it "necessary"
+    When I spell it "necessary"
     Then I am told the correct word "necessary"
     And the example reads "It is necessary to sleep."
     And the session moves on by itself to the finish line
     And I see "You practiced 1 word today."
-
-  Scenario: Answers are not case sensitive
-    Given I have added the word "necessary" defined as "needed or required"
-    And I go back to Home
-    When I start today's session
-    And I spell it "NECESSARY"
-    Then I am told the correct word "necessary"
+    And I see "🔥 1 day streak"
+    And I see "Next review: tomorrow"
+    When I choose "Done"
+    Then I am on Home
+    And I see "All done — see you tomorrow"
+    And the week shows "Today, practised"
+    And my words read "0 known, 1 learning, 0 new"
 
   Scenario: A miss shows where it went wrong and demands a clean retype
     Given I have added the word "necessary" defined as "needed or required"
@@ -42,29 +37,3 @@ Feature: Reviewing words
     Then I am told "Not yet: type it exactly as shown above."
     When I retype it as "necessary"
     Then I see "All done — see you tomorrow"
-
-  Scenario: A word without an example is prompted with standalone blanks
-    Given I have added the word "rhythm" defined as "a regular repeated pattern of sound"
-    And I go back to Home
-    When I start today's session
-    Then I see "_____"
-    And I see "type the word"
-
-  Scenario: The progress counter shows my place in the session
-    Given I have added these words:
-      | word      | definition                          |
-      | rhythm    | a regular repeated pattern of sound |
-      | necessary | needed or required                  |
-    And I go back to Home
-    When I start today's session
-    Then the session title reads "1 / 2"
-    When I spell the current word correctly
-    Then the session title reads "2 / 2"
-
-  Scenario: Ending a session early returns to Home
-    Given I have added the word "necessary" defined as "needed or required"
-    And I go back to Home
-    When I start today's session
-    And I end the session
-    Then I am on Home
-    And Home shows 1 word to practice today

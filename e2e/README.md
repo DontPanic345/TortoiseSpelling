@@ -40,7 +40,7 @@ Start an emulator (Android Studio's Device Manager, or `emulator -avd <name>`) s
 | `npm run e2e -- --cucumberOpts.tags="@network"` | Scenarios matching a tag expression |
 | `npm run e2e:slow` | The multi-minute `@slow` scenarios |
 | `npm run check-steps` | Device-free check that every step of the default run is defined (~1 s) |
-| `npm run check-steps -- --all` | The same over every scenario, `@todo` included |
+| `npm run check-steps -- --all` | The same over every scenario, and fails on unused step definitions (CI runs this) |
 | `npm run typecheck` | TypeScript check |
 
 To test a release (R8-minified) build instead, sign one with the debug key and point `APK`
@@ -70,14 +70,16 @@ APK=../app/build/outputs/apk/release/app-release.apk npm run e2e
 | `features/` | One `.feature` per area of behaviour |
 | `step-definitions/` | Steps, grouped by the screen or area they drive |
 | `support/app.ts` | App lifecycle: `resetApp()` per scenario, `freshInstall()` for first-run behaviour |
+| `support/seed.ts` | `seedWords()`: Given steps add words through the debug build's `SeedWordsActivity` |
 | `support/hooks.ts` | Before: reset. After a failure: page source and screenshot into `logs/` |
 | `support/screens/` | One object per screen: its elements and the actions on it |
 | `support/selectors.ts` | `byText`, `byDescription`, `byTestId`, `scrollToText` (all UiSelector) |
 | `support/testIds.ts` | Mirror of the app's [`TestTags.kt`](../app/src/main/java/io/github/dontpanic345/tortoisespelling/ui/TestTags.kt) |
 | `scripts/checkSteps.ts` | The `check-steps` dry run |
 
-Each feature file gets a fresh Appium session with the APK reinstalled. Each scenario
-starts with the app's data wiped, notifications pre-allowed, and the app on Home.
+The whole run shares one Appium session, with the APK installed once and its bytecode
+verified ahead of time (`compileApp()`) so each scenario's cold start is quick. Each
+scenario starts with the app's data wiped, notifications pre-allowed, and the app on Home.
 
 ### Finding elements
 
@@ -155,10 +157,15 @@ and are mirrored in `support/testIds.ts`; change both together.
 
 ## Writing scenarios
 
+- **Keep this suite small.** It's the top of the testing pyramid: a handful of journeys
+  through the real app, plus what only a device can show (permission prompts,
+  notifications, the document picker, process death). Rules and edge cases belong in unit
+  tests under `app/src/test`; a new scenario should be a new journey, and a new check on an
+  existing journey is a step added to its scenario, not a scenario of its own.
 - Write in the user's voice, about behaviour ("I am told…", "Home shows…"), not widgets.
 - **Given** arranges and waits until it is true; **When** acts and does not assert; **Then**
-  asserts. `I have added the word …` (Given) waits for the save to succeed; `I add the word …`
-  (When) leaves the outcome to the Then steps.
+  asserts. `I have added the word …` (Given) seeds the word directly; `I add the word …` (When)
+  types it into the Add screen and leaves the outcome to the Then steps.
 - Reuse existing steps before adding new ones: `npm run check-steps -- --all` prints a
   snippet for anything undefined.
 - Keep scenarios independent; never rely on another scenario's leftovers.

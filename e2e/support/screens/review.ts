@@ -1,12 +1,11 @@
 import { typeInto } from '../actions.ts';
 import { scenarioState } from '../scenarioState.ts';
-import { byDescription, byTestId, byText } from '../selectors.ts';
+import { byTestId, byText } from '../selectors.ts';
 import { testIds } from '../testIds.ts';
 
 export const review = {
     answerField: () => byTestId(testIds.reviewAnswer),
     submitButton: () => byTestId(testIds.reviewSubmit),
-    endSessionButton: () => byDescription('End session'),
     /** The word shown in the hit card, below its small "Correct" label. */
     correctWord: () => byTestId(testIds.reviewCorrectWord),
 

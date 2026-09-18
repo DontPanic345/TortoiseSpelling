@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { SevereServiceError } from 'webdriverio';
+import { compileApp } from './support/app.ts';
 import { APK_PATH, APP_ID, DEFAULT_TAGS, LOG_DIR } from './support/config.ts';
 
 // Appium's UiAutomator2 driver needs the Android SDK and a JDK. Default to where
@@ -34,7 +35,9 @@ if (!process.env.JAVA_HOME && javaHome) {
 
 export const config: WebdriverIO.Config = {
     runner: 'local',
-    specs: ['./features/**/*.feature'],
+    // One group, so the whole run shares one Appium session: a session per feature file
+    // cost ~14 s each in reinstalling and restarting UiAutomator2.
+    specs: [['./features/**/*.feature']],
     maxInstances: 1,
 
     capabilities: [
@@ -44,7 +47,7 @@ export const config: WebdriverIO.Config = {
             'appium:app': APK_PATH,
             'appium:appPackage': APP_ID,
             'appium:appActivity': '.MainActivity',
-            // Reinstall at the start of each feature file so the APK under test is always
+            // Reinstall at the start of the run so the APK under test is always
             // the latest build; per-scenario state is reset in support/hooks.ts. Do not
             // add noReset: the driver lets it override enforceAppInstall, and then an
             // older build already on the device is silently the one tested.
@@ -61,6 +64,8 @@ export const config: WebdriverIO.Config = {
 
     logLevel: 'warn',
     waitforTimeout: 10_000,
+    // The default 500 ms poll made every wait that wasn't already true cost half a second.
+    waitforInterval: 100,
     connectionRetryTimeout: 180_000,
     connectionRetryCount: 1,
 
@@ -93,6 +98,10 @@ export const config: WebdriverIO.Config = {
         snippets: true,
         source: true,
         strict: true,
+    },
+
+    before: async () => {
+        await compileApp();
     },
 
     onPrepare: () => {

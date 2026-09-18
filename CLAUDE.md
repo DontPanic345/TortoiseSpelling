@@ -37,10 +37,13 @@ node --test 'scripts/*.test.mjs'              # release script tests (quote the 
 - **E2E tests** live in `e2e/`, with their own npm project. From `e2e/`:
   - `npm run e2e`: needs a running emulator and a built debug APK.
   - `npm run e2e -- --spec features/<name>.feature`: one feature file.
-  - `npm run check-steps`: device-free check that every step is defined, in about a second.
+  - `npm run check-steps -- --all`: device-free check that every step is defined and used,
+    in about a second.
   - `npm run typecheck`
 
-  See `e2e/README.md` for the setup and the Appium gotchas.
+  Keep the suite minimal (testing pyramid): journeys and device-only behaviour; logic goes
+  in unit tests. Given steps seed words through the debug-only `SeedWordsActivity`
+  (`app/src/debug`). See `e2e/README.md` for the setup and the Appium gotchas.
 
 ## Architecture
 

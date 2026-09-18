@@ -62,9 +62,9 @@ jobs:
         working-directory: e2e
         run: npm ci
 
-      - name: Every e2e step is defined
+      - name: Every e2e step is defined, and used
         working-directory: e2e
-        run: npm run check-steps
+        run: npm run check-steps -- --all
 
       - name: Typecheck e2e
         working-directory: e2e

@@ -4,6 +4,7 @@ import { testIds } from '../testIds.ts';
 
 const MAX_BACK_PRESSES = 5;
 const SETTLE_TIMEOUT_MILLIS = 3_000;
+const AFTER_BACK_MILLIS = 1_000;
 
 /** Whether an element appears within a short grace period, without throwing if it never does. */
 const appearsSoon = async (element: ReturnType<typeof $>, timeout: number): Promise<boolean> => {
@@ -16,6 +17,10 @@ const appearsSoon = async (element: ReturnType<typeof $>, timeout: number): Prom
 };
 
 /** The system permission dialog; its package is com.android.* or com.google.android.*. */
+/** Anything of the app's on screen, i.e. it is past its cold start. */
+const appHasRendered = async (): Promise<boolean> =>
+    $(`android=new UiSelector().packageName(${JSON.stringify(APP_ID)})`).isExisting();
+
 const isPermissionDialogShowing = async (): Promise<boolean> =>
     (await driver.getCurrentPackage()).endsWith('permissioncontroller');
 
@@ -36,14 +41,21 @@ export const home = {
      * System Back until Home is showing. Back also dismisses the keyboard, snackbars
      * and dialogs on the way, so it may take more than one press per screen.
      *
-     * Each check waits a short grace period rather than looking instantaneously: right
-     * after the app is (re)launched (e.g. the very first call in a scenario, straight
-     * after the Before hook), Home can still be cold-starting, and pressing Back before
-     * it has rendered anything can exit the app entirely rather than dismiss a screen.
+     * Right after the app is (re)launched, Home can still be cold-starting, and pressing
+     * Back before it has rendered anything can exit the app entirely rather than dismiss
+     * a screen. So the first look only waits when nothing of the app is on screen yet,
+     * and each look after a Back press waits briefly for Home to replace the old screen.
      */
     goBack: async (): Promise<void> => {
         for (let presses = 0; presses < MAX_BACK_PRESSES; presses++) {
-            if (await appearsSoon(home.title(), SETTLE_TIMEOUT_MILLIS)) {
+            let grace = AFTER_BACK_MILLIS;
+            if (presses === 0) {
+                grace = (await appHasRendered()) ? 0 : SETTLE_TIMEOUT_MILLIS;
+            }
+            const onHome = grace === 0
+                ? await home.title().isDisplayed().catch(() => false)
+                : await appearsSoon(home.title(), grace);
+            if (onHome) {
                 return;
             }
             // The notification-permission prompt opens over Home, and UiAutomator only

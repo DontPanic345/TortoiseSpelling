@@ -9,6 +9,18 @@ const hasNotificationPermission = async (): Promise<boolean> => {
 };
 
 /**
+ * Verifies the app's bytecode ahead of time. A fresh install runs straight from the APK,
+ * so every cold start (one per scenario, as clearApp kills the process) paid ~3 s instead
+ * of ~1 s. A debuggable APK only gets as far as "verify", which is most of the saving.
+ */
+export const compileApp = async (): Promise<void> => {
+    await driver.execute('mobile: shell', {
+        command: 'cmd',
+        args: ['package', 'compile', '-m', 'speed', '-f', APP_ID],
+    });
+};
+
+/**
  * Clean slate for a scenario: app data wiped (which also drops WorkManager's scheduled
  * reminders), notifications pre-allowed so the permission prompt does not interrupt
  * scenarios that are not about it, then the app launched on Home.
@@ -36,5 +48,6 @@ export const resetApp = async (): Promise<void> => {
 export const freshInstall = async (): Promise<void> => {
     await driver.removeApp(APP_ID);
     await driver.installApp(APK_PATH);
+    await compileApp();
     await driver.activateApp(APP_ID);
 };
