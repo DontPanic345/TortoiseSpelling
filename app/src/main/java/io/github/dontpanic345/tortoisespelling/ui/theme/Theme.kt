@@ -18,12 +18,11 @@ data class FeedbackColors(
     val correct: Color,
     val correctContainer: Color,
     val wrong: Color,
-    val wrongContainer: Color,
 )
 
 val LocalFeedbackColors: ProvidableCompositionLocal<FeedbackColors> =
     staticCompositionLocalOf {
-        FeedbackColors(CorrectGreen, CorrectGreenContainer, WrongRed, WrongRedContainer)
+        FeedbackColors(CorrectGreen, CorrectGreenContainer, WrongRed)
     }
 
 // Every role Material 3 components read is set here. A role left out falls back to
@@ -100,10 +99,9 @@ fun TortoiseSpellingTheme(
             CorrectGreenDark,
             CorrectGreenContainerDark,
             WrongRedDark,
-            WrongRedContainerDark,
         )
     } else {
-        FeedbackColors(CorrectGreen, CorrectGreenContainer, WrongRed, WrongRedContainer)
+        FeedbackColors(CorrectGreen, CorrectGreenContainer, WrongRed)
     }
 
     CompositionLocalProvider(LocalFeedbackColors provides feedback) {

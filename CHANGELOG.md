@@ -15,6 +15,8 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
   notification icon.
 - The finish line only says "see you tomorrow" when a word is due tomorrow; otherwise
   it says "All done for today".
+- A missed word's feedback no longer sits on a pink card, and your attempt now lines up
+  letter for letter with the correct spelling.
 
 ## [0.1.0] - 2026-09-15
 

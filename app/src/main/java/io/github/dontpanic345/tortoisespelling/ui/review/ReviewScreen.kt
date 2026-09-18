@@ -344,21 +344,23 @@ private fun Feedback(word: Word, phase: ReviewPhase) {
             )
         }
 
+        // Every row gets the same 8dp inset as the correctContainer one, so the two
+        // spellings line up letter for letter.
         is ReviewPhase.Corrective -> Column(
             Modifier
                 .fillMaxWidth()
-                .background(feedback.wrongContainer, RoundedCornerShape(12.dp))
-                .padding(16.dp),
+                .padding(8.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             Text(
                 "Not quite",
                 style = MaterialTheme.typography.labelLarge,
                 color = feedback.wrong,
+                modifier = Modifier.padding(horizontal = 8.dp),
             )
-            DiffRow(label = "You typed", text = phase.attempt, diff = phase.diff, isAttempt = true)
-            // Its own inset in correctContainer, so the right answer doesn't read as
-            // just more of the wrongContainer card around it.
+            Column(Modifier.padding(horizontal = 8.dp)) {
+                DiffRow(label = "You typed", text = phase.attempt, diff = phase.diff, isAttempt = true)
+            }
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -372,6 +374,7 @@ private fun Feedback(word: Word, phase: ReviewPhase) {
                     "Not yet: type it exactly as shown above.",
                     style = MaterialTheme.typography.bodySmall,
                     color = feedback.wrong,
+                    modifier = Modifier.padding(horizontal = 8.dp),
                 )
             }
         }
@@ -398,11 +401,9 @@ private fun DiffRow(label: String, text: String, diff: SpellingDiff, isAttempt: 
                         SpanStyle(
                             color = if (diverged) highlight else muted,
                             background = if (index == diff.firstDivergence) {
-                                // Both rows now sit on a same-hue container (wrong on
-                                // wrongContainer, correct on correctContainer), so this
-                                // needs more than the 0.22 alpha that was legible on a
-                                // plain background — checked against all four
-                                // container/highlight pairs, light and dark.
+                                // The Correct row sits on correctContainer, which needs
+                                // more than the 0.22 alpha that is legible on a plain
+                                // background.
                                 highlight.copy(alpha = 0.35f)
                             } else {
                                 Color.Transparent
