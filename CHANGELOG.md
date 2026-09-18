@@ -9,6 +9,11 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+### Changed
+
+- A new tortoise app icon, including a themed icon for Android 13+ and a matching
+  notification icon.
+
 ## [0.1.0] - 2026-09-15
 
 ### Added
