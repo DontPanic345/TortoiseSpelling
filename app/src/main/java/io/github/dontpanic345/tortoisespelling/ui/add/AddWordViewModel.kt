@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class AddWordUiState(
@@ -52,18 +53,24 @@ class AddWordViewModel(
     val state: StateFlow<AddWordUiState> = _state.asStateFlow()
 
     init {
+        // Both loads run at once, so each must read the state only after its query
+        // returns (update); copying _state.value before a suspending call wrote a stale
+        // snapshot back and blanked the word the other had just loaded.
         viewModelScope.launch {
-            _state.value = _state.value.copy(totalWords = repository.observeWordCount().first())
+            val count = repository.observeWordCount().first()
+            _state.update { it.copy(totalWords = count) }
         }
         if (editingId != null) {
             viewModelScope.launch {
                 repository.wordById(editingId)?.let { word ->
-                    _state.value = _state.value.copy(
-                        text = word.text,
-                        definition = word.definition,
-                        example = word.example,
-                        partOfSpeech = word.partOfSpeech.orEmpty(),
-                    )
+                    _state.update {
+                        it.copy(
+                            text = word.text,
+                            definition = word.definition,
+                            example = word.example,
+                            partOfSpeech = word.partOfSpeech.orEmpty(),
+                        )
+                    }
                 }
             }
         }

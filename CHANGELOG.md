@@ -9,6 +9,11 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+### Fixed
+
+- Opening a word to edit it could show an empty word field, so the changes couldn't be
+  saved.
+
 ## [0.2.0] - 2026-09-18
 
 ### Changed
