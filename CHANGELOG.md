@@ -9,6 +9,8 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-18
+
 ### Changed
 
 - A new tortoise app icon, including a themed icon for Android 13+ and a matching
@@ -83,6 +85,7 @@ The first release.
 - Backup export and import as JSON. Importing adds new words and never overwrites the
   progress of words you already have.
 
-[unreleased]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.1.0...HEAD
+[unreleased]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/DontPanic345/TortoiseSpelling/releases/tag/v0.0.1
