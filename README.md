@@ -15,7 +15,7 @@ reminder so the habit sticks. Slow and steady wins the race 🐢.
 - 🐢 **Spaced repetition (SM-2).** Correct spellings push the word further out
   (1 day → 6 days → longer); a miss brings it back tomorrow. See
   [Spaced repetition](#-spaced-repetition) below.
-- 🏁 **A real finish line.** Sessions end with an explicit "see you tomorrow" screen;
+- 🏁 **A real finish line.** Sessions end with an explicit "all done" screen;
   an optional "practice more" mode doesn't touch your schedule.
 - 🔔 **Daily reminder.** One local notification, only when words are due. On Android
   13+ the app asks for notification permission once you've added your first word.
@@ -41,14 +41,9 @@ Anki 🃏 — reviewing a word right as you're about to forget it.
 
 ## 📱 Screens
 
-| Screen | What it does |
-|---|---|
-| 🏠 **Home / Today** | Today's words and Start, the week's practice and streak, and how many words are known. |
-| 🎯 **Review** | Definition + blanked example, one text field, diff on a miss. |
-| 🏁 **Completion** | "All done" state with the next review date. |
-| ➕ **Add word** | Type a word, optionally look it up with Claude, Save. |
-| 📚 **Word list** | Search, or filter by status (due, new, learning, known, suspended); edit, suspend, or delete. |
-| ⚙️ **Settings** | API key, new words per day, reminder time, export/import. |
+| Today | Review | Finished | Word list |
+|---|---|---|---|
+| <img src="docs/screenshots/home.png" alt="Home: six words to practise today, the week so far, and word progress" width="200"> | <img src="docs/screenshots/review.png" alt="Review: a missed spelling compared with the correct one" width="200"> | <img src="docs/screenshots/finished.png" alt="The finish line: all done, with a streak and the next review date" width="200"> | <img src="docs/screenshots/word-list.png" alt="Word list with search and status filters" width="200"> |
 
 ## 🤖 Word lookup with Claude
 
