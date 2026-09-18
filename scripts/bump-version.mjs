@@ -6,8 +6,8 @@
 // CHANGELOG.md's [Unreleased] notes under a new [X.Y.Z] heading dated today. It refuses
 // to run if [Unreleased] is empty, so a release can't go out without notes.
 //
-// It doesn't commit or tag: the tag belongs on main after the bump has been merged, and
-// the release workflow rejects a tag that isn't on main.
+// It doesn't commit or tag: merging the bump to main is what releases it, and the
+// release workflow creates the tag once the build succeeds.
 
 import { CHANGELOG_FILE, GRADLE_FILE, readRepoFile, writeRepoFile } from "./repo-files.mjs";
 import { nextVersionName, readVersion, releaseChangelog, writeVersion } from "./version.mjs";
@@ -44,9 +44,8 @@ const main = () => {
     console.log(
         `Bumped ${current.versionName} (versionCode ${current.versionCode}) -> ` +
             `${next.versionName} (versionCode ${next.versionCode}).\n\n` +
-            `Next: check the notes in ${CHANGELOG_FILE}, commit, and merge to main. Then tag main:\n\n` +
-            `  git switch main && git pull\n` +
-            `  git tag v${next.versionName} && git push origin v${next.versionName}`,
+            `Next: check the notes in ${CHANGELOG_FILE}, commit, and merge to main. The release ` +
+            `workflow builds it and tags v${next.versionName} when the build succeeds.`,
     );
 };
 

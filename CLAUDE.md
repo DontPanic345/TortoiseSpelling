@@ -153,18 +153,18 @@ There are no pull requests and no branch protection; main is the only long-lived
 
 ## Release
 
-Pushing a `v*` tag runs `.github/workflows/release.yml`. It builds a signed, R8-minified
-APK from four repo secrets and publishes it to GitHub Releases, to be sideloaded; there is
-no Play Store listing. The workflow deliberately has no manual trigger: the release is
-named after `github.ref_name`, so a manual run from a branch would create a tag called `main`.
+Merging a version bump to main releases it. `.github/workflows/release.yml` runs on every
+push to main and does nothing if `v<versionName>` is already tagged. Otherwise it runs
+`ci.yml`, builds a signed, R8-minified APK from four repo secrets, and publishes it to
+GitHub Releases, creating the tag only then; don't push tags by hand. There is no Play
+Store listing. A failed release is re-run from the Actions tab (it runs on main only).
 
 - **Changelog.** `CHANGELOG.md` follows Keep a Changelog. Any user-visible change adds a
   line under `[Unreleased]` in the same commit. The GitHub release notes are the version's
   section, not generated notes.
 - **Version bump.** `node scripts/bump-version.mjs <major|minor|patch|X.Y.Z>` raises
   `versionName` and `versionCode` and moves `[Unreleased]` under a dated heading. It
-  doesn't commit or tag, because the tag belongs on main after the bump is merged.
-- **Release gate.** `scripts/check-release.mjs` fails the release unless the tag is
-  `v<versionName>`, `versionCode` beats the previous tag's, and the changelog has notes. The
-  workflow also requires the tag to be on main and calls `ci.yml` before building. The
+  doesn't commit or tag.
+- **Release gate.** `scripts/check-release.mjs` fails the release unless `versionCode`
+  beats the previous tag's and the changelog has notes; `--tag` prints `v<versionName>`. The
   logic is in `scripts/version.mjs`, which is pure and covered by `version.test.mjs`.

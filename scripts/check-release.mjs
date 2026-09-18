@@ -1,6 +1,7 @@
 // Release gate, run by .github/workflows/release.yml before anything is built:
 //
 //   node scripts/check-release.mjs <tag> [notes-file]
+//   node scripts/check-release.mjs --tag      prints the tag for the current versionName
 //
 // Fails unless the tag is v<versionName>, versionCode is higher than the previous
 // release's, and CHANGELOG.md has notes for the version. On success, writes those notes
@@ -27,8 +28,12 @@ const previousVersionCode = (tag) => {
 
 const main = () => {
     const [tag, notesFile] = process.argv.slice(2);
+    if (tag === "--tag") {
+        console.log(`v${readVersion(readRepoFile(GRADLE_FILE)).versionName}`);
+        return;
+    }
     if (!tag) {
-        throw new Error("Usage: node scripts/check-release.mjs <tag> [notes-file]");
+        throw new Error("Usage: node scripts/check-release.mjs <tag|--tag> [notes-file]");
     }
 
     const gradleText = readRepoFile(GRADLE_FILE);
