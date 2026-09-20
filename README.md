@@ -23,6 +23,20 @@ reminder so the habit sticks. Slow and steady wins the race 🐢.
 Everything except word lookup works fully offline with no account and no API key.
 There are no ads, no analytics and no tracking: see the [privacy policy](PRIVACY.md).
 
+### 🔓 Password managers
+
+The answer box is a password field, so that Gboard and other keyboards can't
+autocorrect or suggest the word you're trying to spell (the text isn't hidden —
+you can see what you type). The side effect is that password managers may offer to
+save your spellings, or pop up an autofill prompt mid-review.
+
+The fix is to add Tortoise Spelling to your password manager's block list. In
+Bitwarden, for example: **Settings → Autofill → Block auto-fill**, then add
+
+```
+androidapp://io.github.dontpanic345.tortoisespelling
+```
+
 ## 🐰 Spaced repetition
 
 Tortoise Spelling schedules reviews with **SM-2**, the algorithm behind apps like
