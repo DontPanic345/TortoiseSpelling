@@ -9,6 +9,14 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+### Added
+
+- A **Keep this card fresh** tick box when adding or editing a word. Claude writes it a
+  new definition and example once a day on the days it comes up for review, so a word
+  that has climbed to a long interval stops showing the same worn-out sentence every
+  time. It's off by default and needs an API key; the new wording is ready for the next
+  review rather than the one you're about to do.
+
 ### Fixed
 
 - Opening a word to edit it could show an empty word field, so the changes couldn't be

@@ -25,6 +25,7 @@ data class AddWordUiState(
     val definition: String = "",
     val example: String = "",
     val partOfSpeech: String = "",
+    val autoRefresh: Boolean = false,
     val lookingUp: Boolean = false,
     val hasApiKey: Boolean = false,
     val message: String? = null,
@@ -69,6 +70,7 @@ class AddWordViewModel(
                             definition = word.definition,
                             example = word.example,
                             partOfSpeech = word.partOfSpeech.orEmpty(),
+                            autoRefresh = word.autoRefresh,
                         )
                     }
                 }
@@ -90,6 +92,10 @@ class AddWordViewModel(
 
     fun onPartOfSpeechChange(value: String) {
         _state.value = _state.value.copy(partOfSpeech = value)
+    }
+
+    fun onAutoRefreshChange(value: Boolean) {
+        _state.value = _state.value.copy(autoRefresh = value)
     }
 
     fun consumeMessage() {
@@ -165,6 +171,7 @@ class AddWordViewModel(
                         definition = snapshot.definition,
                         example = snapshot.example,
                         partOfSpeech = snapshot.partOfSpeech.ifBlank { null },
+                        autoRefresh = snapshot.autoRefresh,
                     ),
                 )
                 _state.value = when (result) {
@@ -181,6 +188,7 @@ class AddWordViewModel(
                 definition = snapshot.definition,
                 example = snapshot.example,
                 partOfSpeech = snapshot.partOfSpeech.ifBlank { null },
+                autoRefresh = snapshot.autoRefresh,
             )) {
                 is AddResult.Added -> {
                     val total = repository.observeWordCount().first()
@@ -188,6 +196,9 @@ class AddWordViewModel(
                     // bursts, and bouncing back home after each one is friction.
                     _state.value = AddWordUiState(
                         hasApiKey = snapshot.hasApiKey,
+                        // Carried over, not reset: words are added in bursts, and the
+                        // whole burst usually wants the same answer.
+                        autoRefresh = snapshot.autoRefresh,
                         addedThisSession = snapshot.addedThisSession + 1,
                         totalWords = total,
                         message = "Added ✓ ($total total)",

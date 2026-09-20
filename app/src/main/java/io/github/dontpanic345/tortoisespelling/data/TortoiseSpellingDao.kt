@@ -24,6 +24,26 @@ interface TortoiseSpellingDao {
     @Query("SELECT * FROM words WHERE id = :id")
     suspend fun wordById(id: Long): Word?
 
+    /**
+     * Rewrite only a word's teaching content.
+     *
+     * Targeted rather than [updateWord] on a copy, because a card refresh runs in the
+     * background while the user is reviewing: writing back a whole row built from the
+     * session's opening snapshot would roll back the scheduling a review just wrote.
+     */
+    @Query(
+        """
+        UPDATE words
+        SET definition = :definition, example = :example, partOfSpeech = :partOfSpeech
+        WHERE id = :id
+        """,
+    )
+    suspend fun updateContent(id: Long, definition: String, example: String, partOfSpeech: String?)
+
+    /** Claim today's one refresh for a word, before making the call that may fail. */
+    @Query("UPDATE words SET refreshedOn = :day WHERE id = :id")
+    suspend fun markRefreshed(id: Long, day: Long)
+
     @Query("SELECT * FROM words WHERE normalizedText = :normalized LIMIT 1")
     suspend fun wordByNormalizedText(normalized: String): Word?
 

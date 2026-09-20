@@ -45,6 +45,20 @@ data class Word(
     val firstReviewedOn: Long? = null,
     val isNew: Boolean = true,
     val suspended: Boolean = false,
+
+    // --- card upkeep ---
+    /**
+     * Rewrite this word's definition and example with Claude, once a day, on the days
+     * it comes up for review. Off by default, including for every word that existed
+     * before the flag did: spending on the API is never switched on by an upgrade.
+     */
+    val autoRefresh: Boolean = false,
+    /**
+     * Epoch day the card was last handed to Claude, or null if it never has been.
+     * This is what holds the rewrite to one a day, and it is set when the call is
+     * made rather than when it succeeds, so a failing key can't be retried all day.
+     */
+    val refreshedOn: Long? = null,
 )
 
 /** Lowercased, trimmed, internal-whitespace-collapsed form used for comparison. */

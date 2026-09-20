@@ -52,6 +52,7 @@ class WordRepository(
         definition: String,
         example: String,
         partOfSpeech: String?,
+        autoRefresh: Boolean = false,
     ): AddResult {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) {
@@ -68,6 +69,7 @@ class WordRepository(
                 example = example.trim(),
                 partOfSpeech = partOfSpeech?.trim()?.ifBlank { null },
                 dueOn = Days.today(),
+                autoRefresh = autoRefresh,
             ),
         )
         return AddResult.Added(id)
@@ -92,6 +94,32 @@ class WordRepository(
         )
         return UpdateResult.Updated
     }
+
+    // --- card refresh ---
+
+    /** Spend this word's one refresh for [day], whether or not the call then works. */
+    suspend fun markRefreshAttempted(word: Word, day: Long) = dao.markRefreshed(word.id, day)
+
+    /**
+     * Swap in freshly written teaching content, leaving scheduling state, the review
+     * log and the streak untouched: a word whose example has gone stale after a dozen
+     * reviews should keep every one of those reviews.
+     *
+     * The spelling is deliberately not part of this. The row already exists under its
+     * normalized form, so rewriting the text here could collide with another word's
+     * unique index — [updateWord] is the path for a rename.
+     */
+    suspend fun refreshContent(
+        word: Word,
+        definition: String,
+        example: String,
+        partOfSpeech: String?,
+    ) = dao.updateContent(
+        id = word.id,
+        definition = hideWordInDefinition(definition.trim(), word.text),
+        example = example.trim(),
+        partOfSpeech = partOfSpeech?.trim()?.ifBlank { null },
+    )
 
     suspend fun deleteWord(word: Word) = dao.deleteWord(word)
 
@@ -136,20 +164,24 @@ class WordRepository(
      */
     suspend fun recordReview(word: Word, correctFirstTry: Boolean, typedAnswer: String) {
         val today = Days.today()
+        // Re-read rather than trusting the session's snapshot: a background card
+        // refresh may have rewritten this word's definition since the session opened,
+        // and @Update writes every column, so the snapshot would undo it.
+        val current = dao.wordById(word.id) ?: word
         val quality = if (correctFirstTry) Grade.FIRST_TRY else Grade.AFTER_RETYPE
         val next = scheduler.next(
-            SrsState(word.repetitions, word.easeFactor, word.intervalDays),
+            SrsState(current.repetitions, current.easeFactor, current.intervalDays),
             quality,
         )
         dao.updateWord(
-            word.copy(
+            current.copy(
                 repetitions = next.repetitions,
                 easeFactor = next.easeFactor,
                 intervalDays = next.intervalDays,
                 dueOn = fuzzedDueDay(today, next.intervalDays),
-                lapses = word.lapses + if (quality < 3) 1 else 0,
+                lapses = current.lapses + if (quality < 3) 1 else 0,
                 lastReviewedAt = System.currentTimeMillis(),
-                firstReviewedOn = word.firstReviewedOn ?: today,
+                firstReviewedOn = current.firstReviewedOn ?: today,
                 isNew = false,
             ),
         )

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -33,10 +35,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -165,6 +169,12 @@ fun AddWordScreen(
                     .testTag(TestTags.ADD_WORD_PART_OF_SPEECH),
             )
 
+            AutoRefreshToggle(
+                checked = state.autoRefresh,
+                hasApiKey = state.hasApiKey,
+                onCheckedChange = viewModel::onAutoRefreshChange,
+            )
+
             Spacer(Modifier.height(4.dp))
             Button(
                 onClick = viewModel::save,
@@ -184,6 +194,49 @@ fun AddWordScreen(
                 )
             }
             Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+/**
+ * Opts a word into having its card rewritten by Claude.
+ *
+ * Off by default: it spends on the API every day the word is reviewed, which is not
+ * something to switch on for someone. Worth it for a word that has climbed to a long
+ * interval, where the same sentence has been read a dozen times and stopped teaching
+ * anything.
+ *
+ * The whole row is the hit target rather than the checkbox alone, and it is labelled
+ * as one control for screen readers, which is what `toggleable` with a null indication
+ * on the Row plus a null onCheckedChange on the Checkbox buys.
+ */
+@Composable
+private fun AutoRefreshToggle(
+    checked: Boolean,
+    hasApiKey: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .toggleable(value = checked, role = Role.Checkbox, onValueChange = onCheckedChange),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Checkbox(checked = checked, onCheckedChange = null)
+        Column(Modifier.padding(vertical = 8.dp)) {
+            Text("Keep this card fresh", style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = if (hasApiKey) {
+                    "Claude writes a new definition and example once a day when this " +
+                        "word comes up, ready for the time after."
+                } else {
+                    "Needs an API key in Settings. Claude would write a new definition " +
+                        "and example once a day when this word comes up."
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

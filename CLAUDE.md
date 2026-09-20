@@ -27,7 +27,7 @@ node --test 'scripts/*.test.mjs'              # release script tests (quote the 
 
 - **Live API tests.** `ClaudeIntegrationTest` is skipped unless `TORTOISESPELLING_ANTHROPIC_KEY`
   is set. Gradle doesn't treat env vars as task inputs, so add `--rerun`; otherwise the task
-  can be UP-TO-DATE and the 6 tests silently stay skipped.
+  can be UP-TO-DATE and the 7 tests silently stay skipped.
 - **Release build.** Unsigned unless `RELEASE_KEYSTORE_PATH`, `RELEASE_KEYSTORE_PASSWORD`,
   `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD` are set. For a local installable release,
   point them at the debug keystore (`~/.android/debug.keystore`, password and key password
@@ -111,13 +111,35 @@ re-opens Review.
   contains the exact word form so the review screen can blank it out. `parseLookup` is
   lenient: prose around the JSON is tolerated, and unparseable output is handed to the
   user to edit.
+- `lookupRequest` builds the user turn and is pure, so it is unit-tested. A refresh
+  passes a `StaleCard`, which sends the card being replaced back to the model; without
+  it, "write something different" has nothing to be different from and the same stock
+  sentence comes back.
+
+**Keeping cards fresh** (`data/CardRefresher.kt`). A word's `autoRefresh` flag, set from
+the add/edit screen, has Claude rewrite its definition and example.
+- The trigger is a review session starting; `domain/CardRefresh.kt` decides which words
+  are due, capped at one rewrite per word per day. Practice mode never triggers it.
+- The rewrite is deliberately *not* raced against the session that started it. It lands
+  while the user reviews the old card and shows up next time the word comes round —
+  blocking session start on a dozen API calls would be worse than one more stale
+  sentence.
+- It runs on an application-scoped coroutine in `AppContainer`, not `viewModelScope`, so
+  quitting the session doesn't cancel it. It is not WorkManager: if the process dies the
+  rest of the words keep their old cards and the next session picks them up.
+- `refreshedOn` is stamped *before* the call, so a rejected key isn't retried all day.
+- The write is a targeted `updateContent` query, and `recordReview` re-reads the row
+  before writing. Both are needed: the refresh runs while the user is reviewing, and a
+  whole-row `@Update` from the session's opening snapshot would otherwise roll back
+  whichever of the two wrote first.
 
 **Secrets and data safety.**
 - The API key is the only encrypted setting: AES-GCM with an Android Keystore key
   (`SecretCipher`), no security-crypto library. If the key can't be decrypted (e.g. after
   a device restore), it's treated as absent.
 - Room has **no** `fallbackToDestructiveMigration`. Schemas are exported to `app/schemas/`,
-  so any entity change needs a version bump and a real `Migration`.
+  so any entity change needs a version bump and a real `Migration`. Version 2 added
+  `autoRefresh` and `refreshedOn` to `words`.
 - Backups are versioned JSON (`data/Backup.kt`); import merges and never overwrites
   existing words' progress.
 - Android Auto Backup is gated behind `Settings.cloudBackupEnabled` (off by default) via

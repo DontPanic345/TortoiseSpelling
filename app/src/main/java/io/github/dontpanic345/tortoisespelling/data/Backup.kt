@@ -37,6 +37,12 @@ data class BackupWord(
     val firstReviewedOn: Long? = null,
     val isNew: Boolean = true,
     val suspended: Boolean = false,
+    // Defaulted, so a backup taken before these existed still reads. The file format
+    // version stays at 1: an older build ignores unknown keys, so a file written here
+    // is still readable there, and bumping it would make this app refuse its own
+    // backups on a downgrade.
+    val autoRefresh: Boolean = false,
+    val refreshedOn: Long? = null,
 )
 
 val BackupJson = Json {
@@ -60,6 +66,8 @@ fun Word.toBackup() = BackupWord(
     firstReviewedOn = firstReviewedOn,
     isNew = isNew,
     suspended = suspended,
+    autoRefresh = autoRefresh,
+    refreshedOn = refreshedOn,
 )
 
 fun BackupWord.toWord() = Word(
@@ -78,6 +86,8 @@ fun BackupWord.toWord() = Word(
     firstReviewedOn = firstReviewedOn,
     isNew = isNew,
     suspended = suspended,
+    autoRefresh = autoRefresh,
+    refreshedOn = refreshedOn,
 )
 
 /** Thrown when a file is not a Tortoise Spelling backup, or is from a newer app version. */

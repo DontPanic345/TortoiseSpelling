@@ -31,6 +31,15 @@ sealed interface LookupResult {
     data class Failure(val message: String) : LookupResult
 }
 
+/**
+ * The card a refresh is replacing.
+ *
+ * Sent back to the model so it writes something genuinely new. Asking for "something
+ * different" without saying what came before is worthless: the same word and the same
+ * system prompt tend to produce the same stock sentence every time.
+ */
+data class StaleCard(val definition: String, val example: String)
+
 sealed interface KeyTestResult {
     data object Ok : KeyTestResult
     data object Rejected : KeyTestResult
@@ -88,14 +97,20 @@ class ClaudeClient(
     @Volatile
     private var cachedModel: String? = null
 
-    suspend fun lookup(word: String, apiKey: String): LookupResult =
+    /**
+     * Write a card for [word].
+     *
+     * Pass [stale] to rewrite a card the user has grown tired of; the result is a new
+     * definition and example for the same spelling, not a correction of it.
+     */
+    suspend fun lookup(word: String, apiKey: String, stale: StaleCard? = null): LookupResult =
         withContext(Dispatchers.IO) {
-            val outcome = requestLookup(word, apiKey, resolveModel(apiKey))
+            val outcome = requestLookup(word, apiKey, resolveModel(apiKey), stale)
             val settled = if (outcome is HttpOutcome.Error && outcome.status == 404) {
                 // The resolved model was retired between discovery and now. Forget it
                 // and try once more with a fresh pick.
                 cachedModel = null
-                requestLookup(word, apiKey, resolveModel(apiKey))
+                requestLookup(word, apiKey, resolveModel(apiKey), stale)
             } else {
                 outcome
             }
@@ -126,7 +141,12 @@ class ClaudeClient(
             }
         }
 
-    private fun requestLookup(word: String, apiKey: String, model: String): HttpOutcome {
+    private fun requestLookup(
+        word: String,
+        apiKey: String,
+        model: String,
+        stale: StaleCard?,
+    ): HttpOutcome {
         val body = JSONObject()
             .put("model", model)
             .put("max_tokens", 400)
@@ -134,7 +154,7 @@ class ClaudeClient(
             .put(
                 "messages",
                 JSONArray().put(
-                    JSONObject().put("role", "user").put("content", "Word: $word"),
+                    JSONObject().put("role", "user").put("content", lookupRequest(word, stale)),
                 ),
             )
         return post(body, apiKey)
@@ -259,6 +279,35 @@ class ClaudeClient(
             .connectTimeout(15, TimeUnit.SECONDS)
             .readTimeout(45, TimeUnit.SECONDS)
             .build()
+    }
+}
+
+/**
+ * The user turn for a lookup.
+ *
+ * Plain lookups send the word alone. A refresh also sends the card being replaced,
+ * because the model has no other way to know what the user is bored of — and without
+ * it, the "write something different" instruction has nothing to be different from.
+ *
+ * Top-level and internal so it can be unit-tested without a wire call.
+ */
+internal fun lookupRequest(word: String, stale: StaleCard?): String = buildString {
+    append("Word: ")
+    append(word)
+    if (stale == null) {
+        return@buildString
+    }
+    append("\n\nThis word already has the card below and the user is tired of it. ")
+    append("Write a different definition and a different example sentence: new wording ")
+    append("and a new situation, not a rephrasing of these. The rules above still apply, ")
+    append("and the spelling of the word itself must not change.")
+    if (stale.definition.isNotBlank()) {
+        append("\nPrevious definition: ")
+        append(stale.definition)
+    }
+    if (stale.example.isNotBlank()) {
+        append("\nPrevious example: ")
+        append(stale.example)
     }
 }
 

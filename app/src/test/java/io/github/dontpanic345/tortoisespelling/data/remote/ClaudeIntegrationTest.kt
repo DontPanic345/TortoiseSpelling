@@ -4,6 +4,7 @@ import io.github.dontpanic345.tortoisespelling.domain.blankWordIn
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeFalse
 import org.junit.Before
@@ -88,6 +89,27 @@ class ClaudeIntegrationTest {
             println("$word -> ${(result as LookupResult.Success).example}")
             assertExampleUsesExactForm(result)
         }
+    }
+
+    @Test
+    fun `a refresh rewrites the card instead of repeating it`() = runBlocking {
+        val first = client.lookup("rhythm", apiKey)
+        first as LookupResult.Success
+        val second = client.lookup(
+            "rhythm",
+            apiKey,
+            stale = StaleCard(definition = first.definition, example = first.example),
+        )
+        second as LookupResult.Success
+        println("rhythm: ${first.example}  ->  ${second.example}")
+
+        // The whole point of sending the old card back: a refresh that hands over the
+        // same sentence leaves the word exactly as stale as it was.
+        assertNotEquals(first.example, second.example)
+        assertNotEquals(first.definition, second.definition)
+        // A refresh is not a rename, so the spelling must survive it.
+        assertEquals("rhythm", second.word.lowercase())
+        assertExampleUsesExactForm(second)
     }
 
     /**

@@ -1,6 +1,8 @@
 package io.github.dontpanic345.tortoisespelling.data
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,6 +23,8 @@ class BackupTest {
         lapses = 1,
         firstReviewedOn = 20_380,
         isNew = false,
+        autoRefresh = true,
+        refreshedOn = 20_399,
     )
 
     @Test
@@ -41,6 +45,23 @@ class BackupTest {
         assertEquals(word.lapses, restored.lapses)
         assertEquals(word.firstReviewedOn, restored.firstReviewedOn)
         assertEquals(word.isNew, restored.isNew)
+        assertEquals(word.autoRefresh, restored.autoRefresh)
+        assertEquals(word.refreshedOn, restored.refreshedOn)
+    }
+
+    @Test
+    fun `a backup taken before cards could be kept fresh still reads`() {
+        // No autoRefresh or refreshedOn keys at all, as a 0_2_0 export would have it.
+        val restored = parseBackup(
+            """
+            {"version":1,"exportedAt":1,"words":[
+              {"text":"rhythm","definition":"A pattern of sound.","dueOn":20400}
+            ]}
+            """.trimIndent(),
+        ).words.single().toWord()
+
+        assertFalse(restored.autoRefresh)
+        assertNull(restored.refreshedOn)
     }
 
     @Test
