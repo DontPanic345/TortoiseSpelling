@@ -2,6 +2,7 @@ package io.github.dontpanic345.tortoisespelling.data
 
 import io.github.dontpanic345.tortoisespelling.domain.Days
 import io.github.dontpanic345.tortoisespelling.domain.MarkedDay
+import io.github.dontpanic345.tortoisespelling.domain.RESET_BELOW_QUALITY
 import io.github.dontpanic345.tortoisespelling.domain.Scheduler
 import io.github.dontpanic345.tortoisespelling.domain.Sm2Scheduler
 import io.github.dontpanic345.tortoisespelling.domain.SrsState
@@ -41,9 +42,7 @@ class WordRepository(
 
     fun observeWords(): Flow<List<Word>> = dao.observeAllWords()
 
-    fun observeWordCount(): Flow<Int> = dao.observeWordCount()
-
-    fun observeReviewedToday(): Flow<Int> = dao.observeReviewedCountOn(Days.today())
+    suspend fun wordCount(): Int = dao.wordCount()
 
     suspend fun wordById(id: Long): Word? = dao.wordById(id)
 
@@ -168,6 +167,7 @@ class WordRepository(
         // refresh may have rewritten this word's definition since the session opened,
         // and @Update writes every column, so the snapshot would undo it.
         val current = dao.wordById(word.id) ?: word
+        val now = System.currentTimeMillis()
         val quality = if (correctFirstTry) Grade.FIRST_TRY else Grade.AFTER_RETYPE
         val next = scheduler.next(
             SrsState(current.repetitions, current.easeFactor, current.intervalDays),
@@ -179,8 +179,8 @@ class WordRepository(
                 easeFactor = next.easeFactor,
                 intervalDays = next.intervalDays,
                 dueOn = fuzzedDueDay(today, next.intervalDays),
-                lapses = current.lapses + if (quality < 3) 1 else 0,
-                lastReviewedAt = System.currentTimeMillis(),
+                lapses = current.lapses + if (quality < RESET_BELOW_QUALITY) 1 else 0,
+                lastReviewedAt = now,
                 firstReviewedOn = current.firstReviewedOn ?: today,
                 isNew = false,
             ),
@@ -188,7 +188,7 @@ class WordRepository(
         dao.insertLog(
             ReviewLog(
                 wordId = word.id,
-                reviewedAt = System.currentTimeMillis(),
+                reviewedAt = now,
                 reviewedOn = today,
                 grade = quality,
                 correct = correctFirstTry,

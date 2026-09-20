@@ -13,7 +13,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PauseCircle
@@ -46,6 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.dontpanic345.tortoisespelling.data.Word
 import io.github.dontpanic345.tortoisespelling.domain.WordFilter
 import io.github.dontpanic345.tortoisespelling.ui.EmptyState
+import io.github.dontpanic345.tortoisespelling.ui.BackButton
 import io.github.dontpanic345.tortoisespelling.ui.TestTags
 import io.github.dontpanic345.tortoisespelling.ui.rememberAppContainer
 
@@ -64,11 +64,7 @@ fun WordListScreen(
         topBar = {
             TopAppBar(
                 title = { Text("All words (${state.totalCount})") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
+                navigationIcon = { BackButton(onClick = onBack) },
             )
         },
     ) { padding ->

@@ -51,7 +51,7 @@ interface TortoiseSpellingDao {
     fun observeAllWords(): Flow<List<Word>>
 
     @Query("SELECT COUNT(*) FROM words")
-    fun observeWordCount(): Flow<Int>
+    suspend fun wordCount(): Int
 
     @Query("SELECT * FROM words ORDER BY createdAt")
     suspend fun allWordsOnce(): List<Word>
@@ -111,9 +111,6 @@ interface TortoiseSpellingDao {
 
     @Query("SELECT COUNT(DISTINCT wordId) FROM review_log WHERE reviewedOn = :day")
     suspend fun reviewedCountOn(day: Long): Int
-
-    @Query("SELECT COUNT(DISTINCT wordId) FROM review_log WHERE reviewedOn = :day")
-    fun observeReviewedCountOn(day: Long): Flow<Int>
 
     /** Distinct days with at least one review, most recent first. */
     @Query("SELECT DISTINCT reviewedOn FROM review_log ORDER BY reviewedOn DESC LIMIT :limit")

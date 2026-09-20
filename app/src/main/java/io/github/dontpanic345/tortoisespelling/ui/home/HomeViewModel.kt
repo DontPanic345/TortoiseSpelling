@@ -17,7 +17,6 @@ import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 data class HomeUiState(
@@ -51,7 +50,7 @@ class HomeViewModel(private val repository: WordRepository) : ViewModel() {
     fun refresh() {
         viewModelScope.launch {
             val plan = repository.todayPlan()
-            val total = repository.observeWordCount().first()
+            val total = repository.wordCount()
 
             // A day with nothing due must bridge the streak rather than break it.
             if (total > 0 && plan.isClear) {

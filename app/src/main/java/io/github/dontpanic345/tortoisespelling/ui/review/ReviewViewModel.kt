@@ -19,6 +19,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /** Where the user is on the current word. */
@@ -71,11 +72,13 @@ class ReviewViewModel(
     init {
         viewModelScope.launch {
             val queue = if (practiceMode) repository.practicePool() else repository.buildSession()
-            _state.value = _state.value.copy(
-                loading = false,
-                queue = queue,
-                finished = queue.isEmpty(),
-            )
+            _state.update {
+                it.copy(
+                    loading = false,
+                    queue = queue,
+                    finished = queue.isEmpty(),
+                )
+            }
             // Rewrite the flagged cards for next time. Not in practice mode: practice
             // is an ad-hoc dip into random words, and it already leaves the rest of a
             // word's state alone. Fire and forget — this session shows today's cards
@@ -87,7 +90,7 @@ class ReviewViewModel(
     }
 
     fun onInputChange(value: String) {
-        _state.value = _state.value.copy(input = value)
+        _state.update { it.copy(input = value) }
     }
 
     fun submit() {
@@ -107,18 +110,20 @@ class ReviewViewModel(
 
     private fun gradeFirstAttempt(word: Word, typed: String) {
         if (normalizeWord(typed) == word.normalizedText) {
-            _state.value = _state.value.copy(phase = ReviewPhase.Correct, input = word.text)
+            _state.update { it.copy(phase = ReviewPhase.Correct, input = word.text) }
             record(word, correctFirstTry = true, typed = typed)
             scheduleAutoAdvance(_state.value.index)
         } else {
-            _state.value = _state.value.copy(
-                phase = ReviewPhase.Corrective(
-                    attempt = typed,
-                    diff = spellingDiff(word.text, typed),
-                    retypeMissed = false,
-                ),
-                input = "",
-            )
+            _state.update {
+                it.copy(
+                    phase = ReviewPhase.Corrective(
+                        attempt = typed,
+                        diff = spellingDiff(word.text, typed),
+                        retypeMissed = false,
+                    ),
+                    input = "",
+                )
+            }
             // Recorded at the miss, not at the retype: abandoning mid-correction should
             // still count as a lapse rather than leaving the word untouched.
             record(word, correctFirstTry = false, typed = typed)
@@ -129,10 +134,12 @@ class ReviewViewModel(
         if (normalizeWord(typed) == word.normalizedText) {
             advance()
         } else {
-            _state.value = _state.value.copy(
-                phase = phase.copy(retypeMissed = true),
-                input = "",
-            )
+            _state.update {
+                it.copy(
+                    phase = phase.copy(retypeMissed = true),
+                    input = "",
+                )
+            }
         }
     }
 
@@ -157,14 +164,15 @@ class ReviewViewModel(
 
     fun advance() {
         advanceJob?.cancel()
-        val snapshot = _state.value
-        val next = snapshot.index + 1
-        _state.value = snapshot.copy(
-            index = next,
-            input = "",
-            phase = ReviewPhase.Prompting,
-            finished = next >= snapshot.queue.size,
-        )
+        _state.update { snapshot ->
+            val next = snapshot.index + 1
+            snapshot.copy(
+                index = next,
+                input = "",
+                phase = ReviewPhase.Prompting,
+                finished = next >= snapshot.queue.size,
+            )
+        }
     }
 
     companion object {

@@ -25,6 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -47,15 +48,15 @@ class SettingsViewModel(
     val state: StateFlow<SettingsUiState> = _state.asStateFlow()
 
     private fun publish(settings: Settings = store.current()) {
-        _state.value = _state.value.copy(settings = settings)
+        _state.update { it.copy(settings = settings) }
     }
 
     fun consumeMessage() {
-        _state.value = _state.value.copy(message = null)
+        _state.update { it.copy(message = null) }
     }
 
     private fun say(message: String) {
-        _state.value = _state.value.copy(message = message)
+        _state.update { it.copy(message = message) }
     }
 
     fun setApiKey(value: String) {
@@ -98,17 +99,19 @@ class SettingsViewModel(
             say("Enter a key first.")
             return
         }
-        _state.value = _state.value.copy(testingKey = true)
+        _state.update { it.copy(testingKey = true) }
         viewModelScope.launch {
             val result = claude.testKey(settings.apiKey)
-            _state.value = _state.value.copy(
-                testingKey = false,
-                message = when (result) {
-                    KeyTestResult.Ok -> "Key works."
-                    KeyTestResult.Rejected -> "Key rejected (401). Check it and try again."
-                    is KeyTestResult.Failure -> result.message
-                },
-            )
+            _state.update {
+                it.copy(
+                    testingKey = false,
+                    message = when (result) {
+                        KeyTestResult.Ok -> "Key works."
+                        KeyTestResult.Rejected -> "Key rejected (401). Check it and try again."
+                        is KeyTestResult.Failure -> result.message
+                    },
+                )
+            }
         }
     }
 
@@ -127,7 +130,7 @@ class SettingsViewModel(
     // provider such as Google Drive, whose streams can block on the network for seconds.
 
     fun exportTo(uri: Uri) {
-        _state.value = _state.value.copy(busy = true)
+        _state.update { it.copy(busy = true) }
         viewModelScope.launch {
             val message = try {
                 val backup = BackupFile(words = repository.exportAll().map { it.toBackup() })
@@ -142,12 +145,12 @@ class SettingsViewModel(
             } catch (error: Exception) {
                 "Couldn't write that file."
             }
-            _state.value = _state.value.copy(busy = false, message = message)
+            _state.update { it.copy(busy = false, message = message) }
         }
     }
 
     fun importFrom(uri: Uri) {
-        _state.value = _state.value.copy(busy = true)
+        _state.update { it.copy(busy = true) }
         viewModelScope.launch {
             val message = try {
                 val raw = withContext(Dispatchers.IO) {
@@ -172,7 +175,7 @@ class SettingsViewModel(
             } catch (error: Exception) {
                 "Couldn't read that file."
             }
-            _state.value = _state.value.copy(busy = false, message = message)
+            _state.update { it.copy(busy = false, message = message) }
         }
     }
 

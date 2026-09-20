@@ -19,7 +19,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.CircularProgressIndicator
@@ -61,6 +60,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.dontpanic345.tortoisespelling.BuildConfig
 import io.github.dontpanic345.tortoisespelling.notify.ReminderScheduler
+import io.github.dontpanic345.tortoisespelling.ui.BackButton
 import io.github.dontpanic345.tortoisespelling.ui.TestTags
 import io.github.dontpanic345.tortoisespelling.ui.openNotificationSettings
 import io.github.dontpanic345.tortoisespelling.ui.rememberAppContainer
@@ -76,7 +76,6 @@ fun SettingsScreen(onBack: () -> Unit) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHost = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
-    var keyVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.message) {
         state.message?.let {
@@ -137,11 +136,7 @@ fun SettingsScreen(onBack: () -> Unit) {
         topBar = {
             TopAppBar(
                 title = { Text("Settings") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
+                navigationIcon = { BackButton(onClick = onBack) },
             )
         },
         snackbarHost = { SnackbarHost(snackbarHost) },
@@ -154,163 +149,46 @@ fun SettingsScreen(onBack: () -> Unit) {
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            SectionTitle("Daily reminder")
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text("Remind me daily", style = MaterialTheme.typography.bodyLarge)
-                Switch(
-                    checked = remindersOn,
-                    onCheckedChange = { enabled ->
-                        if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        } else {
-                            viewModel.setReminderEnabled(enabled)
-                        }
-                    },
-                    modifier = Modifier.testTag(TestTags.SETTINGS_REMINDER_SWITCH),
-                )
-            }
-
-            val hour = state.settings.reminderHour
-            val minute = state.settings.reminderMinute
-            OutlinedButton(
-                onClick = {
-                    TimePickerDialog(
-                        context,
-                        { _, pickedHour, pickedMinute ->
-                            viewModel.setReminderTime(pickedHour, pickedMinute)
-                        },
-                        hour,
-                        minute,
-                        true,
-                    ).show()
-                },
+            ReminderSection(
                 enabled = remindersOn,
-                modifier = Modifier.testTag(TestTags.SETTINGS_REMINDER_TIME_BUTTON),
-            ) {
-                Text("Reminder time: %02d:%02d".format(hour, minute))
-            }
+                hour = state.settings.reminderHour,
+                minute = state.settings.reminderMinute,
+                onToggle = { wantOn ->
+                    if (wantOn && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    } else {
+                        viewModel.setReminderEnabled(wantOn)
+                    }
+                },
+                onPickTime = viewModel::setReminderTime,
+                onSendTest = viewModel::sendTestNotification,
+            )
 
-            TextButton(onClick = viewModel::sendTestNotification) {
-                Text("Send a test notification")
-            }
-
-            HorizontalDivider(Modifier.padding(vertical = 8.dp))
-            SectionTitle("Practice")
-
-            Stepper(
-                label = "New words per day",
-                value = state.settings.newWordsPerDay,
+            SectionDivider()
+            PracticeSection(
+                newWordsPerDay = state.settings.newWordsPerDay,
                 onChange = viewModel::setNewWordsPerDay,
             )
 
-            HorizontalDivider(Modifier.padding(vertical = 8.dp))
-            SectionTitle("Claude lookup")
-
-            Text(
-                text = "Optional. With a key, “Look up with Claude” fills in the " +
-                    "definition and example when you add a word. Without one, you type " +
-                    "those yourself.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            SectionDivider()
+            ClaudeLookupSection(
+                apiKey = state.settings.apiKey,
+                onApiKeyChange = viewModel::setApiKey,
+                testing = state.testingKey,
+                onTestKey = viewModel::testKey,
             )
 
-            OutlinedTextField(
-                value = state.settings.apiKey,
-                onValueChange = viewModel::setApiKey,
-                label = { Text("Anthropic API key") },
-                singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag(TestTags.SETTINGS_API_KEY),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                visualTransformation = if (keyVisible) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
-                },
-                trailingIcon = {
-                    IconButton(onClick = { keyVisible = !keyVisible }) {
-                        Icon(
-                            imageVector = if (keyVisible) {
-                                Icons.Default.VisibilityOff
-                            } else {
-                                Icons.Default.Visibility
-                            },
-                            contentDescription = if (keyVisible) "Hide key" else "Show key",
-                        )
-                    }
-                },
-            )
-            Text(
-                text = "Anyone with this key can spend your Anthropic credit. If it " +
-                    "leaks, delete it in the Anthropic console.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            SectionDivider()
+            BackupSection(
+                busy = state.busy,
+                cloudBackupEnabled = state.settings.cloudBackupEnabled,
+                onExport = { exportLauncher.launch("tortoisespelling-backup.json") },
+                onImport = { importLauncher.launch(arrayOf("application/json", "text/plain")) },
+                onCloudBackupChange = viewModel::setCloudBackupEnabled,
             )
 
-            OutlinedButton(onClick = viewModel::testKey, enabled = !state.testingKey) {
-                if (state.testingKey) {
-                    CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-                    Spacer(Modifier.size(8.dp))
-                }
-                Text("Test key")
-            }
-
-            ApiKeyHelp()
-
-            HorizontalDivider(Modifier.padding(vertical = 8.dp))
-            SectionTitle("Backup")
-
-            Text(
-                text = "Your word list and its scheduling. Importing adds words you don't " +
-                    "already have and leaves existing ones untouched.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedButton(
-                    onClick = { exportLauncher.launch("tortoisespelling-backup.json") },
-                    enabled = !state.busy,
-                ) {
-                    Text("Export")
-                }
-                OutlinedButton(
-                    onClick = { importLauncher.launch(arrayOf("application/json", "text/plain")) },
-                    enabled = !state.busy,
-                ) {
-                    Text("Import")
-                }
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
-            ) {
-                Text("Back up to Google account", style = MaterialTheme.typography.bodyLarge)
-                Switch(
-                    checked = state.settings.cloudBackupEnabled,
-                    onCheckedChange = viewModel::setCloudBackupEnabled,
-                    modifier = Modifier.testTag(TestTags.SETTINGS_CLOUD_BACKUP_SWITCH),
-                )
-            }
-            Text(
-                text = "Includes your words and settings in your phone's Google backup, so " +
-                    "they come back after a reset or on a new phone. This is separate from " +
-                    "Export. Your Anthropic API key is never restored this way, because " +
-                    "it's locked to this phone.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            HorizontalDivider(Modifier.padding(vertical = 8.dp))
-            SectionTitle("About")
-            About()
+            SectionDivider()
+            AboutSection()
 
             Spacer(Modifier.height(32.dp))
         }
@@ -318,48 +196,160 @@ fun SettingsScreen(onBack: () -> Unit) {
 }
 
 @Composable
-private fun SectionTitle(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleSmall,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(top = 8.dp),
-    )
-}
+private fun ReminderSection(
+    enabled: Boolean,
+    hour: Int,
+    minute: Int,
+    onToggle: (Boolean) -> Unit,
+    onPickTime: (Int, Int) -> Unit,
+    onSendTest: () -> Unit,
+) {
+    val context = LocalContext.current
+    SectionTitle("Daily reminder")
 
-@Composable
-private fun ApiKeyHelp() {
-    val uriHandler = LocalUriHandler.current
-    Column {
-        Text(
-            text = "No key yet? Sign in at console.anthropic.com, open " +
-                "Settings → API keys → Create key, then add a little credit under " +
-                "Billing. Lookups use the cheapest model and cost well under a cent each.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        TextButton(
-            onClick = { uriHandler.openUri("https://console.anthropic.com/settings/keys") },
-            contentPadding = PaddingValues(vertical = 4.dp),
-        ) {
-            Text("Open the Anthropic console")
-        }
+    SwitchRow(
+        label = "Remind me daily",
+        checked = enabled,
+        onCheckedChange = onToggle,
+        testTag = TestTags.SETTINGS_REMINDER_SWITCH,
+    )
+
+    OutlinedButton(
+        onClick = {
+            TimePickerDialog(
+                context,
+                { _, pickedHour, pickedMinute -> onPickTime(pickedHour, pickedMinute) },
+                hour,
+                minute,
+                true,
+            ).show()
+        },
+        enabled = enabled,
+        modifier = Modifier.testTag(TestTags.SETTINGS_REMINDER_TIME_BUTTON),
+    ) {
+        Text("Reminder time: %02d:%02d".format(hour, minute))
+    }
+
+    TextButton(onClick = onSendTest) {
+        Text("Send a test notification")
     }
 }
 
 @Composable
-private fun About() {
+private fun PracticeSection(newWordsPerDay: Int, onChange: (Int) -> Unit) {
+    SectionTitle("Practice")
+    Stepper(
+        label = "New words per day",
+        value = newWordsPerDay,
+        onChange = onChange,
+    )
+}
+
+@Composable
+private fun ClaudeLookupSection(
+    apiKey: String,
+    onApiKeyChange: (String) -> Unit,
+    testing: Boolean,
+    onTestKey: () -> Unit,
+) {
+    var keyVisible by remember { mutableStateOf(false) }
+
+    SectionTitle("Claude lookup")
+    HelpText(
+        "Optional. With a key, “Look up with Claude” fills in the definition and " +
+            "example when you add a word. Without one, you type those yourself.",
+    )
+
+    OutlinedTextField(
+        value = apiKey,
+        onValueChange = onApiKeyChange,
+        label = { Text("Anthropic API key") },
+        singleLine = true,
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(TestTags.SETTINGS_API_KEY),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        visualTransformation = if (keyVisible) {
+            VisualTransformation.None
+        } else {
+            PasswordVisualTransformation()
+        },
+        trailingIcon = {
+            IconButton(onClick = { keyVisible = !keyVisible }) {
+                Icon(
+                    imageVector = if (keyVisible) {
+                        Icons.Default.VisibilityOff
+                    } else {
+                        Icons.Default.Visibility
+                    },
+                    contentDescription = if (keyVisible) "Hide key" else "Show key",
+                )
+            }
+        },
+    )
+    HelpText(
+        "Anyone with this key can spend your Anthropic credit. If it leaks, delete it " +
+            "in the Anthropic console.",
+    )
+
+    OutlinedButton(onClick = onTestKey, enabled = !testing) {
+        if (testing) {
+            CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+            Spacer(Modifier.size(8.dp))
+        }
+        Text("Test key")
+    }
+
+    ApiKeyHelp()
+}
+
+@Composable
+private fun BackupSection(
+    busy: Boolean,
+    cloudBackupEnabled: Boolean,
+    onExport: () -> Unit,
+    onImport: () -> Unit,
+    onCloudBackupChange: (Boolean) -> Unit,
+) {
+    SectionTitle("Backup")
+    HelpText(
+        "Your word list and its scheduling. Importing adds words you don't already have " +
+            "and leaves existing ones untouched.",
+    )
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        OutlinedButton(onClick = onExport, enabled = !busy) {
+            Text("Export")
+        }
+        OutlinedButton(onClick = onImport, enabled = !busy) {
+            Text("Import")
+        }
+    }
+
+    SwitchRow(
+        label = "Back up to Google account",
+        checked = cloudBackupEnabled,
+        onCheckedChange = onCloudBackupChange,
+        testTag = TestTags.SETTINGS_CLOUD_BACKUP_SWITCH,
+    )
+    HelpText(
+        "Includes your words and settings in your phone's Google backup, so they come " +
+            "back after a reset or on a new phone. This is separate from Export. Your " +
+            "Anthropic API key is never restored this way, because it's locked to this phone.",
+    )
+}
+
+@Composable
+private fun AboutSection() {
     val uriHandler = LocalUriHandler.current
+    SectionTitle("About")
     Column {
         Text(
             text = "Tortoise Spelling ${BuildConfig.VERSION_NAME}",
             style = MaterialTheme.typography.bodyLarge,
         )
-        Text(
-            text = "Free and open source under the MIT licence. No ads, no accounts, no " +
+        HelpText(
+            "Free and open source under the MIT licence. No ads, no accounts, no " +
                 "tracking: your words stay on this device.",
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Row {
             TextButton(
@@ -376,6 +366,70 @@ private fun About() {
                 Text("Source code")
             }
         }
+    }
+}
+
+@Composable
+private fun ApiKeyHelp() {
+    val uriHandler = LocalUriHandler.current
+    Column {
+        HelpText(
+            "No key yet? Sign in at console.anthropic.com, open Settings → API keys → " +
+                "Create key, then add a little credit under Billing. Lookups use the " +
+                "cheapest model and cost well under a cent each.",
+        )
+        TextButton(
+            onClick = { uriHandler.openUri("https://console.anthropic.com/settings/keys") },
+            contentPadding = PaddingValues(vertical = 4.dp),
+        ) {
+            Text("Open the Anthropic console")
+        }
+    }
+}
+
+@Composable
+private fun SectionTitle(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.padding(top = 8.dp),
+    )
+}
+
+@Composable
+private fun SectionDivider() {
+    HorizontalDivider(Modifier.padding(vertical = 8.dp))
+}
+
+/** The explanatory small print that sits under a setting. */
+@Composable
+private fun HelpText(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+@Composable
+private fun SwitchRow(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    testTag: String,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyLarge)
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            modifier = Modifier.testTag(testTag),
+        )
     }
 }
 

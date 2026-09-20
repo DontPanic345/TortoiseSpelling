@@ -15,7 +15,6 @@ import io.github.dontpanic345.tortoisespelling.di.AppContainer
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -58,7 +57,7 @@ class AddWordViewModel(
         // returns (update); copying _state.value before a suspending call wrote a stale
         // snapshot back and blanked the word the other had just loaded.
         viewModelScope.launch {
-            val count = repository.observeWordCount().first()
+            val count = repository.wordCount()
             _state.update { it.copy(totalWords = count) }
         }
         if (editingId != null) {
@@ -79,27 +78,27 @@ class AddWordViewModel(
     }
 
     fun onTextChange(value: String) {
-        _state.value = _state.value.copy(text = value)
+        _state.update { it.copy(text = value) }
     }
 
     fun onDefinitionChange(value: String) {
-        _state.value = _state.value.copy(definition = value)
+        _state.update { it.copy(definition = value) }
     }
 
     fun onExampleChange(value: String) {
-        _state.value = _state.value.copy(example = value)
+        _state.update { it.copy(example = value) }
     }
 
     fun onPartOfSpeechChange(value: String) {
-        _state.value = _state.value.copy(partOfSpeech = value)
+        _state.update { it.copy(partOfSpeech = value) }
     }
 
     fun onAutoRefreshChange(value: Boolean) {
-        _state.value = _state.value.copy(autoRefresh = value)
+        _state.update { it.copy(autoRefresh = value) }
     }
 
     fun consumeMessage() {
-        _state.value = _state.value.copy(message = null)
+        _state.update { it.copy(message = null) }
     }
 
     fun lookUp() {
@@ -121,37 +120,45 @@ class AddWordViewModel(
                     // Claude returns the corrected spelling; adopt it so the card teaches
                     // the right word, not the typo. The user can still edit it back.
                     val corrected = !result.word.equals(word, ignoreCase = true)
-                    _state.value = _state.value.copy(
-                        lookingUp = false,
-                        text = result.word,
-                        definition = result.definition,
-                        example = result.example,
-                        partOfSpeech = result.partOfSpeech.orEmpty(),
-                        message = if (corrected) {
-                            "Corrected spelling to “${result.word}”."
-                        } else {
-                            null
-                        },
-                    )
+                    _state.update {
+                        it.copy(
+                            lookingUp = false,
+                            text = result.word,
+                            definition = result.definition,
+                            example = result.example,
+                            partOfSpeech = result.partOfSpeech.orEmpty(),
+                            message = if (corrected) {
+                                "Corrected spelling to “${result.word}”."
+                            } else {
+                                null
+                            },
+                        )
+                    }
                 }
 
                 // Lenient by design: hand back whatever came back rather than discarding
                 // it, so the user can salvage it instead of retyping from scratch.
-                is LookupResult.Unparsed -> _state.value = _state.value.copy(
-                    lookingUp = false,
-                    definition = result.rawText,
-                    message = "Claude didn't return the expected format — edit as needed.",
-                )
+                is LookupResult.Unparsed -> _state.update {
+                    it.copy(
+                        lookingUp = false,
+                        definition = result.rawText,
+                        message = "Claude didn't return the expected format — edit as needed.",
+                    )
+                }
 
-                is LookupResult.Refused -> _state.value = _state.value.copy(
-                    lookingUp = false,
-                    message = result.message,
-                )
+                is LookupResult.Refused -> _state.update {
+                    it.copy(
+                        lookingUp = false,
+                        message = result.message,
+                    )
+                }
 
-                is LookupResult.Failure -> _state.value = _state.value.copy(
-                    lookingUp = false,
-                    message = result.message,
-                )
+                is LookupResult.Failure -> _state.update {
+                    it.copy(
+                        lookingUp = false,
+                        message = result.message,
+                    )
+                }
             }
         }
     }
@@ -191,7 +198,7 @@ class AddWordViewModel(
                 autoRefresh = snapshot.autoRefresh,
             )) {
                 is AddResult.Added -> {
-                    val total = repository.observeWordCount().first()
+                    val total = repository.wordCount()
                     // Stay on the screen with the fields cleared: adding words happens in
                     // bursts, and bouncing back home after each one is friction.
                     _state.value = AddWordUiState(
@@ -205,13 +212,17 @@ class AddWordViewModel(
                     )
                 }
 
-                is AddResult.Duplicate -> _state.value = _state.value.copy(
-                    message = "“${result.existing.text}” is already in your list.",
-                )
+                is AddResult.Duplicate -> _state.update {
+                    it.copy(
+                        message = "“${result.existing.text}” is already in your list.",
+                    )
+                }
 
-                AddResult.Blank -> _state.value = _state.value.copy(
-                    message = "Type a word first.",
-                )
+                AddResult.Blank -> _state.update {
+                    it.copy(
+                        message = "Type a word first.",
+                    )
+                }
             }
         }
     }
@@ -220,7 +231,7 @@ class AddWordViewModel(
         val editingId = _state.value.editingId ?: return
         viewModelScope.launch {
             repository.wordById(editingId)?.let { repository.deleteWord(it) }
-            _state.value = _state.value.copy(dismissed = true)
+            _state.update { it.copy(dismissed = true) }
         }
     }
 

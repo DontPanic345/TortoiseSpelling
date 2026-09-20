@@ -6,6 +6,12 @@ import kotlin.random.Random
 /** Intervals stop growing here; a spelling this cold is worth re-checking yearly. */
 const val MAX_INTERVAL_DAYS = 365
 
+/**
+ * SM-2 treats any quality below this as a lapse: the repetition count resets and the
+ * word comes back tomorrow.
+ */
+const val RESET_BELOW_QUALITY = 3
+
 /** Starting state for a word that has never been reviewed. */
 val NewWordState = SrsState(repetitions = 0, easeFactor = 2.5, intervalDays = 0)
 
@@ -24,7 +30,7 @@ object Sm2Scheduler : Scheduler {
             prev.easeFactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02))
             ).coerceAtLeast(1.3)
 
-        if (quality < 3) {
+        if (quality < RESET_BELOW_QUALITY) {
             return SrsState(repetitions = 0, easeFactor = ease, intervalDays = 1)
         }
 

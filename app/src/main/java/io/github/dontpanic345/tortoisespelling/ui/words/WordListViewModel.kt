@@ -16,6 +16,7 @@ import io.github.dontpanic345.tortoisespelling.domain.wordFilterCounts
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class WordRow(val word: Word, val status: String)
@@ -62,22 +63,24 @@ class WordListViewModel(private val repository: WordRepository) : ViewModel() {
             repository.observeWords().collect { words ->
                 allWords = words
                 val today = Days.today()
-                _state.value = _state.value.copy(
-                    loading = false,
-                    totalCount = words.size,
-                    filterCounts = wordFilterCounts(words, today),
-                    rows = filtered(words, _state.value.query, _state.value.filter, today),
-                )
+                _state.update {
+                    it.copy(
+                        loading = false,
+                        totalCount = words.size,
+                        filterCounts = wordFilterCounts(words, today),
+                        rows = filtered(words, it.query, it.filter, today),
+                    )
+                }
             }
         }
     }
 
     fun onQueryChange(query: String) {
-        _state.value = _state.value.copy(query = query, rows = filtered(allWords, query, _state.value.filter))
+        _state.update { it.copy(query = query, rows = filtered(allWords, query, it.filter)) }
     }
 
     fun onFilterChange(filter: WordFilter) {
-        _state.value = _state.value.copy(filter = filter, rows = filtered(allWords, _state.value.query, filter))
+        _state.update { it.copy(filter = filter, rows = filtered(allWords, it.query, filter)) }
     }
 
     private fun filtered(
