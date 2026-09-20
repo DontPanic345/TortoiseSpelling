@@ -93,6 +93,30 @@ class WordRepository(
         return UpdateResult.Updated
     }
 
+    /**
+     * Swap in freshly written teaching content, leaving scheduling state, the review
+     * log and the streak untouched: a word whose example has gone stale after a dozen
+     * reviews should keep every one of those reviews.
+     *
+     * The spelling is deliberately not part of this. The row already exists under its
+     * normalized form, so rewriting the text here could collide with another word's
+     * unique index — [updateWord] is the path for a rename.
+     */
+    suspend fun replaceContent(
+        word: Word,
+        definition: String,
+        example: String,
+        partOfSpeech: String?,
+    ): Word {
+        val updated = word.copy(
+            definition = hideWordInDefinition(definition.trim(), word.text),
+            example = example.trim(),
+            partOfSpeech = partOfSpeech?.trim()?.ifBlank { null },
+        )
+        dao.updateWord(updated)
+        return updated
+    }
+
     suspend fun deleteWord(word: Word) = dao.deleteWord(word)
 
     suspend fun setSuspended(word: Word, suspended: Boolean) =

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
@@ -17,6 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -28,6 +30,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -76,6 +80,7 @@ fun ReviewScreen(
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
     val focusRequester = remember { FocusRequester() }
+    val snackbarHost = remember { SnackbarHostState() }
 
     LaunchedEffect(state.finished, state.loading) {
         if (state.finished && !state.loading) {
@@ -83,9 +88,18 @@ fun ReviewScreen(
         }
     }
 
-    // Re-focus for each word so the keyboard never has to be summoned by hand.
-    LaunchedEffect(state.index, state.phase, state.loading) {
-        if (!state.loading && state.phase !is ReviewPhase.Correct) {
+    LaunchedEffect(state.message) {
+        state.message?.let { message ->
+            snackbarHost.showSnackbar(message)
+            viewModel.consumeMessage()
+        }
+    }
+
+    // Re-focus for each word so the keyboard never has to be summoned by hand. A
+    // finished refresh counts: tapping the toolbar took focus off the field, and the
+    // user was in the middle of typing an answer.
+    LaunchedEffect(state.index, state.phase, state.loading, state.refreshing) {
+        if (!state.loading && !state.refreshing && state.phase !is ReviewPhase.Correct) {
             runCatching { focusRequester.requestFocus() }
         }
     }
@@ -103,8 +117,20 @@ fun ReviewScreen(
                         Icon(Icons.Default.Close, contentDescription = "End session")
                     }
                 },
+                actions = {
+                    // Hidden without a key rather than shown disabled: the app is meant
+                    // to be fully usable with no Anthropic account at all.
+                    if (state.canRefresh || state.refreshing) {
+                        RefreshCardAction(
+                            enabled = state.canRefresh,
+                            refreshing = state.refreshing,
+                            onRefresh = viewModel::refreshCard,
+                        )
+                    }
+                },
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHost) },
     ) { padding ->
         if (state.loading) {
             Box(
@@ -137,7 +163,14 @@ fun ReviewScreen(
             }
 
             Spacer(Modifier.height(28.dp))
-            Prompt(word = word, phase = state.phase, blanked = state.blankedExample?.text)
+            Prompt(
+                word = word,
+                phase = state.phase,
+                // Only a sentence the word was actually found in: an example that came
+                // back with an inflection ("She ran the race" for "run") has nothing
+                // blanked out in it, and showing it whole hands over most of the answer.
+                blanked = state.blankedExample?.takeIf { it.didBlank }?.text,
+            )
 
             Spacer(Modifier.height(28.dp))
             AnswerField(
@@ -172,6 +205,27 @@ fun ReviewScreen(
     }
 }
 
+/**
+ * Asks Claude for a new definition and example for the word on screen.
+ *
+ * Same sparkle icon as "Look up with Claude" on the add screen, so the two read as the
+ * one feature. It sits in the toolbar rather than under the prompt because it is a
+ * rescue hatch for a card worn smooth by a dozen reviews, not part of answering.
+ */
+@Composable
+private fun RefreshCardAction(enabled: Boolean, refreshing: Boolean, onRefresh: () -> Unit) {
+    IconButton(onClick = onRefresh, enabled = enabled) {
+        if (refreshing) {
+            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+        } else {
+            Icon(
+                Icons.Default.AutoAwesome,
+                contentDescription = "New definition and example",
+            )
+        }
+    }
+}
+
 @Composable
 private fun Prompt(word: Word, phase: ReviewPhase, blanked: String?) {
     Column {
@@ -198,6 +252,7 @@ private fun Prompt(word: Word, phase: ReviewPhase, blanked: String?) {
 
             blanked != null -> BlankedExample(blanked)
 
+            // No example, or one the word couldn't be blanked out of.
             else -> Column {
                 Text(BLANK_PLACEHOLDER, style = BlankStyle)
                 Text(
