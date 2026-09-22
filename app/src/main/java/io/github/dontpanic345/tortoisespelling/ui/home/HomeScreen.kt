@@ -228,7 +228,7 @@ private fun TodayCard(
                 color = MaterialTheme.colorScheme.primary,
             )
             Text(
-                text = if (count == 1) "word to practice today" else "words to practice today",
+                text = if (count == 1) "word to practise today" else "words to practise today",
                 style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center,
             )

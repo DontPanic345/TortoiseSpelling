@@ -51,9 +51,9 @@ fun CompletionPanel(
         if (reviewedCount > 0) {
             Text(
                 text = if (reviewedCount == 1) {
-                    "You practiced 1 word today."
+                    "You practised 1 word today."
                 } else {
-                    "You practiced $reviewedCount words today."
+                    "You practised $reviewedCount words today."
                 },
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -88,7 +88,7 @@ fun CompletionPanel(
             // to deliver.
             TextButton(onClick = onPracticeMore) {
                 Text(
-                    text = "Practice a few more anyway",
+                    text = "Practise a few more anyway",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

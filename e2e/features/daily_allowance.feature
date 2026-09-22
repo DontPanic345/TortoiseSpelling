@@ -11,5 +11,5 @@ Feature: New words arrive in small daily batches
       | necessary | needed or required                  |
       | separate  | apart from others                   |
     When I go back to Home
-    Then Home shows 2 words to practice today
+    Then Home shows 2 words to practise today
     And 2 of them are new

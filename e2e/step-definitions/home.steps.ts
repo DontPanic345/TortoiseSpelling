@@ -12,9 +12,9 @@ Then('I am on Home', async () => {
     await expect(home.title()).toBeDisplayed();
 });
 
-Then('Home shows {int} word(s) to practice today', async (count: number) => {
+Then('Home shows {int} word(s) to practise today', async (count: number) => {
     await expect(home.practiceCount()).toHaveText(String(count));
-    const caption = count === 1 ? 'word to practice today' : 'words to practice today';
+    const caption = count === 1 ? 'word to practise today' : 'words to practise today';
     await expect(byText(caption)).toBeDisplayed();
 });
 

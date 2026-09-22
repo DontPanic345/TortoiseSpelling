@@ -25,7 +25,7 @@ Feature: Managing the word list
     Then "rhythm" is listed
     And "necessary" is not listed
     When I go back to Home
-    Then Home shows 1 word to practice today
+    Then Home shows 1 word to practise today
 
   Scenario: Deleting asks first
     When I ask to delete "rhythm"

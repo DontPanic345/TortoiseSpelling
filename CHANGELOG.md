@@ -23,11 +23,10 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
   reminders unless the app's own battery mode is set to Unrestricted, with a button
   straight to that settings page.
 
-### Changed
-
-- The app is about 7% smaller to download.
-
 ### Fixed
+
+- "You practiced" and "words to practice" now read "practised" and "practise", the
+  spelling the rest of the app already used.
 
 - The last word of a session offered a **Continue** button that the session closed
   before a thumb could land on it. There's no button on the last word now: finish the

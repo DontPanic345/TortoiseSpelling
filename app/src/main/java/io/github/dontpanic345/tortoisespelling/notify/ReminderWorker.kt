@@ -76,7 +76,7 @@ class ReminderWorker(
         val notification = NotificationCompat.Builder(applicationContext, ReminderScheduler.CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(
-                if (count == 0) "Reminders are working" else "Time to practice spelling",
+                if (count == 0) "Reminders are working" else "Time to practise spelling",
             )
             .setContentText(
                 when (count) {

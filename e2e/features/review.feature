@@ -17,7 +17,7 @@ Feature: Reviewing words
     Then I am told the correct word "necessary"
     And the example reads "It is necessary to sleep."
     And the session moves on by itself to the finish line
-    And I see "You practiced 1 word today."
+    And I see "You practised 1 word today."
     And I see "🔥 1 day streak"
     And I see "Next review: tomorrow"
     When I choose "Done"

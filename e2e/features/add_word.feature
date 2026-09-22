@@ -9,5 +9,5 @@ Feature: Adding words
     Then I am told "Added ✓ (1 total)"
     And the add-word form is cleared, ready for the next word
     When I go back to Home
-    Then Home shows 1 word to practice today
+    Then Home shows 1 word to practise today
     And 1 of them is new

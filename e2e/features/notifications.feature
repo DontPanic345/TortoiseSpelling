@@ -38,7 +38,7 @@ Feature: Daily reminder
     Given I have added the word "necessary" defined as "needed or required"
     And I open Settings
     And I choose "Send a test notification"
-    And a notification "Time to practice spelling" arrives saying "1 word ready"
+    And a notification "Time to practise spelling" arrives saying "1 word ready"
     When I tap that notification
     Then the session title reads "1 / 1"
     When I rotate the device
@@ -54,4 +54,4 @@ Feature: Daily reminder
     And I open Settings
     And the reminder time is set to 2 minutes from now
     When the app is sent to the background and its process is killed
-    Then within 4 minutes a notification "Time to practice spelling" arrives saying "1 word ready"
+    Then within 4 minutes a notification "Time to practise spelling" arrives saying "1 word ready"

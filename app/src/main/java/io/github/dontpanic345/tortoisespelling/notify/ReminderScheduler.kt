@@ -36,7 +36,7 @@ object ReminderScheduler {
             "Daily practice reminders",
             NotificationManager.IMPORTANCE_DEFAULT,
         ).apply {
-            description = "A nudge when you have words to practice."
+            description = "A nudge when you have words to practise."
         }
         context.getSystemService(NotificationManager::class.java)
             ?.createNotificationChannel(channel)

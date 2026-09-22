@@ -7,11 +7,11 @@ Feature: A clear finish line
     Given I have added the word "necessary" defined as "needed or required"
     And I have practised today's words correctly
     When I choose "Done"
-    And I choose "Practice a few more anyway"
+    And I choose "Practise a few more anyway"
     Then the session title reads "Extra practice"
     When I spell it "necessary"
     Then I am on Home
     And I see "All done — see you tomorrow"
-    And I see "You practiced 1 word today."
+    And I see "You practised 1 word today."
     When I open the word list
     Then "necessary" is listed as "tomorrow"
