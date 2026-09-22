@@ -166,13 +166,12 @@ need their own `testTagsAsResourceId`.
 
 ## Workflow
 
-There are no pull requests and no branch protection; main is the only long-lived branch.
+There are no pull requests, no branches and no branch protection; work directly on main.
 
-- Each change gets its own branch from main: `feature/…`, `bugfix/…` or `chore/…`.
-- Once it's verified (unit tests and lint, plus the e2e suite if it touches the app or
-  `e2e/`), land it on main as one commit and push main. Then delete the branch, locally
-  and on GitHub. Push as you go instead of batching up local commits.
-- Dependabot still opens PRs. Take their updates on a branch like any other change;
+- Once a change is verified (unit tests and lint, plus the e2e suite if it touches the
+  app or `e2e/`), commit it to main and push. Push as you go instead of batching up
+  local commits.
+- Dependabot still opens PRs against main. Merge or close them from the GitHub side;
   Dependabot closes its own PRs once main has the new versions. An update that can't be
   taken gets an `ignore` entry in `.github/dependabot.yml`, with the reason in a comment.
 
