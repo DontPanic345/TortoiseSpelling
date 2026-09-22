@@ -45,8 +45,14 @@ export const review = {
                 { timeoutMsg: `"${word}" was not marked correct` },
             );
             // The button now reads "Continue"; tapping it advances immediately rather
-            // than waiting out the ~1.1s auto-advance.
-            await review.submitButton().click();
+            // than waiting out the ~1.1s auto-advance. The last word has no button —
+            // the session closes itself — so there the wait is the only way through.
+            if (await review.submitButton().isDisplayed().catch(() => false)) {
+                await review.submitButton().click();
+            } else {
+                await byText('All done — see you tomorrow').waitForDisplayed();
+                return;
+            }
         }
         throw new Error('practiceAllCorrectly did not reach the finish line');
     },

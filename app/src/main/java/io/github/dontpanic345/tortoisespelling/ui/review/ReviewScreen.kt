@@ -151,21 +151,25 @@ fun ReviewScreen(
             Spacer(Modifier.height(16.dp))
             Feedback(word = word, phase = state.phase)
 
-            Spacer(Modifier.height(24.dp))
-            Button(
-                onClick = viewModel::submit,
-                enabled = state.input.isNotBlank() || state.phase is ReviewPhase.Correct,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag(TestTags.REVIEW_SUBMIT),
-            ) {
-                Text(
-                    when (state.phase) {
-                        ReviewPhase.Correct -> "Continue"
-                        is ReviewPhase.Corrective -> "Check retype"
-                        ReviewPhase.Prompting -> "Check"
-                    },
-                )
+            // No Continue on the last word: the session closes itself a beat later, so
+            // the button would be gone by the time a thumb reached it.
+            if (!state.ending) {
+                Spacer(Modifier.height(24.dp))
+                Button(
+                    onClick = viewModel::submit,
+                    enabled = state.input.isNotBlank() || state.phase is ReviewPhase.Correct,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag(TestTags.REVIEW_SUBMIT),
+                ) {
+                    Text(
+                        when (state.phase) {
+                            ReviewPhase.Correct -> "Continue"
+                            is ReviewPhase.Corrective -> "Check retype"
+                            ReviewPhase.Prompting -> "Check"
+                        },
+                    )
+                }
             }
             Spacer(Modifier.height(32.dp))
         }

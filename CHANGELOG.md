@@ -25,6 +25,10 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ### Fixed
 
+- The last word of a session offered a **Continue** button that the session closed
+  before a thumb could land on it. There's no button on the last word now: finish the
+  word and the session takes you home.
+
 - Opening a word to edit it could show an empty word field, so the changes couldn't be
   saved.
 

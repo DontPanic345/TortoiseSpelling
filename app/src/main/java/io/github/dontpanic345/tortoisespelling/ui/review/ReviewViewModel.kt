@@ -51,6 +51,12 @@ data class ReviewUiState(
     val total: Int get() = queue.size
     val position: Int get() = (index + 1).coerceAtMost(total)
 
+    /**
+     * The last word has been answered, so the session is about to close itself.
+     * Nothing more can be pressed here: the auto-advance is the end of the session.
+     */
+    val ending: Boolean get() = phase == ReviewPhase.Correct && index == queue.lastIndex
+
     /** The example sentence with the target word masked, when it can be found in it. */
     val blankedExample: BlankedText?
         get() = current?.let { word ->
