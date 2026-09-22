@@ -62,6 +62,7 @@ import io.github.dontpanic345.tortoisespelling.BuildConfig
 import io.github.dontpanic345.tortoisespelling.notify.ReminderScheduler
 import io.github.dontpanic345.tortoisespelling.ui.BackButton
 import io.github.dontpanic345.tortoisespelling.ui.TestTags
+import io.github.dontpanic345.tortoisespelling.ui.openAppSettings
 import io.github.dontpanic345.tortoisespelling.ui.openNotificationSettings
 import io.github.dontpanic345.tortoisespelling.ui.rememberAppContainer
 import kotlinx.coroutines.launch
@@ -232,6 +233,16 @@ private fun ReminderSection(
 
     TextButton(onClick = onSendTest) {
         Text("Send a test notification")
+    }
+
+    HelpText(
+        "If reminders arrive while the app is open but not once it's closed, your " +
+            "phone's battery settings are blocking them regardless of the switch above. " +
+            "Set this app's battery use to Unrestricted, not Optimised — some " +
+            "manufacturers (Samsung included) throttle background reminders otherwise.",
+    )
+    TextButton(onClick = { openAppSettings(context) }) {
+        Text("Open app settings")
     }
 }
 

@@ -3,6 +3,7 @@ package io.github.dontpanic345.tortoisespelling.ui
 import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -50,5 +51,22 @@ fun openNotificationSettings(context: Context) {
     context.startActivity(
         Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
             .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName),
+    )
+}
+
+/**
+ * The app's System Settings page, one tap from Battery. Some manufacturers (Samsung
+ * among them) block a background-scheduled reminder even when the app is exempted from
+ * Doze, unless this app's own battery mode is set to Unrestricted rather than Optimised
+ * — a setting distinct from, and not implied by, the standard battery-optimisation
+ * allowlist. There is no cross-OEM intent straight to that screen, so this is as close
+ * as a deep link gets.
+ */
+fun openAppSettings(context: Context) {
+    context.startActivity(
+        Intent(
+            Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+            Uri.fromParts("package", context.packageName, null),
+        ),
     )
 }

@@ -17,6 +17,12 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
   time. It's off by default and needs an API key; the new wording is ready for the next
   review rather than the one you're about to do.
 
+### Added
+
+- Settings now explains that some phones (Samsung included) silently block background
+  reminders unless the app's own battery mode is set to Unrestricted, with a button
+  straight to that settings page.
+
 ### Fixed
 
 - Opening a word to edit it could show an empty word field, so the changes couldn't be
