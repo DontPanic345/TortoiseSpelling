@@ -23,6 +23,10 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
   reminders unless the app's own battery mode is set to Unrestricted, with a button
   straight to that settings page.
 
+### Changed
+
+- The app is about 7% smaller to download.
+
 ### Fixed
 
 - The last word of a session offered a **Continue** button that the session closed

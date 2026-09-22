@@ -62,9 +62,17 @@ android {
         buildConfig = true
     }
 
+    androidResources {
+        // The app is English-only, so androidx's ~80 translations of its own strings
+        // are dead weight in resources.arsc.
+        localeFilters += "en"
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            // Every androidx artifact ships the same Apache licence text.
+            excludes += "/META-INF/**/LICENSE.txt"
         }
     }
 }
