@@ -31,11 +31,16 @@ sealed interface ReviewPhase {
     data object Correct : ReviewPhase
 
     /**
-     * Missed it. The answer is shown and a clean retype is required before moving on —
-     * this is the corrective repetition, and it is not skippable.
+     * Missed it. The answer stays hidden while the learner has another go from memory;
+     * [revealed] once they ask for it or miss again. After that a clean retype is
+     * required before moving on — the corrective repetition, and it is not skippable.
      */
-    data class Corrective(val attempt: String, val diff: SpellingDiff, val retypeMissed: Boolean) :
-        ReviewPhase
+    data class Corrective(
+        val attempt: String,
+        val diff: SpellingDiff,
+        val revealed: Boolean,
+        val retypeMissed: Boolean,
+    ) : ReviewPhase
 }
 
 data class ReviewUiState(
@@ -109,22 +114,26 @@ class ReviewViewModel(
 
         when (snapshot.phase) {
             ReviewPhase.Prompting -> gradeFirstAttempt(word, typed)
-            is ReviewPhase.Corrective -> checkRetype(snapshot.phase, word, typed)
+            is ReviewPhase.Corrective -> if (snapshot.phase.revealed) {
+                checkRetype(snapshot.phase, word, typed)
+            } else {
+                gradeSecondAttempt(word, typed)
+            }
             ReviewPhase.Correct -> advance()
         }
     }
 
     private fun gradeFirstAttempt(word: Word, typed: String) {
         if (normalizeWord(typed) == word.normalizedText) {
-            _state.update { it.copy(phase = ReviewPhase.Correct, input = word.text) }
+            markCorrect(word)
             record(word, correctFirstTry = true, typed = typed)
-            scheduleAutoAdvance(_state.value.index)
         } else {
             _state.update {
                 it.copy(
                     phase = ReviewPhase.Corrective(
                         attempt = typed,
                         diff = spellingDiff(word.text, typed),
+                        revealed = false,
                         retypeMissed = false,
                     ),
                     input = "",
@@ -134,6 +143,41 @@ class ReviewViewModel(
             // still count as a lapse rather than leaving the word untouched.
             record(word, correctFirstTry = false, typed = typed)
         }
+    }
+
+    /** Already recorded as a miss at the first attempt, so this only decides what shows. */
+    private fun gradeSecondAttempt(word: Word, typed: String) {
+        if (normalizeWord(typed) == word.normalizedText) {
+            markCorrect(word)
+        } else {
+            _state.update {
+                it.copy(
+                    phase = ReviewPhase.Corrective(
+                        attempt = typed,
+                        diff = spellingDiff(word.text, typed),
+                        revealed = true,
+                        retypeMissed = false,
+                    ),
+                    input = "",
+                )
+            }
+        }
+    }
+
+    fun showAnswer() {
+        _state.update { snapshot ->
+            val phase = snapshot.phase
+            if (phase is ReviewPhase.Corrective) {
+                snapshot.copy(phase = phase.copy(revealed = true))
+            } else {
+                snapshot
+            }
+        }
+    }
+
+    private fun markCorrect(word: Word) {
+        _state.update { it.copy(phase = ReviewPhase.Correct, input = word.text) }
+        scheduleAutoAdvance(_state.value.index)
     }
 
     private fun checkRetype(phase: ReviewPhase.Corrective, word: Word, typed: String) {

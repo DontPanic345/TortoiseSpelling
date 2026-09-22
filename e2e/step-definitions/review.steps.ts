@@ -43,6 +43,13 @@ Then('I see my attempt {string} beside the correct spelling {string}', async (at
     await expect(byText(correct)).toBeDisplayed();
 });
 
+Then('I see my attempt {string} with the answer hidden', async (attempt: string) => {
+    await expect(byText('You typed')).toBeDisplayed();
+    await expect(byText(attempt)).toBeDisplayed();
+    await expect(byText('Show answer')).toBeDisplayed();
+    await expect(byText('Correct')).not.toBeDisplayed();
+});
+
 Then('the session moves on by itself to the finish line', async () => {
     await byText('All done — see you tomorrow').waitForDisplayed();
 });

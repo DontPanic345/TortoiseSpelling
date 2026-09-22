@@ -26,13 +26,24 @@ Feature: Reviewing words
     And the week shows "Today, practised"
     And my words read "0 known, 1 learning, 0 new"
 
-  Scenario: A miss shows where it went wrong and demands a clean retype
+  Scenario: A miss hides the answer for a second try from memory
     Given I have added the word "necessary" defined as "needed or required"
     And I go back to Home
     When I start today's session
     And I spell it "neccessary"
     Then I am told "Not quite"
-    And I see my attempt "neccessary" beside the correct spelling "necessary"
+    And I see my attempt "neccessary" with the answer hidden
+    When I retype it as "necessary"
+    Then I am told the correct word "necessary"
+    And the session moves on by itself to the finish line
+
+  Scenario: Showing the answer demands a clean retype
+    Given I have added the word "necessary" defined as "needed or required"
+    And I go back to Home
+    When I start today's session
+    And I spell it "neccessary"
+    And I choose "Show answer"
+    Then I see my attempt "neccessary" beside the correct spelling "necessary"
     When I retype it as "necesary"
     Then I am told "Not yet: type it exactly as shown above."
     When I retype it as "necessary"

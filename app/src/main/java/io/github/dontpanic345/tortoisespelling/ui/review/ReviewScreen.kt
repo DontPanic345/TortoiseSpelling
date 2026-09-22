@@ -5,11 +5,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.KeyboardActions
@@ -29,11 +33,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -76,6 +82,7 @@ fun ReviewScreen(
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
     val focusRequester = remember { FocusRequester() }
+    val answerArea = remember { BringIntoViewRequester() }
 
     LaunchedEffect(state.finished, state.loading) {
         if (state.finished && !state.loading) {
@@ -87,6 +94,15 @@ fun ReviewScreen(
     LaunchedEffect(state.index, state.phase, state.loading) {
         if (!state.loading && state.phase !is ReviewPhase.Correct) {
             runCatching { focusRequester.requestFocus() }
+        }
+    }
+
+    // The feedback sits below the field, which the keyboard would otherwise cover. Wait
+    // a frame so the new feedback has been laid out before measuring what to show.
+    LaunchedEffect(state.index, state.phase) {
+        if (state.phase !is ReviewPhase.Prompting) {
+            withFrameNanos { }
+            answerArea.bringIntoView()
         }
     }
 
@@ -124,6 +140,8 @@ fun ReviewScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
+                .consumeWindowInsets(padding)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp),
         ) {
@@ -140,16 +158,18 @@ fun ReviewScreen(
             Prompt(word = word, phase = state.phase, blanked = state.blankedExample?.text)
 
             Spacer(Modifier.height(28.dp))
-            AnswerField(
-                value = state.input,
-                phase = state.phase,
-                focusRequester = focusRequester,
-                onValueChange = viewModel::onInputChange,
-                onSubmit = viewModel::submit,
-            )
+            Column(Modifier.bringIntoViewRequester(answerArea)) {
+                AnswerField(
+                    value = state.input,
+                    phase = state.phase,
+                    focusRequester = focusRequester,
+                    onValueChange = viewModel::onInputChange,
+                    onSubmit = viewModel::submit,
+                )
 
-            Spacer(Modifier.height(16.dp))
-            Feedback(word = word, phase = state.phase)
+                Spacer(Modifier.height(16.dp))
+                Feedback(word = word, phase = state.phase, onShowAnswer = viewModel::showAnswer)
+            }
 
             // No Continue on the last word: the session closes itself a beat later, so
             // the button would be gone by the time a thumb reached it.
@@ -162,11 +182,12 @@ fun ReviewScreen(
                         .fillMaxWidth()
                         .testTag(TestTags.REVIEW_SUBMIT),
                 ) {
+                    val phase = state.phase
                     Text(
-                        when (state.phase) {
-                            ReviewPhase.Correct -> "Continue"
-                            is ReviewPhase.Corrective -> "Check retype"
-                            ReviewPhase.Prompting -> "Check"
+                        when {
+                            phase is ReviewPhase.Correct -> "Continue"
+                            phase is ReviewPhase.Corrective && phase.revealed -> "Check retype"
+                            else -> "Check"
                         },
                     )
                 }
@@ -288,9 +309,10 @@ private fun AnswerField(
         textStyle = WordStyle,
         label = {
             Text(
-                when (phase) {
-                    is ReviewPhase.Corrective -> "Type the correct spelling"
-                    else -> "Your answer"
+                when {
+                    phase !is ReviewPhase.Corrective -> "Your answer"
+                    phase.revealed -> "Type the correct spelling"
+                    else -> "Try again from memory"
                 },
             )
         },
@@ -322,7 +344,7 @@ private fun AnswerField(
 }
 
 @Composable
-private fun Feedback(word: Word, phase: ReviewPhase) {
+private fun Feedback(word: Word, phase: ReviewPhase, onShowAnswer: () -> Unit) {
     val feedback = LocalFeedbackColors.current
     when (phase) {
         ReviewPhase.Prompting -> Unit
@@ -365,13 +387,19 @@ private fun Feedback(word: Word, phase: ReviewPhase) {
             Column(Modifier.padding(horizontal = 8.dp)) {
                 DiffRow(label = "You typed", text = phase.attempt, diff = phase.diff, isAttempt = true)
             }
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .background(feedback.correctContainer, RoundedCornerShape(8.dp))
-                    .padding(8.dp),
-            ) {
-                DiffRow(label = "Correct", text = word.text, diff = phase.diff, isAttempt = false)
+            if (phase.revealed) {
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(feedback.correctContainer, RoundedCornerShape(8.dp))
+                        .padding(8.dp),
+                ) {
+                    DiffRow(label = "Correct", text = word.text, diff = phase.diff, isAttempt = false)
+                }
+            } else {
+                TextButton(onClick = onShowAnswer) {
+                    Text("Show answer")
+                }
             }
             if (phase.retypeMissed) {
                 Text(

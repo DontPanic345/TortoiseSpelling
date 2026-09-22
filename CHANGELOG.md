@@ -23,7 +23,15 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
   reminders unless the app's own battery mode is set to Unrestricted, with a button
   straight to that settings page.
 
+### Changed
+
+- A missed word no longer shows the answer straight away. Have another go from memory,
+  or tap **Show answer** to see it and copy it out as before.
+
 ### Fixed
+
+- The keyboard no longer covers what you're typing. Add word, Settings and the review
+  screen scroll the field into view, and a miss scrolls up to show its feedback.
 
 - "You practiced" and "words to practice" now read "practised" and "practise", the
   spelling the rest of the app already used.

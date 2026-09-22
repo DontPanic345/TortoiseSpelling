@@ -38,6 +38,7 @@ class ReviewUiStateTest {
         val corrective = ReviewPhase.Corrective(
             attempt = "tow",
             diff = spellingDiff("two", "tow"),
+            revealed = true,
             retypeMissed = false,
         )
         assertFalse(state(index = 1, phase = corrective).ending)
