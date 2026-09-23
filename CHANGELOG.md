@@ -9,6 +9,8 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-23
+
 ### Added
 
 - A **Keep this card fresh** tick box when adding or editing a word. Claude writes it a
@@ -16,8 +18,6 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
   that has climbed to a long interval stops showing the same worn-out sentence every
   time. It's off by default and needs an API key; the new wording is ready for the next
   review rather than the one you're about to do.
-
-### Added
 
 - Settings now explains that some phones (Samsung included) silently block background
   reminders unless the app's own battery mode is set to Unrestricted, with a button
@@ -119,7 +119,8 @@ The first release.
 - Backup export and import as JSON. Importing adds new words and never overwrites the
   progress of words you already have.
 
-[unreleased]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.2.0...HEAD
+[unreleased]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/DontPanic345/TortoiseSpelling/releases/tag/v0.0.1
