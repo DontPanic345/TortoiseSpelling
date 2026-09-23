@@ -8,12 +8,15 @@ reminder, and optional word lookup through the Anthropic API. User-facing overvi
 
 ## Commands
 
-Gradle needs `JAVA_HOME`; on this machine use Android Studio's JBR
-(`C:\Program Files\Android\Android Studio\jbr`). Use `gradlew.bat` from PowerShell and
-`./gradlew` from Git Bash.
+Requirements: Android Studio (or the Android SDK + JDK 17), an emulator or device on
+Android 8.0 (API 26) or newer. Gradle needs `JAVA_HOME`; on this machine use Android
+Studio's JBR (`C:\Program Files\Android\Android Studio\jbr`). Use `gradlew.bat` from
+PowerShell and `./gradlew` from Git Bash. Open the project in Android Studio and press
+Run, or use the commands below from a terminal.
 
 ```bash
 ./gradlew assembleDebug                       # debug APK -> app/build/outputs/apk/debug/
+adb install -r app/build/outputs/apk/debug/app-debug.apk       # install the debug APK
 ./gradlew testDebugUnitTest                   # JVM unit tests (no device)
 ./gradlew testDebugUnitTest --tests '*SrsTest'                  # one class
 ./gradlew testDebugUnitTest --tests '*DaysTest.a quiet*'        # one method (backtick names)
@@ -21,21 +24,36 @@ Gradle needs `JAVA_HOME`; on this machine use Android Studio's JBR
 node --test 'scripts/*.test.mjs'              # release script tests (quote the glob)
 ```
 
+| Layer | Where | Runs on |
+|---|---|---|
+| Unit tests | `app/src/test/` | JVM, no device |
+| Live-API integration test | `ClaudeIntegrationTest` | JVM, real Anthropic API |
+| End-to-end BDD tests | [`e2e/`](e2e/README.md) | The real APK on an emulator |
+| Release script tests | `scripts/*.test.mjs` | Node, no device |
+
 - **CI** (`.github/workflows/ci.yml`) runs the unit tests, `lintDebug`, the script tests and
   the e2e `check-steps`/`typecheck` on pushes to main and on PRs. It doesn't run the Appium
   scenarios.
 
-- **Live API tests.** `ClaudeIntegrationTest` is skipped unless `TORTOISESPELLING_ANTHROPIC_KEY`
-  is set. Gradle doesn't treat env vars as task inputs, so add `--rerun`; otherwise the task
-  can be UP-TO-DATE and the 7 tests silently stay skipped.
+- **Live API tests.** `ClaudeIntegrationTest` exercises the real lookup flow and is skipped
+  unless `TORTOISESPELLING_ANTHROPIC_KEY` is set. Gradle doesn't treat env vars as task
+  inputs, so add `--rerun`; otherwise the task can be UP-TO-DATE and the 7 tests silently
+  stay skipped.
+
+  ```bash
+  TORTOISESPELLING_ANTHROPIC_KEY=sk-ant-... ./gradlew testDebugUnitTest --tests '*ClaudeIntegrationTest' --rerun
+  ```
+
 - **Release build.** Unsigned unless `RELEASE_KEYSTORE_PATH`, `RELEASE_KEYSTORE_PASSWORD`,
   `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD` are set. For a local installable release,
   point them at the debug keystore (`~/.android/debug.keystore`, password and key password
   `android`, alias `androiddebugkey`).
 - **R8 is on for release.** Anything that works in debug but reflects on classes must be
   re-checked on a release build on a device. Lint-vital runs as part of `assembleRelease`.
-- **E2E tests** live in `e2e/`, with their own npm project. From `e2e/`:
-  - `npm run e2e`: needs a running emulator and a built debug APK.
+- **E2E tests.** Gherkin scenarios ("When I add the word … Then Home shows 1 word to
+  practice today") run against the installed app with Appium, WebdriverIO and Cucumber.
+  They live in `e2e/`, with their own npm project. From `e2e/`:
+  - `npm install && npm run e2e`: needs a running emulator and a built debug APK.
   - `npm run e2e -- --spec features/<name>.feature`: one feature file.
   - `npm run check-steps -- --all`: device-free check that every step is defined and used,
     in about a second.
