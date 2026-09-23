@@ -8,6 +8,9 @@ reminder, and optional word lookup through the Anthropic API. User-facing overvi
 
 ## Commands
 
+Requirements: Android Studio (or the Android SDK + JDK 17), an emulator or device on
+Android 8.0 (API 26) or newer.
+
 Gradle needs `JAVA_HOME`; on this machine use Android Studio's JBR
 (`C:\Program Files\Android\Android Studio\jbr`). Use `gradlew.bat` from PowerShell and
 `./gradlew` from Git Bash.
@@ -19,7 +22,15 @@ Gradle needs `JAVA_HOME`; on this machine use Android Studio's JBR
 ./gradlew testDebugUnitTest --tests '*DaysTest.a quiet*'        # one method (backtick names)
 ./gradlew lintDebug                           # CI fails on lint errors, not warnings
 node --test 'scripts/*.test.mjs'              # release script tests (quote the glob)
+adb install -r app/build/outputs/apk/debug/app-debug.apk       # install the debug APK
 ```
+
+| Layer | Where | Runs on |
+|---|---|---|
+| Unit tests | `app/src/test/` | JVM, no device |
+| Live-API integration test | `ClaudeIntegrationTest` | JVM, real Anthropic API |
+| End-to-end BDD tests | [`e2e/`](e2e/README.md) | The real APK on an emulator |
+| Release script tests | `scripts/*.test.mjs` | Node, no device |
 
 - **CI** (`.github/workflows/ci.yml`) runs the unit tests, `lintDebug`, the script tests and
   the e2e `check-steps`/`typecheck` on pushes to main and on PRs. It doesn't run the Appium
