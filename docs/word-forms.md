@@ -46,12 +46,19 @@ Word (existing entity, trimmed)
     ├── id, wordId, text, orderIndex
     │
     └── WordForm (new, 1..N per Definition)
-        ├── id, definitionId, text (the inflected form), label (e.g. "plural",
-        │   "past tense" — whatever Claude returns), orderIndex
+        ├── id, definitionId, text (the inflected form), partOfSpeech
+        │   (e.g. "verb", "noun"), label (e.g. "plural", "past tense",
+        │   "3rd person singular" — whatever Claude returns), orderIndex
         │
         └── ExampleSentence (new, 1..N per WordForm)
             ├── id, wordFormId, text, orderIndex, usedAt? (for rotation)
 ```
+
+`partOfSpeech` lives on `WordForm`, not `Definition` or `Word`. The same
+surface spelling can appear under two different definitions with two
+different parts of speech — "runs" is the plural noun form under one sense of
+"run" and the 3rd-person-singular verb form under another — so POS has to be
+per-form to tell those apart. See Examples below.
 
 Notes / open questions to settle before writing the migration:
 
@@ -60,9 +67,6 @@ Notes / open questions to settle before writing the migration:
   or does review always target `Word.text` and forms are strictly the *other*
   spellings to show as content variety? This affects how the review screen picks
   which spelling to blank out and ask for.
-- `partOfSpeech` currently lives on `Word`. It probably belongs on `Definition`
-  instead, since different senses can be different parts of speech (e.g. "run"
-  the verb vs. "run" the noun).
 - Room migration: this replaces two columns on `words` with three new tables and
   needs data migration for existing rows (wrap the current `definition`/`example`
   into a single `Definition` + single `WordForm` + single `ExampleSentence>`) —
@@ -102,6 +106,66 @@ Practically:
   a rarer, more deliberate action — e.g. a manual "regenerate" from the edit
   screen — rather than the automatic daily behaviour.
 
+## Examples
+
+**"run" — same spelling, different POS depending on sense.**
+
+```
+Word: run
+├── Definition 1: "to move fast on foot, faster than a walk"
+│   ├── WordForm "run"      — verb, base              — "I run five kilometres every morning."
+│   ├── WordForm "runs"     — verb, 3rd person sg.     — "She runs five kilometres every morning."
+│   ├── WordForm "ran"      — verb, past tense         — "He ran the whole way home."
+│   └── WordForm "running"  — verb, present participle — "They are running late."
+│
+└── Definition 2: "a period of continuous activity or operation; a batch"
+    ├── WordForm "run"      — noun, singular — "The test had a clean run."
+    └── WordForm "runs"     — noun, plural   — "We did three runs before it worked."
+```
+
+`run` and `runs` each appear *twice*, once per definition, with a different
+part of speech each time. This is why `partOfSpeech` has to sit on `WordForm`
+rather than `Definition`: putting it on `Definition` couldn't distinguish
+"verb runs" from "noun runs" without duplicating the definition text too.
+
+**"child" — a definition that only needs two forms.**
+
+```
+Word: child
+└── Definition 1: "a young human being"
+    ├── WordForm "child"    — noun, singular — "The child laughed."
+    └── WordForm "children" — noun, plural   — "The children laughed."
+```
+
+No verb forms exist for this word, so none are generated — the "scale to what
+applies" rule in practice.
+
+**"practice" — the NZ/UK noun-vs-verb spelling split.**
+
+In NZ/UK usage, *practice* is the noun and *practise* is the verb — a
+genuinely different spelling, not just a suffix change:
+
+```
+Word: practice
+├── Definition 1: "repeated exercise to improve a skill; a doctor's or lawyer's business"
+│   ├── WordForm "practice"  — noun, singular — "She has piano practice on Tuesdays."
+│   └── WordForm "practices" — noun, plural   — "He runs two medical practices."
+│
+└── Definition 2: "to perform an activity repeatedly to improve at it"
+    ├── WordForm "practise"   — verb, base              — "I practise every day."
+    ├── WordForm "practises"  — verb, 3rd person sg.     — "She practises every day."
+    ├── WordForm "practised"  — verb, past tense         — "He practised for hours."
+    └── WordForm "practising" — verb, present participle — "They are practising now."
+```
+
+This is a case worth calling out rather than quietly deciding: `practice`/
+`practise` aren't inflections of one spelling with a suffix swapped — the
+*root itself* changes spelling by sense. `WordForm.text` already has to be
+independent of `Word.text` in the ordinary case (e.g. "ran" doesn't share
+letters with "run" either), so this probably falls out for free as long as
+nothing in the schema or UI assumes a form's text is derived from the root's
+text by simple suffixing. Flagged in the open questions below.
+
 ## Review flow implications
 
 - The review queue still contains one entry per root `Word`, scheduled exactly
@@ -121,9 +185,13 @@ Practically:
 2. How does the review screen choose which definition/form/example to show
    each time the word is due — and does that choice interact with "keep it
    fresh" rotation?
-3. Where does `partOfSpeech` move to?
-4. What happens to existing words on migration — one synthesized
+3. What happens to existing words on migration — one synthesized
    Definition/WordForm/ExampleSentence per existing row, as noted above?
-5. Does the add/edit word screen let a user hand-edit individual forms/examples,
+4. Does the add/edit word screen let a user hand-edit individual forms/examples,
    or is that Claude-only content with the user only editing the root word and
    toggling `autoRefresh`-equivalent behaviour?
+5. Is it acceptable for a `WordForm.text` to not share any letters with the
+   owning `Word.text` (the "practice"/"practise" case)? If so, does the word
+   list / search-by-normalized-text still only match against `Word.text`, or
+   should it also match a word's forms (e.g. searching "practise" should find
+   the "practice" entry)?
