@@ -85,44 +85,25 @@ does not pad or truncate to a fixed count. Example sentence count per form is
 still bounded (a handful, e.g. 3-5) so the payload stays reasonable and the
 rotation pool in "keeping cards fresh" below has enough to draw from.
 
-## Distribution: bundled vs. remote-hosted dictionary
+## Distribution: bundled/remote dictionary — considered and dropped
 
-Separate from the core schema above (which covers how a *user's own* word gets
-its definitions/forms/examples via a Claude lookup), there's an optional idea
-of pre-building the same structure for a large fixed vocabulary — e.g. the
-20,000 most common English words — as a shared reference dictionary, so
-adding a common word doesn't need its own Claude API call. Whether this is
-actually in scope, or purely a hypothetical, is itself an open question (see
-below) — but the two ways to get such a dictionary onto a device are worth
-recording:
+Explored (and closed out) a separate idea: pre-building the definitions/
+forms/examples tree for a large fixed vocabulary (e.g. the 20,000-35,000 most
+common English words) as a shared reference dictionary, either bundled into
+the APK (~45-70 MB for 35,000 words once the live Room DB and its
+copied-from-asset duplicate are both counted, per an app-size estimate) or
+hosted remotely and fetched on demand (free at this scale via jsDelivr,
+Cloudflare, or GitHub Pages).
 
-**Bundled.** Ship the ~20-40 MB database as an asset, imported once. Fully
-offline from install onward. Bigger APK, and it's a Room-schema-shaped blob
-that needs to stay in sync with the app's migrations.
-
-**Remote, fetched on demand.** Publish the dictionary as small static JSON
-files (sharded per word or per letter, with a manifest) and have the app
-fetch a word's entry over plain HTTP the first time it's needed, caching the
-result into Room afterwards exactly like a Claude lookup does today. Doesn't
-bloat the APK, and only ever downloads what a user's word list actually
-touches — but a fresh word needs network once before it can be reviewed
-offline, which today's fully-local Room DB never requires.
-
-Hosting cost for the remote option is effectively $0 at this scale:
-- **jsDelivr** (`cdn.jsdelivr.net/gh/<user>/<repo>@<tag>/<path>`) — a free
-  public CDN that serves straight from a GitHub repo, no build step, no
-  rate-limit concerns. The best fit if the source of truth is already a
-  GitHub repo, since it avoids `raw.githubusercontent.com` directly (not an
-  intended CDN, can throttle).
-- **Cloudflare Pages** or **Cloudflare R2** — free tier, generous bandwidth
-  (R2 has no egress fee at all), a bit more setup than pointing at an
-  existing repo.
-- **GitHub Pages** — also free, same "not officially a CDN" caveat as raw
-  GitHub content, just under Pages' terms instead.
-
-Any of these comfortably covers this workload for free — the free tiers are
-sized for far more traffic than a niche spelling app's per-word JSON fetches
-would generate.
+Reason it's dropped: the app needs network + an Anthropic API key regardless,
+to look up any word outside that fixed vocabulary — proper nouns, rarer
+words, anything the pre-built set doesn't cover. Once that dependency exists,
+a pre-built dictionary only saves API calls for words that are cheap to look
+up anyway; it doesn't remove the network requirement, doesn't cover the
+long tail, and costs real storage (bundled) or hosting complexity (remote)
+for a marginal benefit. Simpler to look up every word the same way, through
+the existing per-user Claude lookup. Not pursuing this — word forms is the
+only feature in scope going forward.
 
 ## Keeping cards fresh — superseded by the example pool
 
@@ -234,6 +215,3 @@ text by simple suffixing. Flagged in the open questions below.
    list / search-by-normalized-text still only match against `Word.text`, or
    should it also match a word's forms (e.g. searching "practise" should find
    the "practice" entry)?
-6. Is a pre-built shared dictionary for a large fixed vocabulary (see
-   Distribution, above) in scope at all, or does every word — common or not —
-   go through the same per-user Claude lookup regardless?
