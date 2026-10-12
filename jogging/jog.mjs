@@ -318,6 +318,7 @@ const run = async () => {
             if (!verdict.ok) return log(`budget stop: ${verdict.reason}`);
 
             state = readState();
+            if (!state.enabled) return log("paused in state.json");
             const next = nextStep(state);
             if (next.allDone) {
                 state.done = true;
