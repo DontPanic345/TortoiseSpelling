@@ -20,3 +20,9 @@ argument rather than custom Gradle tasks; `DATABASE_VERSION` and `ALL_MIGRATIONS
 test cover every migration from v1; CI adds an API 26 (minSdk, oldest SQLite) emulator job,
 and connected runs must set `ANDROID_SERIAL` since they uninstall the app. Added build-1
 (scaffolding, migration tests), build-2 (DAO, repository tests), build-3 (CI, docs) and review, all Sonnet.
+
+## 2026-10-13 00:25 test-data-layer/spec-review (opus)
+Spec holds up against the goals and the code. Fixed: ordering tests must set distinct
+`createdAt` (it defaults to the clock); a fallback if the Room plugin won't apply under AGP 9;
+a test-only database name; a job timeout so a hung emulator can't stall a release; build-3
+watches the CI run for its own commit; corrected why `internal` members are visible.

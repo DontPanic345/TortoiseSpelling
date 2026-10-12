@@ -31,8 +31,9 @@ and no `CHANGELOG.md` line.
 
 One package per layer under `androidTest`, as the plan proposes, selected with the
 instrumentation runner's `package` argument. The data layer's package is
-`io.github.dontpanic345.tortoisespelling.data`, the same as the code under test, so the
-tests can reach `internal` members such as the migrations.
+`io.github.dontpanic345.tortoisespelling.data`, the same as the code under test.
+(`internal` members such as the migrations are visible because AGP associates the
+androidTest compilation with main, not because of the package.)
 
 ```bash
 ./gradlew connectedDebugAndroidTest \
@@ -68,8 +69,9 @@ the e2e suite's identical warning.
   argument, that has to be done by hand. If the plugin turns out not to add them (the
   migration test fails with a missing `1.json`), add
   `sourceSets.getByName("androidTest").assets.srcDir("$projectDir/schemas")` instead and
-  say so in this spec. The root `build.gradle.kts` gets the plugin with `apply false`,
-  like the others.
+  say so in this spec. If the plugin won't apply at all under AGP 9, keep the KSP
+  argument, add that `srcDir` line, and record it here. The root `build.gradle.kts` gets
+  the plugin with `apply false`, like the others.
 - The plugin must not change the exported schemas: after a build, `git status
   app/schemas` is clean.
 - `androidTestImplementation`: `androidx-test-runner`, `androidx-test-ext-junit`,
@@ -100,7 +102,9 @@ names and messages.
 
 **`TestWords.kt`**: a fixture builder, `testWord(text, …)`, returning a `Word` with every
 field defaulted (`normalizedText` from `normalizeWord(text)`, `dueOn = 0`), so a test
-names only the fields it cares about. Shared by every data test, and by later layers.
+names only the fields it cares about. `Word.createdAt` defaults to the clock, so words
+built in a row can share a millisecond: every test of a `createdAt` ordering
+(`observeAllWords`, `newWords`, `allWordsOnce`) sets distinct `createdAt` values. Shared by every data test, and by later layers.
 
 **`MigrationTest.kt`**, with `MigrationTestHelper(InstrumentationRegistry.getInstrumentation(),
 TortoiseSpellingDatabase::class.java)` as a rule (the `SupportSQLiteDatabase` flavour,
@@ -129,7 +133,9 @@ matching the app; no `SQLiteDriver`):
   check the word and log counts are unchanged. This is the test that fails if a
   migration is missing from `ALL_MIGRATIONS`, or if a schema JSON is missing.
 
-The v1 inserts live in one helper inside the test file, used by all three tests.
+The v1 inserts live in one helper inside the test file, used by all three tests. The
+database name is a test-only one (not `tortoisespelling.db`): the tests run inside the
+app's own process.
 
 **`TortoiseSpellingDaoTest.kt`**, on `Room.inMemoryDatabaseBuilder(...)`, opened in
 `@Before` and closed in `@After`. One test per behaviour, roughly:
@@ -190,6 +196,7 @@ would feed the streak): fix the cause, don't loosen the test.
           target: default
           disable-animations: true
           script: ./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=io.github.dontpanic345.tortoisespelling.data
+    timeout-minutes: 45
       - upload app/build/reports/androidTests/ and app/build/outputs/androidTest-results/
         with actions/upload-artifact@v7 on failure, as the app job does
 ```
@@ -200,6 +207,8 @@ would feed the streak): fix the cause, don't loosen the test.
   boot reliably on the runner, use the lowest level that does and record which in this
   spec.
 - Use the action's current major; check its README rather than trusting `@v2`.
+- `timeout-minutes` on the job: a hung emulator would otherwise hold up a release for
+  GitHub's six-hour default.
 - No AVD cache: one cold boot per run is a few minutes, and a cache is one more thing to
   go stale.
 - `release.yml` already calls `ci.yml`, so a release now waits for the data layer too.
@@ -284,7 +293,7 @@ Acceptance:
 node --test 'scripts/*.test.mjs'
 ./gradlew testDebugUnitTest lintDebug
 git push
-gh run watch "$(gh run list --workflow ci.yml --branch main --limit 1 --json databaseId -q '.[0].databaseId')" --exit-status
+gh run watch "$(gh run list --workflow ci.yml --commit "$(git rev-parse HEAD)" --limit 1 --json databaseId -q '.[0].databaseId')" --exit-status
 ```
 
 - The run's `data` job is green and its log shows the data-layer tests ran on API 26
