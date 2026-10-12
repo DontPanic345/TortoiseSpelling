@@ -26,3 +26,11 @@ Spec holds up against the goals and the code. Fixed: ordering tests must set dis
 `createdAt` (it defaults to the clock); a fallback if the Room plugin won't apply under AGP 9;
 a test-only database name; a job timeout so a hung emulator can't stall a release; build-3
 watches the CI run for its own commit; corrected why `internal` members are visible.
+
+## 2026-10-13 00:32 test-ui-layers/spec (opus)
+Wrote `jogging/specs/test-ui-layers.md`. A `java.time.Clock` (`DeviceClock`, which follows zone
+changes) and a `fuzz` function reach the repository and ViewModels through `AppContainer`; Review,
+Home and the word list split into stateless `XContent`; integration tests drive the real NavHost
+with a `LocalAppContainer` and a test clock. Screenshots use Google's Compose screenshot plugin
+(Paparazzi is shaky on Gradle 9); a `@release-smoke` e2e journey runs on an R8 build from
+`release.yml`. Added build-1 to build-7 and review, all Sonnet (build-6 high effort).

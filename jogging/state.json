@@ -128,12 +128,76 @@
           "phase": 1,
           "model": "opus",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "spec-review",
           "phase": 1,
           "model": "opus",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "Injectable clock and fuzz",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "Screen content split and component tests",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-3",
+          "phase": 2,
+          "title": "Integration tests",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-4",
+          "phase": 2,
+          "title": "Accessibility checks",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-5",
+          "phase": 2,
+          "title": "Screenshot tests",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-6",
+          "phase": 2,
+          "title": "Release smoke run",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-7",
+          "phase": 2,
+          "title": "CI matrix and the plan doc",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the piece",
+          "model": "sonnet",
           "effort": "medium",
           "status": "pending"
         }
