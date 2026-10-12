@@ -34,7 +34,8 @@ step tailscale
 if ! command -v tailscaled >/dev/null; then
   curl -fsSL https://tailscale.com/install.sh | sh >/tmp/ts-install.log 2>&1 || die 30 "tailscale install"
 fi
-nohup tailscaled --tun=userspace-networking --statedir=/tmp/ts --socket=/tmp/ts.sock \
+# In-memory state registers an ephemeral node, so finished sessions drop off the tailnet.
+nohup tailscaled --tun=userspace-networking --state=mem: --socket=/tmp/ts.sock \
   >/tmp/tailscaled.log 2>&1 </dev/null &
 for _ in $(seq 20); do [ -S /tmp/ts.sock ] && break; sleep 0.5; done
 [ -S /tmp/ts.sock ] || die 31 "tailscaled socket never appeared"
