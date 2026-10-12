@@ -1,0 +1,17 @@
+// Gradle init script: resolve Maven Central through Google's mirror.
+// cloud-setup.sh installs it: the cloud sandbox's shared egress gets 429s from repo.maven.apache.org.
+def mirror = 'https://maven-central.storage-download.googleapis.com/maven2/'
+def swap = { RepositoryHandler repos ->
+    repos.withType(MavenArtifactRepository).configureEach { r ->
+        if (r.url.host in ['repo.maven.apache.org', 'repo1.maven.org']) r.url = mirror
+    }
+}
+beforeSettings { settings ->
+    swap(settings.pluginManagement.repositories)
+    swap(settings.dependencyResolutionManagement.repositories)
+    swap(settings.buildscript.repositories)
+}
+allprojects {
+    swap(buildscript.repositories)
+    swap(repositories)
+}

@@ -5,6 +5,9 @@ set -uo pipefail
 step() { echo "== $1"; }
 die()  { echo "FAILED: $2" >&2; exit "$1"; }
 
+step gradle-mirror
+mkdir -p ~/.gradle/init.d && cp "$(dirname "$0")/maven-mirror.gradle" ~/.gradle/init.d/ || die 15 "gradle mirror"
+
 # The environment's setup script doesn't receive the user's variables; the session does.
 # Exit 0 there so the session starts, then run this again from the session.
 step env
