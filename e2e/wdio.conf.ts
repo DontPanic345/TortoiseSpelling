@@ -59,6 +59,11 @@ export const config: WebdriverIO.Config = {
             'appium:hideKeyboard': true,
             'appium:disableWindowAnimation': true,
             'appium:newCommandTimeout': 300,
+            // A phone reached through a Tailscale relay pushes APKs slowly; the
+            // defaults (20 s per adb call, 90 s per install) are sized for an emulator.
+            'appium:adbExecTimeout': 120_000,
+            'appium:uiautomator2ServerInstallTimeout': 120_000,
+            'appium:androidInstallTimeout': 300_000,
         },
     ],
 
