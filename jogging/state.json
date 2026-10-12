@@ -1,7 +1,7 @@
 {
   "enabled": true,
   "done": false,
-  "logIssue": null,
+  "logIssue": 11,
   "pieces": [
     {
       "id": "icon",
