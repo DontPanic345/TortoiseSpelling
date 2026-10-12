@@ -39,11 +39,12 @@ timeout 60 tailscale --socket=/tmp/ts.sock up --authkey="$TAILSCALE_AUTHKEY" --s
   || die 32 "tailscale up"
 
 # Userspace networking can't route local sockets into the tailnet, so bridge the phone to localhost.
+# Not on 5555-5585: adb scans those local ports for emulators and would list the phone twice.
 step bridge
-nohup socat TCP-LISTEN:5555,bind=127.0.0.1,fork,reuseaddr \
+nohup socat TCP-LISTEN:15555,bind=127.0.0.1,fork,reuseaddr \
   EXEC:"tailscale --socket=/tmp/ts.sock nc $PHONE_ADDR 5555" \
   >/tmp/socat.log 2>&1 </dev/null &
 adb start-server </dev/null >/dev/null 2>&1 || die 40 "adb start-server"
-timeout 30 adb connect 127.0.0.1:5555 || die 41 "adb connect"
+timeout 30 adb connect 127.0.0.1:15555 || die 41 "adb connect"
 adb devices
 exit 0
