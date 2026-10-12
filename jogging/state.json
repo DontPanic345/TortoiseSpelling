@@ -18,12 +18,36 @@
           "phase": 1,
           "model": "opus",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "spec-review",
           "phase": 1,
           "model": "opus",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "Generator, art and tests: scripts/icon.mjs emits the vector drawables and docs/icon.svg; drift and safe-zone tests; WebP icons deleted",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "Check the launcher, themed and notification icons on the emulator and in a release build; CHANGELOG, CLAUDE.md and todo",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the piece against its spec and the goals, rerun the checks, bump the minor version",
+          "model": "sonnet",
           "effort": "medium",
           "status": "pending"
         }
