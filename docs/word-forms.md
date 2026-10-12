@@ -72,18 +72,18 @@ Notes / open questions to settle before writing the migration:
   into a single `Definition` + single `WordForm` + single `ExampleSentence>`) —
   version bump plus a real `Migration`, no `fallbackToDestructiveMigration`.
 
-## Claude lookup
+## ~~Claude lookup~~
 
-`ClaudeClient`'s lookup prompt changes from "give me one definition and one
+~~`ClaudeClient`'s lookup prompt changes from "give me one definition and one
 example" to "give me every definition that applies, and for each, every common
 word form, and for each form, several example sentences." The response schema
 grows a nested JSON shape instead of the current flat one; `parseLookup` stays
-lenient about prose around the JSON.
+lenient about prose around the JSON.~~
 
-The model decides *how many* definitions/forms to return per word — the app
+~~The model decides *how many* definitions/forms to return per word — the app
 does not pad or truncate to a fixed count. Example sentence count per form is
 still bounded (a handful, e.g. 3-5) so the payload stays reasonable and the
-rotation pool in "keeping cards fresh" below has enough to draw from.
+rotation pool in "keeping cards fresh" below has enough to draw from.~~
 
 ## Distribution: bundled/remote dictionary — considered and dropped
 
@@ -117,6 +117,7 @@ exhausted (or on user-requested refresh), and at that point it should refresh
 that one form's example pool rather than the whole word.
 
 Practically:
+
 - `CardRefresher`'s trigger (review session starting, once/day/word) stays.
 - What it *does* changes: first check whether the current word form still has
   an unused example sentence; if so, just advance the rotation pointer

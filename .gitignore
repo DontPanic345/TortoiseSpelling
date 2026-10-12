@@ -19,3 +19,7 @@ apikey
 keystore.properties
 # Claude Code agent worktrees
 .claude/worktrees/
+
+# Jogging run logs and lock
+/jogging/runs/
+/jogging/.lock

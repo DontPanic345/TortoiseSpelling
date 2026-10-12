@@ -1,0 +1,38 @@
+name: Jogging notify
+
+# jogging/jog.mjs posts through this workflow so messages come from github-actions[bot]
+# and notify Alan, which comments made with his own token don't.
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Issue number to comment on; empty to open a new issue
+        required: false
+      title:
+        description: Title for a new issue
+        required: false
+      body:
+        description: Message
+        required: true
+
+permissions:
+  issues: write
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE: ${{ inputs.issue }}
+          TITLE: ${{ inputs.title }}
+          BODY: ${{ inputs.body }}
+        run: |
+          if [ -n "$ISSUE" ]; then
+            gh issue comment "$ISSUE" --body "$BODY"
+          else
+            gh issue create --title "$TITLE" --body "$BODY"
+          fi
