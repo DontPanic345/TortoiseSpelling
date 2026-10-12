@@ -75,12 +75,17 @@ Pure functions plus a `main` that writes files, the same shape as `bump-version.
   - `launcherMonochrome()` → `VectorDrawable` 108dp, every part `#FFFFFFFF`.
   - `notification()` → `VectorDrawable` 24dp, a `<group>` with `scaleX/Y` and
     `translateX/Y` mapping the art's bounds (ground excluded) into the 2..22 box, white.
+    With no pivot, a group maps a point to `p * scale + translate`; the tests use the same
+    mapping, exported from the script rather than re-derived.
   - `backgroundColour()` → the `values/ic_launcher_background.xml` resource.
   - `previewSvg()` → a 108×108 SVG with the Evergreen background and the colour art,
     for viewing in a browser and for the web app.
 - **`outputs()`** returns `[{ path, text }]` for every generated file. `main` writes them
   with LF endings (git's `core.autocrlf` handles Windows checkouts).
-- Usage: `node scripts/icon.mjs`, no arguments.
+- Usage: `node scripts/icon.mjs`, no arguments. `main` runs only when the file is executed
+  directly (`import.meta.url === pathToFileURL(process.argv[1]).href`). If importing it
+  wrote the files, the test would regenerate them before comparing and the drift check
+  could never fail.
 
 ### Files
 
@@ -115,6 +120,8 @@ Run by the existing `node --test 'scripts/*.test.mjs'`, so CI picks them up unch
   to the old size.
 - **Notification bounds:** after the group transform, every non-ground point lies within
   [2, 22] on both axes.
+- **Notification gaps survive:** the script defines the gap width once, as an exported
+  constant used for every gap, and the gap times the notification scale is at least 1.
 - **Monochrome and notification are single-colour:** their XML contains no `fillColor`
   other than white.
 
@@ -123,7 +130,8 @@ Run by the existing `node --test 'scripts/*.test.mjs'`, so CI picks them up unch
 - `CHANGELOG.md`, under `[Unreleased]` / `### Changed`: one line, e.g. "A redrawn app
   icon, sharper at every size, with a matching themed icon and notification icon."
 - `CLAUDE.md`, Commands block: `node scripts/icon.mjs   # regenerate the app and
-  notification icons`. And one line in Architecture or near Test tags: the three icon
+  notification icons`. The `scripts/*.test.mjs` comment and the test-layer table row
+  say "release script tests"; make them "script tests", since the icon test lives there now. And one line in Architecture or near Test tags: the three icon
   drawables and `ic_launcher_background.xml` are generated; edit the script, and the drift
   test enforces it.
 - `docs/todo.md`: remove the icon item.
@@ -141,13 +149,16 @@ Write `scripts/icon.mjs` and `scripts/icon.test.mjs` as above, run the script, d
 
 Effort is high because the art is tuned by eye over several render-and-look rounds.
 
-To look at the art, render the preview to PNG with headless Edge and open the PNG with
-the Read tool (render at a few sizes; 48 px is roughly a launcher icon, 24 px a
-notification):
+To look at the art, render it to PNG with headless Edge and open the PNG with the Read
+tool. Headless windows have a minimum width, so don't shrink the window to get small
+sizes; write a scratch HTML page to `$TEMP` that shows `docs/icon.svg` as `<img>` at 432,
+48 and 24 px side by side (48 px is roughly a launcher icon, 24 px a notification), with
+a circular-clipped copy to check the mask, and screenshot that:
 
 ```bash
 "/c/Program Files (x86)/Microsoft/Edge/Application/msedge.exe" --headless --disable-gpu \
-  --screenshot="$TEMP/icon-432.png" --window-size=432,432 "file:///D:/lab/TortoiseSpelling/docs/icon.svg"
+  --screenshot="$(cygpath -m "$TEMP")/icon.png" --window-size=800,500 \
+  "file:///$(cygpath -m "$TEMP")/icon.html"
 ```
 
 For the notification art, temporarily write a white-on-dark SVG of `notification()`'s

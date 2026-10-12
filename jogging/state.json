@@ -25,7 +25,7 @@
           "phase": 1,
           "model": "opus",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-1",
