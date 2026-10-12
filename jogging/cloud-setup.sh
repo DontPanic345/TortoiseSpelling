@@ -5,9 +5,14 @@ set -uo pipefail
 step() { echo "== $1"; }
 die()  { echo "FAILED: $2" >&2; exit "$1"; }
 
+# The environment's setup script doesn't receive the user's variables; the session does.
+# Exit 0 there so the session starts, then run this again from the session.
 step env
 for v in ADB_KEY ADB_KEY_PUB TAILSCALE_AUTHKEY PHONE_ADDR; do
-  [ -n "${!v:-}" ] || die 10 "$v is not set in the setup script's environment. Visible: $(env | cut -d= -f1 | sort | tr '\n' ' ')"
+  if [ -z "${!v:-}" ]; then
+    echo "SKIPPED: $v is not set here. Run jogging/cloud-setup.sh from the session."
+    exit 0
+  fi
 done
 
 step keys
