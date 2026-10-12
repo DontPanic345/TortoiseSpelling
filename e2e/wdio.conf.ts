@@ -71,7 +71,8 @@ export const config: WebdriverIO.Config = {
     waitforTimeout: 10_000,
     // The default 500 ms poll made every wait that wasn't already true cost half a second.
     waitforInterval: 100,
-    connectionRetryTimeout: 180_000,
+    // Session creation installs the APKs, which takes minutes over a Tailscale relay.
+    connectionRetryTimeout: 600_000,
     connectionRetryCount: 1,
 
     services: [
