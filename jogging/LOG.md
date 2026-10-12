@@ -13,3 +13,10 @@ Spec holds up against the goals and the code. Fixed: `main` must not run on impo
 drift test regenerates before comparing and can never fail; the notification gap limit is
 now a tested constant; the group transform is pinned down; the preview recipe works around
 headless Edge's minimum window width; CLAUDE.md's "release script tests" wording joins the docs list.
+
+## 2026-10-13 00:23 test-data-layer/spec (opus)
+Wrote `jogging/specs/test-data-layer.md`. Layers are selected by the runner's `package`
+argument rather than custom Gradle tasks; `DATABASE_VERSION` and `ALL_MIGRATIONS` let a chain
+test cover every migration from v1; CI adds an API 26 (minSdk, oldest SQLite) emulator job,
+and connected runs must set `ANDROID_SERIAL` since they uninstall the app. Added build-1
+(scaffolding, migration tests), build-2 (DAO, repository tests), build-3 (CI, docs) and review, all Sonnet.

@@ -68,12 +68,44 @@
           "phase": 1,
           "model": "opus",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "spec-review",
           "phase": 1,
           "model": "opus",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "Gradle scaffolding (Room plugin, androidTest deps), DATABASE_VERSION and ALL_MIGRATIONS, TestWords fixture, MigrationTest for 1→2 and the chain from version 1",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "DAO tests and repository tests against in-memory Room",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-3",
+          "phase": 2,
+          "title": "CI data-layer job on an API 26 emulator; CLAUDE.md and the testing plan doc",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the piece against its spec and the goals, rerun the checks, confirm CI green (no version bump)",
+          "model": "sonnet",
           "effort": "medium",
           "status": "pending"
         }
