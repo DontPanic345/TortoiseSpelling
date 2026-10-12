@@ -7,7 +7,7 @@ die()  { echo "FAILED: $2" >&2; exit "$1"; }
 
 step env
 for v in ADB_KEY ADB_KEY_PUB TAILSCALE_AUTHKEY PHONE_ADDR; do
-  [ -n "${!v:-}" ] || die 10 "$v is not set in the setup script's environment"
+  [ -n "${!v:-}" ] || die 10 "$v is not set in the setup script's environment. Visible: $(env | cut -d= -f1 | sort | tr '\n' ' ')"
 done
 
 step keys
