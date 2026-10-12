@@ -27,6 +27,7 @@ cloud routine with those secrets.
 
 > In a fresh clone of TortoiseSpelling, find out whether this cloud environment can run
 > the repo's checks against a real phone. Try, in order, and stop at the first failure:
+>
 > 1. Install JDK 17 and the Android command-line tools, then `./gradlew assembleDebug
 >    testDebugUnitTest lintDebug`.
 > 2. Start Tailscale in userspace mode with `TAILSCALE_AUTHKEY`, write `ADB_KEY` and
