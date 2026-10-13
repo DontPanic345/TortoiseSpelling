@@ -91,7 +91,7 @@
           "title": "DAO tests and repository tests against in-memory Room",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-3",
