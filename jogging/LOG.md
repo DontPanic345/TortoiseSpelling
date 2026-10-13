@@ -137,3 +137,10 @@ Fixed: the smoke's sending case registered after its time, which `sentDayOnRegis
 next minute and waits; `settleQuietDays` runs in `main.tsx` before render (a `#/review` launch could otherwise hide a skipped
 day), never notifies, and marks only while `reminderEnabled` (Android's worker); a dismissed prompt turns reminders off
 silently; the test button re-registers on a 404; the service worker syncs after a reminder push; the e2e fakes are spelt out.
+
+## 2026-10-13 18:30 icon/build-1 (sonnet)
+Wrote `scripts/icon.mjs` (dependency-free; shapes → launcher, themed and notification vector drawables, background colour and
+`docs/icon.svg`) and `scripts/icon.test.mjs` (drift, safe circle, width ≥ 52, notification box, gap ≥ 1 unit, plate and shell
+separation, single-colour, eye hole). Deleted the 15 WebPs. Shell plates come from clipping a dome polygon against offset cut
+lines. No Edge here, so I rendered the paths with ImageMagick `-draw` to check the art. `node --test`, `assembleDebug`,
+`testDebugUnitTest` and `lintDebug` pass; the generator is idempotent and a colour edit fails the drift test.
