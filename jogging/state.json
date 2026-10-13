@@ -60,7 +60,7 @@
         "docs/testing-and-web-plan.md"
       ],
       "dependsOn": [],
-      "status": "active",
+      "status": "done",
       "spec": "jogging/specs/test-data-layer.md",
       "steps": [
         {
@@ -107,7 +107,7 @@
           "title": "Review the piece against its spec and the goals, rerun the checks, confirm CI green (no version bump)",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },

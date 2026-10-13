@@ -170,3 +170,7 @@ Added `TortoiseSpellingDaoTest` (17 tests: every query, unique index, cascade an
 
 ## 2026-10-13 20:40 test-data-layer/build-3 (sonnet)
 Added the `data` job to `ci.yml` (API 26, x86_64, KVM enabled, 45 min timeout, report upload on failure; header comment updated) and the CLAUDE.md and testing-plan docs. Not verified: this cloud session has no working `gh` login, so I couldn't watch the run. The `review` step must check the `data` job is green on main and that it ran 24 tests; if the connected task's exit-code oddity from build-1 shows up on the emulator, fix it there.
+
+## 2026-10-13 23:30 test-data-layer/review (sonnet)
+Reviewed against the spec and goals: `ALL_MIGRATIONS`/`DATABASE_VERSION` drive the chain test, schemas are clean, docs match the commands, no stray comments. Unit tests, lint and `assembleDebugAndroidTest` pass; all 24 data-layer tests pass on the S23 (`am instrument`). The `data` job in main's CI run for build-3 is green on API 26 and the connected task exited 0 there, so build-1's exit-code oddity is specific to the phone link. No version bump (test-only).
+Note: the phone still had build-2's `<` mutation installed (and a differently signed app), which made two tests fail until I uninstalled and reinstalled; future cloud sessions seeing odd failures should reinstall first.
