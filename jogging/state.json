@@ -419,13 +419,53 @@
           "phase": 1,
           "model": "opus",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "spec-review",
           "phase": 1,
           "model": "opus",
           "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "web/ project, CI job and Dependabot, golden/ with JUnit and Vitest runners, Gradle wiring; port text, days, SM-2, session, queries, progress, diff and blanking with their golden files",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "Port the content model, card picking, the lookup prompt and the paste parser, with content, pick, prompt and paste golden files",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-3",
+          "phase": 2,
+          "title": "Backup JSON on the web: model types, parse, import and export mapping, golden/backup files read and written by both apps",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-4",
+          "phase": 2,
+          "title": "IndexedDB storage and the repository, repository and journey tests, CLAUDE.md, web and golden READMEs, the plan doc",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the piece against its spec and the goals: golden coverage of every Kotlin test, both runners, transactions; full checks and CI green (no version bump)",
+          "model": "sonnet",
+          "effort": "high",
           "status": "pending"
         }
       ]

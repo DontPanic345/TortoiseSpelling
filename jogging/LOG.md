@@ -83,3 +83,10 @@ Spec holds up against the goals and the code (SettingsStore, SecretCipher's alia
 Fixed: `PRIVACY.md`'s new opening no longer claims only the chat paste leaves the phone (Google backup and Export
 stay); `.gitignore` keeps `apikey` so a stray local key file can't be committed; the key is deleted on the first
 run after the update, checked every start so restored backups are cleaned; build-4's grep allow-list is complete.
+
+## 2026-10-13 10:59 web-core/spec (opus)
+Wrote `jogging/specs/web-core.md`. Golden cases are JSON in a root `golden/` folder, run by a JUnit
+runner (the oracle) and a Vitest runner; random functions are checked as allowed sets over seeds, and
+`ktTrim` copies Kotlin's whitespace rules. Words live in IndexedDB (`idb`) with their content nested,
+the DAO queries become pure functions, and the repository mirrors `WordRepository` with one
+transaction per write. Added build-1 to build-4 and review, all Sonnet (build-3 medium, the rest high).
