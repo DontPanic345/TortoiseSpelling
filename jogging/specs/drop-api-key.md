@@ -59,7 +59,8 @@ Goals it leans on:
 ### Settled here (the docs and decisions leave these open)
 
 - **A saved key is deleted, not just ignored.** `SettingsStore` removes the old `apiKey`
-  preference and the Keystore entry that encrypted it, once, on first start. Left in
+  preference and the Keystore entry that encrypted it, the first time the app starts
+  after the update (a reminder run counts). Left in
   place, the ciphertext would ride along in every Google backup and device transfer for
   no purpose, and `PRIVACY.md` couldn't say the key is gone.
 - **The Internet permission goes.** After this piece nothing opens a socket: links open
@@ -126,6 +127,12 @@ the refresher). The class KDoc stays. Constructor parameters are unchanged.
   "tortoisespelling.settings.v1"` in the companion. `runCatching` because a missing or
   broken Keystore must not stop the app opening; the preference is already gone by
   then. `prefs.edit` (apply) matches the rest of the store.
+
+  The check runs on every start, not behind a done flag, so a pre-update backup restored
+  onto a phone later is cleaned too. It's keyed on the preference so that a normal start
+  never loads the Keystore. A user who once saved a key and then cleared it keeps an
+  orphaned AES key in the Keystore: it encrypts nothing, never leaves the device and goes
+  with an uninstall, so it's left alone rather than probing the Keystore on every start.
 
 **`data/Word.kt`**: in build-1 nothing; in build-3 the "card upkeep" block (`autoRefresh`,
 `refreshedOn` and their KDoc) goes.
@@ -289,14 +296,16 @@ Build-4:
   this card fresh" or API key line goes. "Everything works offline with no account and
   no API key." stays.
 - `PRIVACY.md`:
-  - Opening: "…Your word list stays on your phone. The app has no Internet permission,
-    so it can't send anything anywhere. The only thing that leaves is what you choose to
-    paste into a chat app yourself."
+  - Opening: "…The app has no Internet permission, so it can't send anything anywhere
+    itself. Your words leave your phone only when you choose: when you paste a prompt
+    into a chat app, export a backup, or turn on Google backup." (Not "the only thing
+    that leaves is the paste": the Google backup switch and Export stay, and the policy
+    must say what the app does.)
   - "What the app keeps" loses the API key bullet.
   - "What leaves your device": the "Keep this card fresh" paragraph and its Test key and
     model-discovery sentences go; the word lookup paragraph `copy-prompt` wrote stays.
     One sentence: "If you saved an Anthropic API key in an earlier version, the app
-    deletes it when it updates."
+    deletes it the first time it runs after the update."
   - "Android's own backup" loses the two API key sentences; "Backups you export" loses
     "It doesn't include your API key."
   - Permissions: the Internet row goes, leaving Notifications.
@@ -305,7 +314,8 @@ Build-4:
     on keep everything else. Copy prompt and the rotating example sentences cover what
     it did, with no key."
   - "The Internet permission. The app no longer connects to anything, and an API key
-    saved by an earlier version is deleted when you update."
+    saved by an earlier version is deleted the first time the app runs after the
+    update."
 - `docs/testing-and-web-plan.md`: drop the `ClaudeIntegrationTest` sentence, `@live-api`
   from layer 6, the "OkHttp to the Messages API" and `SecretCipher` rows of the porting
   table, and the "Claude lookup from a browser" risk. Leave the rest.
@@ -314,7 +324,8 @@ Build-4:
   refresh appends an example until `drop-api-key` gains "(since removed)".
 - `docs/todo.md`: tick the "Drop the API key feature" item.
 - `.github/workflows/ci.yml`: the header's `ClaudeIntegrationTest` sentence goes.
-- `.gitignore`: the `apikey` line goes.
+- `.gitignore` keeps its `apikey` line: removing it would let a key file still lying in
+  a working copy be committed by accident.
 
 ## Build steps
 
@@ -478,8 +489,10 @@ grep -n "Unreleased" -A12 CHANGELOG.md   # the two Removed lines are there
 
 - The `git grep` matches only: `MIGRATION_1_2`/`MIGRATION_3_4` and their tests,
   `BackupTest`'s old-file fixtures, `SettingsStore`'s legacy key cleanup and its test,
-  the `PRIVACY.md` sentence about deleting an old key, "no API key" lines that say the
-  app needs none (`README.md`), and history in `docs/word-forms.md` and
+  the `PRIVACY.md` sentence about deleting an old key, the `CLAUDE.md` "Data safety"
+  bullet about the same, `.gitignore`'s `apikey` line, "no API key" lines that say the
+  app needs none (`README.md`, `docs/testing-and-web-plan.md`), and history in
+  `docs/todo.md` (the ticked item), `docs/word-forms.md` and
   `docs/copy-prompt-lookup.md`. Anything else is a doc or code line this piece missed.
 
 ### review (Sonnet, high)
@@ -490,7 +503,7 @@ and the release APK has no `INTERNET` permission; `MIGRATION_3_4` matches `4.jso
 statement for statement and copies every kept column; each migration test fails under
 build-3's mutations; `recordReview`, `Sm2Scheduler`, `SessionBuilder` and the session
 queries are unchanged apart from the comment (`git diff` them against the piece's first
-commit); the legacy key cleanup runs once and can't crash start-up; `BackupTest` proves both
+commit); the legacy key cleanup touches the Keystore only when the old preference is present and can't crash start-up; `BackupTest` proves both
 directions (a 0.3.0-style file imports here, and the stand-in serializer reads a file
 written here as an older build would); `PRIVACY.md` says what the code does; no war-story comments. High effort: this is the
 last Android piece before the web port copies it, and goal 1 can still fail in the

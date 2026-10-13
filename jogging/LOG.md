@@ -77,3 +77,9 @@ and its Keystore entry once; the Internet permission and OkHttp go; `MIGRATION_3
 `autoRefresh`/`refreshedOn` with `MIGRATION_2_3`'s rebuild and Room-path test; backups drop the two
 keys and stay version 1; Settings splits into `SettingsContent`. Added build-1 to build-4 and review,
 all Sonnet (build-1, build-3 and review at high effort).
+
+## 2026-10-13 10:54 drop-api-key/spec-review (opus)
+Spec holds up against the goals and the code (SettingsStore, SecretCipher's alias, the Settings sections, the e2e key steps).
+Fixed: `PRIVACY.md`'s new opening no longer claims only the chat paste leaves the phone (Google backup and Export
+stay); `.gitignore` keeps `apikey` so a stray local key file can't be committed; the key is deleted on the first
+run after the update, checked every start so restored backups are cleaned; build-4's grep allow-list is complete.
