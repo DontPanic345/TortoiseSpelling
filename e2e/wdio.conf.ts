@@ -59,11 +59,12 @@ export const config: WebdriverIO.Config = {
             'appium:hideKeyboard': true,
             'appium:disableWindowAnimation': true,
             'appium:newCommandTimeout': 300,
-            // A phone reached through a Tailscale relay pushes APKs slowly; the
-            // defaults (20 s per adb call, 90 s per install) are sized for an emulator.
-            'appium:adbExecTimeout': 120_000,
-            'appium:uiautomator2ServerInstallTimeout': 120_000,
-            'appium:androidInstallTimeout': 300_000,
+            // A phone reached through a Tailscale relay pushes APKs slowly (the 20 MB
+            // debug APK took about 3 minutes); the defaults (20 s per adb call, 90 s per
+            // install) are sized for an emulator.
+            'appium:adbExecTimeout': 600_000,
+            'appium:uiautomator2ServerInstallTimeout': 600_000,
+            'appium:androidInstallTimeout': 600_000,
         },
     ],
 
@@ -71,8 +72,9 @@ export const config: WebdriverIO.Config = {
     waitforTimeout: 10_000,
     // The default 500 ms poll made every wait that wasn't already true cost half a second.
     waitforInterval: 100,
-    // Session creation installs the APKs, which takes minutes over a Tailscale relay.
-    connectionRetryTimeout: 600_000,
+    // Each WebDriver request may wait this long. Session creation and installApp push
+    // APKs, which takes minutes over a Tailscale relay; keep this above the install timeouts.
+    connectionRetryTimeout: 900_000,
     connectionRetryCount: 1,
 
     services: [
@@ -100,7 +102,9 @@ export const config: WebdriverIO.Config = {
         // Keep in step with STEP_FILES in scripts/checkSteps.ts.
         require: ['./step-definitions/**/*.ts', './support/hooks.ts'],
         tags: process.env.E2E_TAGS ?? DEFAULT_TAGS,
-        timeout: 120_000,
+        // Per step. Every Appium call to the phone over Tailscale is about 20 times slower
+        // than on an emulator; steps that reinstall the app set their own, longer timeout.
+        timeout: 300_000,
         snippets: true,
         source: true,
         strict: true,
