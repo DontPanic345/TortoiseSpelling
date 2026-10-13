@@ -23,6 +23,10 @@ export const byTextInApp = (text: string) =>
 export const byTextContaining = (text: string) =>
     $(`android=new UiSelector().textContains(${quoted(text)})`);
 
+/** For text that differs between Android builds, e.g. stock and Samsung system pages. */
+export const byTextMatching = (pattern: string) =>
+    $(`android=new UiSelector().textMatches(${quoted(pattern)})`);
+
 /** Icon buttons expose their contentDescription, e.g. "Back", "More", "Delete word". */
 export const byDescription = (description: string) =>
     $(`android=new UiSelector().description(${quoted(description)})`);

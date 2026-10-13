@@ -18,14 +18,20 @@ type Element = ReturnType<typeof $>;
  * than an exact match also covers a masked field (the Settings API key uses
  * PasswordVisualTransformation): its reported text is a run of bullet characters, one
  * per typed character, never the literal string.
+ *
+ * Both waits look the field up again on every poll. On a Galaxy S23 the element handle
+ * keeps returning the text it had when it was found, so a handle found before typing
+ * never sees the typed text.
  */
 export const typeInto = async (element: Element, text: string): Promise<void> => {
+    const selector = await element.selector;
+    const currentText = async (): Promise<string> => $(selector).getText();
     await element.clearValue();
-    await driver.waitUntil(async () => (await element.getText()) === '', {
+    await driver.waitUntil(async () => (await currentText()) === '', {
         timeoutMsg: 'Field did not clear before typing into it',
     });
     await element.setValue(text);
-    await driver.waitUntil(async () => (await element.getText()).length === text.length, {
+    await driver.waitUntil(async () => (await currentText()).length === text.length, {
         timeoutMsg: 'Field did not show the typed text before continuing',
     });
 };

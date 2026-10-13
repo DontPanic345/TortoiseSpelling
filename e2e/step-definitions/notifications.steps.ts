@@ -4,7 +4,7 @@ import { freshInstall } from '../support/app.ts';
 import { APP_ID } from '../support/config.ts';
 import { scenarioState } from '../support/scenarioState.ts';
 import { review } from '../support/screens/review.ts';
-import { byResourceIdMatching, byTestId, byText, byTextContaining } from '../support/selectors.ts';
+import { byResourceIdMatching, byTestId, byText, byTextMatching } from '../support/selectors.ts';
 
 const PERMISSION_PROMPT = 'Allow Tortoise Spelling to send you notifications?';
 const ALLOW_BUTTON = 'com.android.permissioncontroller:id/permission_allow_button';
@@ -34,7 +34,9 @@ When('I refuse notifications', async () => {
 });
 
 Then('Android\'s notification settings for Tortoise Spelling are shown', async () => {
-    await expect(byTextContaining('All Tortoise Spelling notifications')).toBeDisplayed();
+    await expect(
+        byTextMatching('.*All Tortoise Spelling notifications.*|Allow notifications'),
+    ).toBeDisplayed();
 });
 
 Then('a notification {string} arrives saying {string}', async (title: string, body: string) => {

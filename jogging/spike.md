@@ -10,7 +10,9 @@ day, and the PC no longer has to be awake.
    charge and on home Wi-Fi, and turn off automatic system updates so it doesn't reboot
    overnight. Use a phone with no data you care about: every scenario wipes the app.
 2. **Fixed ADB port.** Plug the phone into this PC and run `adb tcpip 5555`. This lasts
-   until the phone reboots; after a reboot, repeat it.
+   until the phone reboots; after a reboot, repeat it. Also run
+   `adb shell settings put global verifier_verify_adb_installs 0`: otherwise Play Protect
+   holds each fresh install behind a "send this app to Google" prompt.
 3. **Tailscale.** Install Tailscale on the phone and sign in. In the admin console,
    create a reusable, ephemeral auth key tagged `tag:jogging`, and an ACL letting that
    tag reach the phone on port 5555.
