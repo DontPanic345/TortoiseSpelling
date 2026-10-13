@@ -145,10 +145,20 @@ Definitions are numbered from 1 in messages.
 | `exampleMissesForm(example, form)` | “*example*” doesn't contain “*form*”. |
 | Any count or field over its limit | That answer is longer than a word needs. Ask the chat for a shorter one. |
 
+The per-definition rows run as one pass in document order, so the first failure is the
+same on both platforms: definition 1's text, then its forms (missing or empty), then
+each of its forms in turn (its text, then whether it has a non-blank example, then each
+example in order against `exampleMissesForm`), then definition 2 the same way. A bad
+example in definition 1 is reported before definition 2's missing text. The limits row
+runs only after that whole pass, on the trimmed answer with blank examples dropped and
+before the base form is moved or added, so a first definition of 12 forms that gains a
+base form is still valid.
+
 On success: `partOfSpeech` and `label` default to `""`; blank examples are dropped;
 the base form is moved or added first (above); `renames = typedWord.isNotBlank() &&
 normalizeWord(word) != normalizeWord(typedWord)`. Every `ExampleDraft.shownAt` is null.
-Unknown keys are ignored. `summary()` counts the returned content, so a base form added
+Unknown keys are ignored. Parsing uses the default `Json`, which is strict like
+`JSON.parse` (no trailing commas, no unquoted keys), so the web port accepts the same text. `summary()` counts the returned content, so a base form added
 without examples shows in the form count.
 
 `domain` importing `normalizeWord` from `data/Word.kt` is what `word-forms`' `CardPick`
@@ -268,6 +278,10 @@ New steps in `e2e/step-definitions/copy_prompt.steps.ts`, with screen helpers in
   would (` ```json … ``` `), so the device run also proves the fence is stripped.
 - `I use the answer`: clicks `ADD_WORD_PASTE_USE` and waits for the dialog to close.
 
+Two definitions of forms and examples push Save below the fold, and UiAutomator2 can't
+click an off-screen node. `addWord.save()` scrolls it into view first
+(`scrollToTestId(testIds.addWordSave)`), unless `word-forms` build-3 already made it do so.
+
 `I save the changes`, `I am told`, `I see`, `I open the word list`, `I search for` and
 the listing steps exist.
 
@@ -331,6 +345,8 @@ Tests (JVM):
   - A ` ```json ` fence, and a line of prose before and after, both parse the same.
   - One test per row of the table, asserting the exact message; definition numbering is
     1-based; a non-string `text` counts as missing.
+  - Order: a bad example in definition 1 and a blank definition 2 report the example;
+    an over-limit field alongside a missing example reports the example.
   - Each limit, at the limit (valid) and one over (the "longer than a word needs"
     message); `TEXT` is checked before parsing.
   - Blank examples are dropped; missing `partOfSpeech`/`label` become `""`; unknown keys
@@ -407,7 +423,7 @@ Acceptance:
 
 ```bash
 cd e2e && npm run check-steps -- --all && npm run typecheck   # no undefined or unused steps
-<e2e copy_prompt add_word>
+<e2e copy_prompt add_word word_forms>   # word_forms too: addWord.save() may have changed
 ./gradlew testDebugUnitTest lintDebug
 grep -n "Unreleased" -A10 CHANGELOG.md   # the Added and Removed lines are there
 grep -n -i "look up with claude" README.md PRIVACY.md CLAUDE.md e2e/README.md   # no matches

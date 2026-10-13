@@ -64,3 +64,9 @@ and limits are pure in `domain/` for the web port; the JSON is located between t
 word and content, confirming a spelling change. Look up with Claude and its live-api scenarios go;
 Settings' key section now says it's only for keeping cards fresh. Added build-1 to build-3 and
 review, all Sonnet (build-2 and review at high effort).
+
+## 2026-10-13 10:45 copy-prompt/spec-review (opus)
+Spec holds up against the goals and the code (the add screen, blankWordIn, the e2e steps it reuses).
+Fixed: the per-definition checks run as one pass in document order, with limits after it and before
+the base form is added, so both platforms report the same first failure; parsing uses the strict
+default `Json` to match `JSON.parse`; `addWord.save()` scrolls Save into view, since a pasted tree pushes it off screen.
