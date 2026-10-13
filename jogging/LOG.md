@@ -155,7 +155,7 @@ installed" step), so the `review` step needs those raised or the APK preinstalle
 
 ## 2026-10-13 19:25 icon/review (sonnet)
 Reviewed against the spec and goals: no WebPs left, generated files match the script, script tests (30), unit tests, lint and `assembleRelease` pass, no
-stray comments in `icon.mjs`, docs updated. Bumped to 0.4.0 (versionCode 5). Raised the adb and cucumber step timeouts in `e2e/wdio.conf.ts` so the APK
+stray comments in `icon.mjs`, docs updated. Bumped to 0.4.0 (versionCode 5). The e2e timeouts were raised upstream meanwhile (kept theirs) so the APK
 install over Tailscale completes. The full e2e run on the S23 still had 4 failures: the "I am told the correct word" steps (the Correct card auto-advances after
 ~1.1s, too fast to observe over the link; reproduced alone in review.feature), one backup import toast, and one SeedWordsActivity timeout. No app logic changed in
 this piece; those steps want a link-tolerant check. Themed icon still unchecked on-device (One UI).
