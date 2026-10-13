@@ -1,38 +1,43 @@
 name: Jogging notify
 
-# jogging/jog.mjs posts through this workflow so messages come from github-actions[bot]
-# and notify Alan, which comments made with his own token don't.
+# jogging/jog.mjs appends messages to jogging/outbox.jsonl and pushes. This posts each new
+# line as github-actions[bot], which notifies Alan where his own token wouldn't.
 
 on:
-  workflow_dispatch:
-    inputs:
-      issue:
-        description: Issue number to comment on; empty to open a new issue
-        required: false
-      title:
-        description: Title for a new issue
-        required: false
-      body:
-        description: Message
-        required: true
+  push:
+    branches: [main]
+    paths: [jogging/outbox.jsonl]
 
 permissions:
+  contents: read
   issues: write
+
+concurrency:
+  group: jogging-notify
+  cancel-in-progress: false
 
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
       - name: Post
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          ISSUE: ${{ inputs.issue }}
-          TITLE: ${{ inputs.title }}
-          BODY: ${{ inputs.body }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
         run: |
-          if [ -n "$ISSUE" ]; then
-            gh issue comment "$ISSUE" --body "$BODY"
-          else
-            gh issue create --title "$TITLE" --body "$BODY"
-          fi
+          git diff --no-color --unified=0 "$BEFORE" "$AFTER" -- jogging/outbox.jsonl \
+            | grep '^+{' | cut -c2- > /tmp/new.jsonl || true
+          while IFS= read -r line; do
+            issue=$(jq -r '.issue // empty' <<<"$line")
+            body=$(jq -r '.body' <<<"$line")
+            if [ -n "$issue" ]; then
+              gh issue comment "$issue" --body "$body"
+            else
+              gh issue create --title "$(jq -r '.title' <<<"$line")" --body "$body"
+            fi
+          done < /tmp/new.jsonl

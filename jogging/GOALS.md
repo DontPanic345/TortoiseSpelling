@@ -54,6 +54,5 @@ a goal above requires it, and must say which.
 - **Releases.** Each finished piece that changes the Android app for users ends with
   `node scripts/bump-version.mjs minor` (`patch` for fix-only pieces), committed and
   pushed, which publishes a GitHub Release. Test-only and web-only pieces don't bump.
-- **Cloud spike.** Moving Jogging to a Cloud Routine that drives a spare phone over
-  Tailscale is a separate experiment (`jogging/spike.md`), not a piece. Jogging runs
-  locally until it's proven.
+- **Cloud Jogging.** Jogging runs as a Cloud Routine that drives a spare phone over
+  Tailscale (`jogging/spike.md`). It's infrastructure, not a piece.

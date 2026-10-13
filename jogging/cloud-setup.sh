@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Cloud environment setup for Jogging. The environment's setup script runs this file.
+# Cloud environment setup for Jogging: the phone link, the Android toolchain and the e2e
+# packages. The environment's setup script runs this file, and so does the session.
 # The runner reports only the exit code, so each step exits with its own code.
 set -uo pipefail
 step() { echo "== $1"; }
@@ -51,4 +52,30 @@ nohup socat TCP-LISTEN:15555,bind=127.0.0.1,fork,reuseaddr \
 adb start-server </dev/null >/dev/null 2>&1 || die 40 "adb start-server"
 timeout 30 adb connect 127.0.0.1:15555 || die 41 "adb connect"
 adb devices
+timeout 30 adb -s 127.0.0.1:15555 shell getprop ro.product.model || die 42 "phone not answering"
+
+step toolchain
+export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 ANDROID_HOME=/opt/android-sdk
+if [ ! -x "$JAVA_HOME/bin/java" ]; then
+  apt-get install -y -qq openjdk-17-jdk-headless >>/tmp/apt.log 2>&1 || die 50 "JDK 17"
+fi
+if [ ! -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
+  curl -fsSLo /tmp/cl.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip \
+    || die 51 "cmdline-tools download"
+  { mkdir -p "$ANDROID_HOME/cmdline-tools" && unzip -qo /tmp/cl.zip -d /tmp/cl \
+    && rm -rf "$ANDROID_HOME/cmdline-tools/latest" && mv /tmp/cl/cmdline-tools "$ANDROID_HOME/cmdline-tools/latest"; } \
+    || die 52 "cmdline-tools unzip"
+fi
+sdk="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+{ yes | "$sdk" --licenses && "$sdk" "platforms;android-37.0" "build-tools;36.0.0"; } >/tmp/sdk.log 2>&1 \
+  || die 53 "SDK packages"
+repo="$(cd "$(dirname "$0")/.." && pwd)"
+echo "sdk.dir=$ANDROID_HOME" > "$repo/local.properties"
+
+step git
+git -C "$repo" config user.name "Alan Falloon"
+git -C "$repo" config user.email falloonalan@gmail.com
+
+step e2e
+(cd "$repo/e2e" && npm ci --no-audit --no-fund) >/tmp/npm.log 2>&1 || die 70 "npm ci"
 exit 0

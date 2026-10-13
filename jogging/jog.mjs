@@ -3,6 +3,10 @@
 //   node jogging/jog.mjs run       # run steps until the budget, the work or the pieces run out
 //   node jogging/jog.mjs status    # print the next step and the pacing verdict, run nothing
 //
+//   node jogging/jog.mjs report <message>   # post a message to the log issue
+//
+// Add --cloud in a Cloud Routine session, after jogging/cloud-setup.sh.
+//
 // See jogging/PROTOCOL.md for what each session does.
 
 import { execFileSync, spawn } from "node:child_process";
@@ -15,9 +19,14 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.dirname(HERE);
 const STATE = path.join(HERE, "state.json");
 const LOCK = path.join(HERE, ".lock");
+const CLOUD_LOCK = path.join(HERE, "cloud-lock.json");
+const OUTBOX = path.join(HERE, "outbox.jsonl");
 const RUNS = path.join(HERE, "runs");
 const TASK_NAME = "TortoiseSpelling Jogging";
 const GH_USER = "DontPanic345";
+const GH_REPO = `${GH_USER}/TortoiseSpelling`;
+const CLOUD = process.argv.includes("--cloud");
+const CLOUD_PHONE = "127.0.0.1:15555";
 const PERSONAL_EMAIL = "falloonalan@gmail.com";
 const PERSONAL_CONFIG_DIR = path.join(os.homedir(), ".claude-personal");
 // Any of these would make `claude` sign in some other way than the personal profile's login.
@@ -108,9 +117,10 @@ export const parseUsage = (raw) => {
     throw new Error("no session/weekly windows in the usage payload");
 };
 
-export const stepPrompt = (piece, step) =>
+export const stepPrompt = (piece, step, cloud) =>
     [
         `You are a Jogging session for Tortoise Spelling, with no other context.`,
+        cloud ? `You are running in a Cloud Routine session: follow PROTOCOL.md's "In the cloud" rules.` : "",
         `Read CLAUDE.md, jogging/PROTOCOL.md, jogging/GOALS.md, piece "${piece.id}" in jogging/state.json, and the end of jogging/LOG.md.`,
         `Do step "${step.id}" of piece "${piece.id}" (${piece.title}) exactly as PROTOCOL.md describes, and nothing else.`,
         step.title ? `The step: ${step.title}. Its details are in ${piece.spec}.` : "",
@@ -146,7 +156,14 @@ const commitState = (message) => {
 };
 
 // Forced, not defaulted: an inherited CLAUDE_CONFIG_DIR may point at the work profile.
+// A cloud session belongs to the routine's owner, so there's no profile to pick.
 const setupEnv = () => {
+    if (CLOUD) {
+        process.env.JAVA_HOME ??= "/usr/lib/jvm/java-17-openjdk-amd64";
+        process.env.ANDROID_HOME ??= "/opt/android-sdk";
+        process.env.ANDROID_SERIAL ??= CLOUD_PHONE;
+        return;
+    }
     process.env.CLAUDE_CONFIG_DIR = PERSONAL_CONFIG_DIR;
     for (const key of AUTH_OVERRIDES) delete process.env[key];
     process.env.JAVA_HOME ??= "C:\\Program Files\\Android\\Android Studio\\jbr";
@@ -156,6 +173,11 @@ const setupEnv = () => {
 
 // Runs before every session. Throws, so a wrong account stops the run before any model call.
 const assertIdentity = () => {
+    if (CLOUD) {
+        const email = git("config", "user.email");
+        if (email !== PERSONAL_EMAIL) throw new Error(`refusing to run: git user.email is ${email}`);
+        return;
+    }
     const problem = accountProblem(JSON.parse(sh("claude", ["auth", "status"])));
     if (problem) throw new Error(`refusing to run: Claude ${problem}`);
     const email = git("config", "user.email");
@@ -165,50 +187,62 @@ const assertIdentity = () => {
 };
 
 const readUsage = () => {
-    const script = path.join(process.env.CLAUDE_CONFIG_DIR, "skills", "usage-check", "usage.py");
-    const out = sh("python", [script, "--json"], { timeout: 240_000 });
+    const python = process.platform === "win32" ? "python" : "python3";
+    const out = sh(python, [path.join(HERE, "usage.py"), "--json"], { timeout: 240_000 });
     return parseUsage(JSON.parse(out).raw);
 };
 
 const gh = (...args) => sh("gh", args);
 
-// Posted through a workflow so the message comes from github-actions[bot]; GitHub
-// doesn't notify Alan about comments made with his own token.
-const notify = ({ issue, title, body }) => {
-    const args = ["workflow", "run", "jogging-notify.yml", "-f", `body=${body}`];
-    if (issue) args.push("-f", `issue=${issue}`);
-    else args.push("-f", `title=${title}`);
-    gh(...args);
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// The repo is public, so reads need no token; GH_TOKEN, when set, only lifts the rate limit.
+const githubGet = async (route) => {
+    const headers = { Accept: "application/vnd.github+json" };
+    if (process.env.GH_TOKEN) headers.Authorization = `Bearer ${process.env.GH_TOKEN}`;
+    const res = await fetch(`https://api.github.com/repos/${GH_REPO}${route}`, { headers });
+    if (!res.ok) throw new Error(`GitHub ${route}: HTTP ${res.status}`);
+    return res.json();
 };
 
-const findIssue = (title) => {
-    for (let i = 0; i < 12; i++) {
-        const found = JSON.parse(gh("issue", "list", "--state", "open", "--search", `"${title}" in:title`, "--json", "number,title"));
-        const hit = found.find((f) => f.title === title);
+// Pushed to the outbox, which .github/workflows/jogging-notify.yml posts as
+// github-actions[bot]: GitHub doesn't notify Alan about comments made with his own token.
+const notify = (message) => {
+    fs.appendFileSync(OUTBOX, JSON.stringify(message) + "\n");
+    git("add", "jogging/outbox.jsonl");
+    git("commit", "-m", "jogging: notify");
+    git("push");
+};
+
+const findIssue = async (title) => {
+    for (let i = 0; i < 20; i++) {
+        await sleep(15_000);
+        const open = await githubGet("/issues?state=open&per_page=100");
+        const hit = open.find((issue) => issue.title === title && !issue.pull_request);
         if (hit) return hit.number;
-        execFileSync(process.execPath, ["-e", "setTimeout(()=>{},10000)"]);
     }
     return null;
 };
 
-const ensureLogIssue = (state) => {
+const ensureLogIssue = async (state) => {
     if (state.logIssue) return state.logIssue;
     const title = "Jogging log";
     notify({ title, body: "Progress from the Jogging loop. Blockers get their own issues." });
-    state.logIssue = findIssue(title);
+    state.logIssue = await findIssue(title);
     writeState(state);
     commitState("record the log issue");
     return state.logIssue;
 };
 
 // A blocked piece resumes when Alan comments on its issue or closes it.
-const checkReplies = (state) => {
+const checkReplies = async (state) => {
     for (const piece of state.pieces.filter((p) => p.status === "blocked" && p.blockerIssue)) {
-        const view = JSON.parse(gh("issue", "view", String(piece.blockerIssue), "--json", "state,comments"));
-        const replies = view.comments.filter(
-            (c) => c.author.login === GH_USER && new Date(c.createdAt) > new Date(piece.blockedAt),
+        const issue = await githubGet(`/issues/${piece.blockerIssue}`);
+        const comments = await githubGet(`/issues/${piece.blockerIssue}/comments?per_page=100`);
+        const replies = comments.filter(
+            (c) => c.user.login === GH_USER && new Date(c.created_at) > new Date(piece.blockedAt),
         );
-        if (replies.length === 0 && view.state === "OPEN") continue;
+        if (replies.length === 0 && issue.state === "open") continue;
         piece.userReply = replies.map((c) => c.body).join("\n\n") || "(Alan closed the issue without comment.)";
         piece.status = "active";
         for (const s of piece.steps) if (s.status === "blocked") s.status = "pending";
@@ -218,14 +252,14 @@ const checkReplies = (state) => {
 };
 
 // Pieces a session has just marked blocked get an issue.
-const raiseBlockers = (state) => {
+const raiseBlockers = async (state) => {
     for (const piece of state.pieces.filter((p) => p.status === "blocked" && !p.blockerIssue)) {
         const title = `Jogging blocker: ${piece.id}`;
         notify({
             title,
             body: `${piece.blocker ?? "(no details given; see jogging/LOG.md)"}\n\nReply here, or close the issue, to unblock it.`,
         });
-        piece.blockerIssue = findIssue(title);
+        piece.blockerIssue = await findIssue(title);
         piece.blockedAt = new Date().toISOString();
         log(`blocked ${piece.id} -> issue #${piece.blockerIssue}`);
     }
@@ -247,7 +281,7 @@ const runSession = (piece, step) =>
         const child = spawn(
             "claude",
             [
-                "-p", stepPrompt(piece, step),
+                "-p", stepPrompt(piece, step, CLOUD),
                 "--model", step.model,
                 "--effort", step.effort,
                 "--permission-mode", "auto",
@@ -286,95 +320,144 @@ const runSession = (piece, step) =>
         });
     });
 
-const acquireLock = () => {
-    try {
-        const held = fs.statSync(LOCK);
-        if (Date.now() - held.mtimeMs < LOCK_STALE_MS) return false;
-    } catch {
-        // no lock
+const localLock = {
+    acquire: () => {
+        try {
+            const held = fs.statSync(LOCK);
+            if (Date.now() - held.mtimeMs < LOCK_STALE_MS) return false;
+        } catch {
+            // no lock
+        }
+        fs.writeFileSync(LOCK, String(process.pid));
+        return true;
+    },
+    release: () => fs.rmSync(LOCK, { force: true }),
+};
+
+// Cloud sessions share nothing but the repo, so the lock is a file on main. Losing
+// the push race means another session took it first.
+const cloudLock = {
+    acquire: () => {
+        try {
+            const held = JSON.parse(fs.readFileSync(CLOUD_LOCK, "utf8"));
+            if (Date.now() - new Date(held.since).getTime() < LOCK_STALE_MS) return false;
+        } catch {
+            // no lock
+        }
+        fs.writeFileSync(CLOUD_LOCK, JSON.stringify({ since: new Date().toISOString() }) + "\n");
+        git("add", "jogging/cloud-lock.json");
+        git("commit", "-m", "jogging: take the cloud lock");
+        try {
+            git("push");
+            return true;
+        } catch {
+            git("reset", "--hard", "@{u}");
+            return false;
+        }
+    },
+    release: () => {
+        try {
+            git("pull", "--ff-only");
+            git("rm", "-q", "jogging/cloud-lock.json");
+            git("commit", "-m", "jogging: release the cloud lock");
+            git("push");
+        } catch (e) {
+            log(`could not release the cloud lock: ${e.message}`);
+        }
+    },
+};
+
+// Runs steps until something stops it, and says why.
+const runSteps = async (logIssue, ran) => {
+    for (;;) {
+        const usage = readUsage();
+        const verdict = pace(usage, new Date());
+        if (!verdict.ok) return `budget stop: ${verdict.reason}`;
+
+        let state = readState();
+        if (!state.enabled) return "paused in state.json";
+        const next = nextStep(state);
+        if (next.allDone) {
+            state.done = true;
+            state.enabled = false;
+            writeState(state);
+            commitState("The Work is done");
+            notify({ issue: logIssue, body: "🏁 Every piece is done. Jogging has disabled itself in state.json." });
+            if (!CLOUD) disableTask();
+            return "all done";
+        }
+        if (next.stuck) {
+            notify({ issue: logIssue, body: "⛔ Every remaining piece is blocked or waiting on one. Jogging stops until a blocker is answered." });
+            return "all remaining pieces blocked";
+        }
+
+        const { piece, step } = next;
+        assertIdentity();
+        log(`start ${piece.id}/${step.id} on ${step.model}/${step.effort} (${verdict.reason})`);
+        const { code, model } = await runSession(piece, step);
+        log(`end ${piece.id}/${step.id}: exit ${code}, model ${model}`);
+
+        git("pull", "--ff-only");
+        state = readState();
+        const p = state.pieces.find((x) => x.id === piece.id);
+        const s = p.steps.find((x) => x.id === step.id);
+        if (code !== 0 || !model?.includes(step.model)) {
+            if (git("status", "--porcelain")) {
+                git("stash", "push", "--include-untracked", "-m", `jogging ${piece.id}/${step.id} leftovers`);
+            }
+            return `session ${piece.id}/${step.id} failed (exit ${code}, model ${model})`;
+        }
+        if (s.status === "pending") {
+            s.attempts = (s.attempts ?? 0) + 1;
+            if (s.attempts >= MAX_ATTEMPTS) {
+                s.status = "blocked";
+                p.status = "blocked";
+                p.blocker ??= `Step ${s.id} ended ${s.attempts} times without finishing. See jogging/LOG.md and jogging/runs/.`;
+            }
+        }
+        ran.push(`${piece.id}/${step.id}: ${s.status}`);
+        if (s.status === "done" && p.status === "done") {
+            notify({ issue: logIssue, body: `✅ ${p.id} is done: ${p.title}` });
+        }
+        await raiseBlockers(state);
+        writeState(state);
+        commitState(`after ${piece.id}/${step.id}`);
+        if (git("status", "--porcelain")) return "session left uncommitted changes";
     }
-    fs.writeFileSync(LOCK, String(process.pid));
-    return true;
 };
 
 const run = async () => {
-    if (!acquireLock()) return log("another run holds the lock");
+    setupEnv();
+    git("pull", "--ff-only");
+    if (git("status", "--porcelain")) return log("working tree is dirty; not starting");
+    const lock = CLOUD ? cloudLock : localLock;
+    if (!lock.acquire()) return log("another run holds the lock");
     try {
-        setupEnv();
-        git("pull", "--ff-only");
-        if (git("status", "--porcelain")) return log("working tree is dirty; not starting");
-
         assertIdentity();
-        let state = readState();
+        const state = readState();
         if (!state.enabled) return log("disabled in state.json");
-        const logIssue = ensureLogIssue(state);
-        checkReplies(state);
+        const logIssue = await ensureLogIssue(state);
+        await checkReplies(state);
         writeState(state);
         commitState("pick up replies");
 
-        for (;;) {
-            const usage = readUsage();
-            const verdict = pace(usage, new Date());
-            if (!verdict.ok) return log(`budget stop: ${verdict.reason}`);
-
-            state = readState();
-            if (!state.enabled) return log("paused in state.json");
-            const next = nextStep(state);
-            if (next.allDone) {
-                state.done = true;
-                state.enabled = false;
-                writeState(state);
-                commitState("The Work is done");
-                notify({ issue: logIssue, body: "🏁 Every piece is done. Jogging has disabled its scheduled task." });
-                disableTask();
-                return log("all done");
-            }
-            if (next.stuck) {
-                notify({ issue: logIssue, body: "⛔ Every remaining piece is blocked or waiting on one. Jogging stops until a blocker is answered." });
-                return log("all remaining pieces blocked");
-            }
-
-            const { piece, step } = next;
-            assertIdentity();
-            log(`start ${piece.id}/${step.id} on ${step.model}/${step.effort} (${verdict.reason})`);
-            const { code, model } = await runSession(piece, step);
-            log(`end ${piece.id}/${step.id}: exit ${code}, model ${model}`);
-
-            git("pull", "--ff-only");
-            state = readState();
-            const p = state.pieces.find((x) => x.id === piece.id);
-            const s = p.steps.find((x) => x.id === step.id);
-            if (code !== 0 || !model?.includes(step.model)) {
-                if (git("status", "--porcelain")) {
-                    git("stash", "push", "--include-untracked", "-m", `jogging ${piece.id}/${step.id} leftovers`);
-                }
-                return log(`session failed; stopping this run`);
-            }
-            if (s.status === "pending") {
-                s.attempts = (s.attempts ?? 0) + 1;
-                if (s.attempts >= MAX_ATTEMPTS) {
-                    s.status = "blocked";
-                    p.status = "blocked";
-                    p.blocker ??= `Step ${s.id} ended ${s.attempts} times without finishing. See jogging/LOG.md and jogging/runs/.`;
-                }
-            }
-            if (s.status === "done" && p.status === "done") {
-                notify({ issue: logIssue, body: `✅ ${p.id} is done: ${p.title}` });
-            }
-            raiseBlockers(state);
-            writeState(state);
-            commitState(`after ${piece.id}/${step.id}`);
-            if (git("status", "--porcelain")) return log("session left uncommitted changes; stopping");
+        const ran = [];
+        const reason = await runSteps(logIssue, ran);
+        log(reason);
+        // Nobody watches a cloud run, so anything other than a quiet budget stop is reported.
+        if (CLOUD && (ran.length > 0 || !reason.startsWith("budget stop"))) {
+            const steps = ran.length ? ran.map((r) => `- ${r}`).join("\n") : "- (no steps)";
+            notify({ issue: logIssue, body: `☁️ Cloud run finished: ${reason}\n\n${steps}` });
         }
     } finally {
-        fs.rmSync(LOCK, { force: true });
+        lock.release();
     }
 };
 
 const status = () => {
     setupEnv();
     assertIdentity();
-    console.log(`identity: ${PERSONAL_EMAIL}, ${PERSONAL_CONFIG_DIR}, gh ${GH_USER}`);
+    console.log(CLOUD ? `cloud, phone ${process.env.ANDROID_SERIAL}` : `identity: ${PERSONAL_EMAIL}, ${PERSONAL_CONFIG_DIR}, gh ${GH_USER}`);
     const state = readState();
     const next = nextStep(state);
     console.log(
@@ -383,15 +466,28 @@ const status = () => {
     console.log(`pacing: ${JSON.stringify(pace(readUsage(), new Date()))}`);
 };
 
+// For the routine to report a failure from before the crew started, e.g. in cloud-setup.sh.
+const report = () => {
+    const message = process.argv.slice(3).filter((a) => a !== "--cloud").join(" ");
+    notify({ issue: readState().logIssue, body: `⚠️ ${message}` });
+};
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const cmd = process.argv[2];
-    const main = { run, status }[cmd];
+    const main = { run, status, report }[cmd];
     if (!main) {
-        console.error("Usage: node jogging/jog.mjs <run|status>");
+        console.error("Usage: node jogging/jog.mjs <run|status|report <message>> [--cloud]");
         process.exit(2);
     }
     Promise.resolve(main()).catch((e) => {
         log(`crash: ${e.stack ?? e}`);
+        if (CLOUD) {
+            try {
+                notify({ issue: readState().logIssue, body: `💥 Cloud run crashed:\n\n\`\`\`\n${e.message ?? e}\n\`\`\`` });
+            } catch {
+                // nothing left to report through
+            }
+        }
         process.exit(1);
     });
 }

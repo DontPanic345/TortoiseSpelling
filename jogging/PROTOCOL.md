@@ -2,7 +2,8 @@
 
 Jogging works through The Work one step at a time, in cold sessions. `jogging/jog.mjs`
 (the support crew) picks the next step, checks the budget, and starts one `claude -p`
-session per step with the model and effort the step names. That session is you.
+session per step with the model and effort the step names. That session is you. The
+crew runs from a Cloud Routine four times a day.
 
 You have no context beyond the repo. Read `CLAUDE.md`, `jogging/GOALS.md`, your piece in
 `jogging/state.json`, and the end of `jogging/LOG.md`. Then do **only the step you were
@@ -57,6 +58,15 @@ stop it when you're done (`adb emu kill`). Add a `CHANGELOG.md` line for user-vi
 changes. Commit and push when the check passes.
 
 If the spec turns out wrong, fix the spec in the same commit and say so in the log.
+
+**In the cloud.** A Cloud Routine runs the crew with `--cloud`; your prompt says so.
+There's no emulator: `ANDROID_SERIAL` points at a real phone (a Galaxy S23) over
+Tailscale, and e2e and connected tests run on it. Every Appium call crosses the link, so
+e2e runs about 20 times slower than on an emulator: a build step runs only the
+feature files that cover what it changed, and the `review` step runs the whole suite.
+Don't wait on the phone forever: if `adb devices` doesn't list it, rerun
+`bash jogging/cloud-setup.sh`, and if that fails, it's a blocker. Never run
+`adb emu kill`.
 
 **`review` step.** Review the whole piece as built, independently, against its spec and
 the goals. Run the full checks again. Fix substantive findings yourself; leave nits.
