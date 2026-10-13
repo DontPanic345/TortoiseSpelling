@@ -193,6 +193,8 @@ without `@android`, a `Rule:`); and the real `specs/` folder passes.
   `specs/support/fixtures.ts`; `buildBackupJson` goes. The copy-prompt steps import
   `lookupAnswers` from there; `support/lookupAnswers.ts` goes.
 - `tsconfig.json`: `include` gains `"../specs/support/**/*.ts"`.
+- `flatBackupFile(words: BackupWordSpec[])` is `buildBackupJson` moved, with its
+  `BackupWordSpec` type.
 - A single feature runs with `npm run e2e -- --spec ../specs/<name>.feature`.
 
 ### The web runner (`web/`)
@@ -210,7 +212,7 @@ export function installSeedHook(container: AppContainer): void
 It sets `window.__tortoiseSpellingSeed = async (words: SeedWord[]) => …`, which adds
 each word through `container.repository.addWord(word, simpleContent(word, definition ??
 "", partOfSpeech ?? null, example ?? ""))` (argument order as web-core's port of
-`simpleContent`), in order, and throws if a result isn't `"added"`, so a Given that
+`simpleContent`), in order, and throws if a result's `kind` isn't `"added"`, so a Given that
 can't arrange fails at once. The repository tells subscribers, so the screen underneath
 refreshes, as Android's does when `SeedWordsActivity` finishes. The module has no
 top-level side effects and declares the `Window` property. `main.tsx`, after building
@@ -225,18 +227,26 @@ the container: `if (import.meta.env.MODE === "e2e") installSeedHook(container);`
 
 No environment variables in scripts: they must run from PowerShell too. `dist-e2e/` and
 `.features-gen/` join the web project's `.gitignore`, wherever `web-ui` put `dist/`.
+`tsconfig.json`'s `include` gains `steps`, `playwright.specs.config.ts` and
+`../specs/support/**/*.ts`, so `npm run typecheck` covers the web steps and the shared
+fixtures; Vitest's `include` already keeps it away from `steps/`.
 
 **`playwright.specs.config.ts`.**
 
-- `testDir` from `defineBddConfig({ features: "../specs/*.feature", steps:
-  "steps/**/*.ts", tags: "@e2e and not @android and not @todo" })`. Build-2 lists only
-  the features it covers in `features`; build-3 widens it to the glob.
+- `testDir` from `defineBddConfig({ featuresRoot: "../specs", features:
+  "../specs/*.feature", steps: "steps/**/*.ts", tags: "@e2e and not @android and not
+  @todo" })`. Paths resolve against `web/`. `featuresRoot` is required: it defaults to
+  the config's folder, and `bddgen` exits when a feature lies outside it. Build-2 lists
+  only the features it covers in `features`; build-3 widens it to the glob.
 - `webServer`: `npm run build:e2e && npm run preview:e2e`, `url`
   `http://localhost:4174/`, `reuseExistingServer: !process.env.CI`.
 - `use`: `baseURL` `http://localhost:4174/`, `trace: "retain-on-failure"`,
   `screenshot: "only-on-failure"`.
 - Projects `specs-chromium` and `specs-webkit`: `devices["Desktop Chrome"]` and
   `devices["Desktop Safari"]`, each with `viewport: { width: 412, height: 915 }`.
+  `specs-chromium`'s `use` also has `permissions: ["clipboard-read",
+  "clipboard-write"]`; WebKit gets them only if Playwright accepts those names there,
+  since an unknown permission fails every test in the project.
 - `fullyParallel: true`, `retries: 0` (a flaky scenario should show), `expect.timeout`
   10 s (WebdriverIO's `waitforTimeout`), test timeout 60 s. Reports go to the same
   `playwright-report/` and `test-results/` that `web.yml` uploads on failure.
@@ -279,7 +289,7 @@ The ones that differ by platform:
 
 | Step | Android | Web |
 |---|---|---|
-| `I go back to Home` | System Back until Home's title shows | Up to 5 times: if Home's title "Tortoise Spelling" shows, stop; press Escape if a `dialog[open]` exists; else click the visible button named "Back" or "End session" |
+| `I go back to Home` | System Back until Home's title shows | Up to 5 times: if Home's title "Tortoise Spelling" shows, stop; press Escape if a `dialog[open]` exists; else click the visible button named "Back", "End session" or "Done" (Completion, where Done is what Back does on Android). Then expects Home's title, so a screen it can't leave fails the step |
 | `I am on Home` | Home's title, scoped to the app | Home's top bar title "Tortoise Spelling" |
 | `I have added the word …` (and the table and example forms) | `SeedWordsActivity` | `seedWords(page, words)`: waits for `window.__tortoiseSpellingSeed`, then `page.evaluate` calls it |
 | `I open Settings` | Opens via More, waits for the reminder switch | Opens via More, waits for `settings_new_words_value` |
@@ -297,10 +307,12 @@ one element, say), the web step may match differently, but it asserts the same t
 and its comment says how it differs.
 
 **`scripts/check-steps.mjs`** (the web's `npm run check-steps`): runs `bddgen -c
-playwright.specs.config.ts`, which fails on a step that no definition matches, then
-`bddgen export -c playwright.specs.config.ts --unused-steps` and exits 1 if that lists
-any step. If the installed `playwright-bdd` has no `--unused-steps`, the script does
-only the first part, and the log says so. It runs without browsers, in a few seconds.
+playwright.specs.config.ts`, which fails on a step that no definition matches
+(`missingSteps` defaults to `fail-on-gen`), then `bddgen export -c
+playwright.specs.config.ts --unused-steps`. That command (in 9.2.1, current at spec
+time) prints the unused steps but exits 0 either way, so the script captures its output
+and exits 1 if it lists any step, printing them. It runs without browsers, in a few
+seconds.
 
 ### Parity failures
 
@@ -356,7 +368,8 @@ piece's review then bumps the patch version.
     `--mode e2e` build.
 - **`docs/testing-and-web-plan.md`**: the status line says the specs are shared; the
   "Shared specs" bullet describes what was built (the tags, the two runners, the
-  `@component` decision above); "Suggested order" step 4 is marked done.
+  `@component` decision above) and names `specs/`, not the old `e2e/features/` path,
+  which the review's grep rejects; "Suggested order" step 4 is marked done.
 - **`CHANGELOG.md`**, **`README.md`**, **`PRIVACY.md`**: no change. Nothing a user sees
   changes, and the piece doesn't bump the version (unless a parity fix changes Android).
 
@@ -452,8 +465,8 @@ cd e2e && npm run check-steps -- --all && npm run typecheck
 
 - The specs run's list shows every feature without `@android` in both projects, and no
   `notifications`, `settings` or `release_smoke` scenario.
-- Temporarily add a web step no feature uses: `npm run check-steps` fails (or, if
-  `--unused-steps` doesn't exist, the log says so). Temporarily make the web import skip
+- Temporarily add a web step no feature uses: `npm run check-steps` fails and names
+  it. Temporarily make the web import skip
   words it already has without counting them: `backup` fails on "Imported 1 word,
   skipped 1 already in your list.". Revert both.
 - `<ci>`: the `web` job runs the shared specs in both browsers.
@@ -463,8 +476,8 @@ cd e2e && npm run check-steps -- --all && npm run typecheck
 Review the whole piece against this spec and `GOALS.md`, independently. In particular:
 
 - every feature is in `specs/`, and nothing references `e2e/features` (`grep -rn
-  "e2e/features\|--spec features/" --exclude-dir=node_modules --exclude-dir=jogging .`
-  prints nothing);
+  "e2e/features\|--spec features/" --exclude-dir=node_modules --exclude-dir=jogging
+  --exclude-dir=.git .` prints nothing);
 - every platform tag is one the platform forces, and its comment says why; nothing was
   tagged to make a failing scenario pass;
 - each web step asserts what its Android twin asserts; read them side by side;

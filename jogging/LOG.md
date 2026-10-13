@@ -117,3 +117,9 @@ Wrote `jogging/specs/shared-specs.md`. Features move to `specs/` with `@e2e` on 
 their own frameworks) and `@android`/`@web` only where the platform forbids it, with a reason comment, all checked by
 `scripts/check-specs.mjs`. The web runs them through `playwright-bdd` against a `--mode e2e` build with a seed hook, in
 Chromium and WebKit, inside `web.yml`. Added build-1 to build-3 and review, all Sonnet (build-1 medium, the rest high).
+
+## 2026-10-13 17:43 shared-specs/spec-review (opus)
+Spec holds up against the goals and the code (the e2e runner, web-ui's Playwright setup, playwright-bdd 9.2.1's source).
+Fixed: `featuresRoot: "../specs"` is required, or `bddgen` exits on features outside `web/`; `--unused-steps` exists but
+exits 0, so check-steps parses its output; clipboard permissions on the Chromium project only; the seed hook checks `kind`;
+web typecheck covers `steps/` and the shared fixtures; "go back to Home" also takes Done and asserts Home; the review grep skips `.git`.
