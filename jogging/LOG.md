@@ -50,3 +50,9 @@ a card is first shown, in practice too. The refresher now appends an example unt
 Backups keep version 1, with a `definitions` tree beside the flat root-card fields so older
 builds still import them. Added build-1 to build-4 and review, all Sonnet (build-1, build-3 and
 review at high effort).
+
+## 2026-10-13 10:37 word-forms/spec-review (opus)
+Spec holds up against the goals and the code (review_log's cascade FK, Room 2.8, the existing
+e2e steps). Fixed: the second rotation journey needs `nextDay()`, since a miss makes the word
+due tomorrow; the migration nulls a blank part of speech and `hint` skips blank parts, so
+imported `""` values can't show a stray " · "; an edit save re-reads the word before writing the whole row.

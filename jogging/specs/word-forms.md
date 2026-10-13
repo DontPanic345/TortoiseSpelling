@@ -154,11 +154,12 @@ the generated `3.json` (Room validates the result against it), then:
 
 1. Create `definitions`, `word_forms` and `example_sentences`, and their indices.
 2. Fill them from the old columns, reusing the word's id as each new row's id, so no
-   join is needed and every row is traceable:
+   join is needed and every row is traceable. A blank part of speech (an imported
+   backup can hold `""`) becomes null, the content model's "none":
 
    ```sql
    INSERT INTO definitions (id, wordId, text, partOfSpeech, orderIndex)
-       SELECT id, id, definition, partOfSpeech, 0 FROM words;
+       SELECT id, id, definition, NULLIF(TRIM(partOfSpeech), ''), 0 FROM words;
    INSERT INTO word_forms (id, definitionId, text, label, orderIndex)
        SELECT id, id, text, NULL, 0 FROM words;
    INSERT INTO example_sentences (id, wordFormId, text, orderIndex, shownAt)
@@ -234,7 +235,7 @@ data class ReviewCard(
     val example: ExampleSentence?,
 ) {
     val answer: String get() = normalizeWord(form)
-    /** "verb · past tense", or null with neither. */
+    /** "verb · past tense", or null with neither. Blank parts count as absent. */
     val hint: String? get() = …
 }
 
@@ -289,7 +290,9 @@ edit to `content`.
 - **Load:** `repository.contentById(id)` gives the word and `toContent()`.
 - **Save, new:** `repository.addWord(text, content, autoRefresh)`. After a save the form
   clears to a fresh one, as now.
-- **Save, edit:** `repository.updateWord(word, content)`: the duplicate check as now,
+- **Save, edit:** `repository.updateWord(word, content)`, with `word` re-read by id at
+  save time as `save()` does now, never the row loaded when the editor opened:
+  `updateWordWithContent` writes the whole `words` row. The duplicate check as now,
   then one transaction that writes the word row and replaces its content. `shownAt`
   rides along in the drafts, so an edit doesn't reset the rotation.
 - **Look up with Claude:** success sets `text` and replaces `content` with
@@ -468,14 +471,15 @@ Tests:
     version 2 with `ContentValues`: a reviewed word with every scheduling column off its
     default, `partOfSpeech` set, `autoRefresh` 1 and `refreshedOn` set; a new word with a
     blank example and null `partOfSpeech`; "Café", suspended; three `review_log` rows.
+    A fourth word with `partOfSpeech` `""` (as an old backup import can leave it).
     `runMigrationsAndValidate(name, 3, true, MIGRATION_2_3)`. Then: every kept `words`
     column unchanged; one `definitions` row per word (`wordId`, text, part of speech,
-    order 0); one `word_forms` row per word (text = the word's, label null); an
+    order 0; the `""` part of speech is null); one `word_forms` row per word (text = the word's, label null); an
     `example_sentences` row for each non-blank example only, `shownAt` null; the logs
     unchanged; `PRAGMA foreign_key_check` empty.
   - *Room migrates a version 2 database without losing a review.* Same rows, close, and
     open the file with `Room.databaseBuilder(…).addMigrations(*ALL_MIGRATIONS)`, so Room
-    runs the migration in the app's own way. Three words, three logs (a count query on
+    runs the migration in the app's own way. Four words, three logs (a count query on
     `review_log`), `contentById` gives each its definition, form and example.
   - The existing 1→2 "Room reads" test now opens at version 3: its expected `Word`s
     lose the moved fields and it checks the content instead. The chain test from version
@@ -526,7 +530,7 @@ Tests:
   and definitions; ties go to `random` (with two seeded `Random`s, both tied candidates
   come up); a form without examples is never picked while another form has one; no
   examples gives the base form and no example; no content gives `word.text`; `answer`
-  normalizes the form; `hint` joins part of speech and label, and is null with neither.
+  normalizes the form; `hint` joins part of speech and label, skips a blank one, and is null with neither.
 - `ReviewUiStateTest`: `blankedExample` blanks the form ("He _____ the whole way
   home.").
 - `ReviewContentTest`: a card for "ran" shows "verb · past tense", blanks "ran", and
@@ -537,8 +541,8 @@ Tests:
   already shown (a `shownAt` a week before the test clock), the second never. Day D:
   the review shows the second; spell it. `nextDay()`: it shows the first. Seeding one
   as shown keeps both picks certain, with no tie for `random` to break. Second test, *the form in the sentence is the answer*: a word "run" whose only
-  example is on "ran"; typing "run" gets "Not quite", and in a fresh session "ran" is
-  correct.
+  example is on "ran"; typing "run" gets "Not quite" (a miss, so the word is due
+  tomorrow), and after `nextDay()` a new session takes "ran" as correct first time.
 
 Acceptance:
 
