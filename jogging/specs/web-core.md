@@ -170,7 +170,14 @@ Conventions, written up in `golden/README.md`:
   port unless it is listed there. It starts with one entry: JSON numbers. `JSON.parse`
   reads `17.0` as the integer 17, so the web import accepts `"intervalDays": 17.0`, which
   kotlinx refuses; matching it would need a hand-written JSON parser (goal 7), and being
-  more lenient can't lose a word (goal 1).
+  more lenient can't lose a word (goal 1). A second entry: `Long` keys beyond
+  JavaScript's safe integers (±2^53 − 1), which kotlinx reads and the port refuses; no
+  real day count or millis comes near that.
+- **Clock defaults.** `BackupWord.createdAt` and `BackupFile.exportedAt` default to
+  `System.currentTimeMillis()` in Kotlin, so a case can't give their value. Where a file
+  leaves one out, the expected value is the string `"now"`, and each runner checks the
+  result lies between the millis it read just before and just after the call (the
+  TypeScript passes `now` in, so its runner can pin it, but checks the same way).
 
 The files and what they cover. "Every test" means every deterministic assertion in that
 Kotlin test class has at least one case.
@@ -179,11 +186,11 @@ Kotlin test class has at least one case.
 |---|---|---|
 | `text.json` | `NormalizeWordTest`, `Word.kt` | `normalizeWord`, `ktTrim`, `ktIsBlank`: every test, plus the whitespace traps below |
 | `blank.json` | `WordBlankTest` | `blankWordIn` (text, didBlank), `hideWordInDefinition`: every test, plus "café"/"CAFÉ" and a word between apostrophes |
-| `diff.json` | `SpellingDiffTest` | `spellingDiff` (`firstDivergence`, `matches`, `correctPrefixLength`): every test |
+| `diff.json` | `SpellingDiffTest` | `spellingDiff` (`firstDivergence`, `matches`, `correctPrefixLength`): every test, plus "İstanbul" against "istanbul" (matches) |
 | `sm2.json` | `SrsTest` | `next` (single steps and sequences of qualities), `fuzzedDueDay` (`within`, `varies`), the constants |
-| `days.json` | `DaysTest`, `test-ui-layers`' `today(clock)` test | `relativeLabel`, `currentStreak`, `dayOf` with a zone either side of midnight in `Pacific/Auckland` and `America/Los_Angeles`, `greeting` |
-| `progress.json` | `ProgressTest` | `learningStage`, `wordProgress`, `WordFilter.matches`, `wordFilterCounts`, `recentDays`: every test |
-| `session.json` | `SessionBuilderTest` | `remainingNewToday`; `interleaveSession` over seeds: the result is a permutation of the input, and with 9 due and 3 new words the new ones sit at positions 2, 5 and 9 for every seed (only which word goes where is random) |
+| `days.json` | `DaysTest`, `test-ui-layers`' `today(clock)` test | `relativeLabel`, `currentStreak`, `dayOf` with a zone either side of midnight in `Pacific/Auckland` and `America/Los_Angeles` |
+| `progress.json` | `ProgressTest` | `learningStage`, `wordProgress`, `WordFilter.matches`, `wordFilterCounts`, `recentDays`, `greeting`: every test |
+| `session.json` | `SessionBuilderTest` | `remainingNewToday`; `interleaveSession` over seeds: the result is a permutation of the input, and with 9 due and 3 new words the new ones sit at indexes 2, 5 and 9 (0-based) for every seed (only which word goes where is random) |
 | `content.json` | `WordContentTest` | `simpleContent`, `preparedFor`, `isComplete`, `apply` (edits as `{ "edit": "AddForm", "d": 0 }`), `searchTerms`, `exampleMissesForm`: every test |
 | `pick.json` | `CardPickTest` | `pickCard`: deterministic picks as one-member `oneOf`, ties with `all`; `answer` and `hint` |
 | `prompt.json` | `LookupPromptTest` | `lookupPrompt` for "necessary" and for a word with a quote mark: the whole text |
@@ -238,7 +245,7 @@ still applies, shortened; no new reasoning in comments.
 | `session.ts` | `interleaveSession(due, fresh, random?)`, `remainingNewToday` |
 | `queries.ts` | The DAO's queries over `Word[]`: `dueWords(words, today)` (unsuspended, not new, `dueOn <= today`, by `dueOn`), `dueCount`, `newWords(words, limit)` (unsuspended new words by `createdAt` then `id`), `availableNewCount`, `introducedOn(words, day)`, `nextDueDay`, `randomWords(words, limit, random)` (unsuspended), `firstCreatedAt`, `recentStudyDays(logs, limit)` (distinct, newest first) |
 | `progress.ts` | `KNOWN_INTERVAL_DAYS`, `WordProgress`, `learningStage`, `wordProgress`, `WordFilter` (with labels), `matches`, `wordFilterCounts`, `DayMark`, `recentDays`, `greeting` |
-| `spellingDiff.ts` | `spellingDiff` (per UTF-16 unit, as Kotlin's `Char`) |
+| `spellingDiff.ts` | `spellingDiff` (per UTF-16 unit, as Kotlin's `Char`). Kotlin's `lowercaseChar()` is the one-unit simple mapping; JavaScript's `toLowerCase()` is the full one, which differs only for U+0130 "İ" (to "i" plus a combining dot), so the port lowercases a unit with `c === "\u0130" ? "i" : c.toLowerCase()` |
 | `wordBlank.ts` | `BLANK_PLACEHOLDER`, `blankWordIn`, `hideWordInDefinition`: `new RegExp("(?<![\\p{L}\\p{N}])" + escaped + "(?![\\p{L}\\p{N}])", "giu")`, with every regex metacharacter escaped |
 | `wordContent.ts` | The four draft types, `ContentEdit` (a discriminated union on `edit`), and every function `word-forms` lists |
 | `cardPick.ts` | `ReviewCard` (`word`, `definition`, `partOfSpeech`, `form`, `label`, `example: { text, shownAt, d, f, e } \| null`, `answer`, `hint`) and `pickCard(word, content, random?)` |
@@ -295,9 +302,10 @@ Same units as Android: `dueOn`, `firstReviewedOn` and `reviewedOn` are epoch day
   every key in this order, with `JSON.stringify(…, null, 4)` (kotlinx's pretty print
   indent), blank part of speech and label as `null`, and the flat fields from the root
   card as `toBackup()` does.
-- `parseBackup(text): BackupFile` validates as kotlinx decodes: `words` required; each
-  word's `text`, `definition` and `dueOn` required; every other key optional with
-  Kotlin's default (`exportedAt` defaults to the clock's millis); a value of the wrong
+- `parseBackup(text, now): BackupFile` validates as kotlinx decodes: `words` required;
+  each word's `text`, `definition` and `dueOn` required; every other key optional with
+  Kotlin's default (`exportedAt` and `createdAt` default to `now`, nothing in it reads
+  `Date.now()`); a value of the wrong
   type, a `null` for a non-nullable key, or a non-integer or out-of-range integer
   (`Int` keys within 32 bits, `Long` keys safe integers) throws `BackupFormatError("That
   file isn't a Tortoise Spelling backup.")`; `version > 1` throws "That backup was made by
@@ -324,7 +332,11 @@ For each file a case gives `imported` (the `toImport` result for every word) and
 `exportBackup`. A file written by either app is therefore read the same way by both,
 and both write the same thing back. Refusal cases are inline strings: not JSON, `version`
 99, no `words`, a word with no `dueOn`, `"text": 5`, `"isNew": "yes"`, `"dueOn": null`,
-and a tree form with no `text`, each with the message. Before a refusal case is kept, the
+and a tree form with no `text`, each with the message. Two more go in as whatever the
+JVM does, accepted or refused: a quoted number (`"dueOn": "3"`) and a quoted boolean
+(`"isNew": "true"`). kotlinx's lexer takes quoted numbers even with `isLenient` off, so
+the first is likely accepted, and the port then accepts a string that is exactly an
+integer literal for a number key. Before a refusal case is kept, the
 Kotlin runner must refuse it; anything kotlinx accepts that the port refuses (or the
 other way round) goes to "Known differences" only if matching it needs a hand-written
 parser.
@@ -352,7 +364,11 @@ upgrading) the connection closes itself.
 `createRepository({ db, clock = deviceClock, fuzz = (today, days) => fuzzedDueDay(today,
 days), random = mathRandom })`, the same injection as `test-ui-layers`' `WordRepository`.
 Every method is `async`, and every method that writes does so in one `readwrite`
-transaction over the stores it touches, then tells subscribers.
+transaction over the stores it touches, its checks (duplicates, re-reads) included,
+then tells subscribers. Inside a transaction, await only that transaction's requests:
+an IndexedDB transaction commits as soon as it has nothing pending, so awaiting anything
+else first makes its next request throw `TransactionInactiveError`. Read the clock and
+compute `today` before opening it.
 
 | Method | Behaviour (Kotlin counterpart) |
 |---|---|
@@ -360,16 +376,16 @@ transaction over the stores it touches, then tells subscribers.
 | `wordCount()`, `wordById(id)` | As the DAO. |
 | `wordsWithContent()` | Every `StoredWord`, newest `createdAt` first (`observeWordsWithContent`). |
 | `addWord(text, content)` | `{ kind: "blank" }` for a blank word; `{ kind: "duplicate", existing }` if the normalized text exists; else stores `createdAt = clock.millis()`, `dueOn = today`, the SM-2 starting state and `content.preparedFor(trimmed)`, and returns `{ kind: "added", id }`. |
-| `updateWord(id, text, content)` | Duplicate check against other ids; then, in the transaction, re-reads the row and writes only `text`, `normalizedText` and `preparedFor`'s content. Returns `"updated"` or the duplicate. |
+| `updateWord(id, text, content)` | In one transaction: the duplicate check against other ids, then a re-read of the row, writing only `text`, `normalizedText` and `preparedFor`'s content. Returns `"updated"` or the duplicate. |
 | `deleteWord(id)` | The word and its review log rows, in one transaction (Room's cascade). |
 | `setSuspended(id, suspended)` | Only that field. |
 | `todayPlan()` | `{ dueCount, newCount }` as `WordRepository.todayPlan`. |
 | `buildSession()` | `dueWords`, the allowance from `settings.newWordsPerDay` and `introducedOn(today)`, `newWords`, `interleaveSession(due, fresh, random)`, then `pickCard` per word. |
 | `practicePool(limit = 10)` | `randomWords`, then `pickCard`. Writes nothing. |
 | `markShown(card)` | Stamps `clock.millis()` on the card's example if its position still holds that text; no-op for a card without one. The only write besides an edit that touches `shownAt`. |
-| `recordReview(wordId, correctFirstTry, typedAnswer)` | As Kotlin's: quality 5 or 2, `sm2Scheduler.next`, `dueOn = fuzz(today, interval)`, lapses, `lastReviewedAt`, `firstReviewedOn ?? today`, `isNew = false`, and one log row with the answer `ktTrim`med, reading the current row inside the transaction. |
+| `recordReview(wordId, correctFirstTry, typedAnswer)` | As Kotlin's: quality 5 or 2, `sm2Scheduler.next`, `dueOn = fuzz(today, interval)`, lapses, `lastReviewedAt`, `firstReviewedOn ?? today`, `isNew = false`, and one log row with the answer `ktTrim`med, reading the current row inside the transaction. A word deleted meanwhile (in another tab) records nothing. |
 | `reviewedToday()`, `currentStreak()`, `lastWeek()`, `progress()`, `nextDueDay()` | As Kotlin's, with the 400-day study-day window and the 7-day week; `lastWeek` takes `firstDay` from `dayOf(firstCreatedAt, clock.timeZone())`. |
-| `markTodaySatisfied()` | Adds today to `satisfiedDays`, keeping only days within 400 of it. |
+| `markTodaySatisfied()` | Adds today to `satisfiedDays`, keeping only days `> today - 400` (`SettingsStore.markSatisfied`). |
 | `settings()`, `setNewWordsPerDay(n)` | Default 10, stored clamped to 1..100. |
 | `exportBackup()` | `exportBackup(every word oldest first, clock.millis())`. |
 | `importBackup(text)` | `parseBackup`, then in one transaction, in file order: skip a word whose normalized text is blank or already stored (including earlier in the same file), otherwise store `toImport`'s word with `preparedFor`'s content. Returns `{ added, skipped }`. Throws `BackupFormatError` with nothing written. |
@@ -391,7 +407,8 @@ and the two runners' shared helpers; the Gradle wiring; then `text`, `random`, `
 harnesses and the CI job every later step relies on.
 
 - `.github/workflows/ci.yml` gains a `web` job, "Web unit tests and typecheck": checkout,
-  `actions/setup-node@v7` with Node 22 and `cache-dependency-path: web/package-lock.json`,
+  `actions/setup-node@v7` with Node 22, `cache: npm` and
+  `cache-dependency-path: web/package-lock.json`,
   `npm ci`, `npm run typecheck`, `npm test`, all with `working-directory: web`. The header
   comment mentions it. `release.yml` calls `ci.yml`, so a release now also needs the web
   tests and the golden cases green; that is intended (goal 5).
@@ -473,7 +490,8 @@ Tests (`web/test/data/`, `fake-indexeddb`, a fresh database name per test, `test
   `deleteWord` takes its log rows and no one else's; `importBackup` adds, skips blanks,
   duplicates and repeats within the file, leaves an existing word's scheduling exactly as
   it was, and writes nothing for a refused file; `markShown` stamps one example and
-  ignores a card whose example text has changed.
+  ignores a card whose example text has changed; `recordReview` for a deleted word
+  writes no log row.
 - `journeys.test.ts`, the five `test-ui-layers` journeys and `word-forms`' rotation
   journey at the repository level (no UI): *scheduling* (add on day D; correct; `dueOn`
   D+1, repetitions 1; `nextDay()`; correct; `dueOn` D+7, two correct log rows); *lapse*

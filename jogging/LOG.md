@@ -90,3 +90,9 @@ runner (the oracle) and a Vitest runner; random functions are checked as allowed
 `ktTrim` copies Kotlin's whitespace rules. Words live in IndexedDB (`idb`) with their content nested,
 the DAO queries become pure functions, and the repository mirrors `WordRepository` with one
 transaction per write. Added build-1 to build-4 and review, all Sonnet (build-3 medium, the rest high).
+
+## 2026-10-13 17:18 web-core/spec-review (opus)
+Spec holds up against the goals and the code (WordRepository, the DAO queries, Backup.kt, SettingsStore).
+Fixed: backup `createdAt`/`exportedAt` default to the clock, so cases say `"now"` and `parseBackup` takes `now`;
+quoted numbers and booleans are settled against kotlinx; unsafe-integer Longs and U+0130 lowercasing are handled;
+duplicate checks run inside the write transaction, with the IndexedDB auto-commit trap spelt out; CI's `cache: npm`.
