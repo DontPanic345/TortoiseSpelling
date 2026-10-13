@@ -19,6 +19,9 @@ Notes:
 - The e2e run is slow mostly because every Appium call crosses Tailscale userspace networking plus socat.
 - To make step 4 work in the cloud, either commit `usage.py` somewhere the repo can reach it, or have the Routine read usage from the Anthropic side rather than a local script.
 
+## Locked, unplugged phone
+Rerun of `add_word.feature` with the phone unplugged and the screen locked (`mWakefulness=Dozing` beforehand): PASS, 7 steps, 269 s. adb over the Tailscale link stayed up, and the test woke the screen itself (`Awake` afterwards). Neither a locked screen nor being unplugged blocks the e2e run.
+
 ## Commands that worked
 ```bash
 bash jogging/cloud-setup.sh
