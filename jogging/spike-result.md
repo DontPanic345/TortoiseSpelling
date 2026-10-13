@@ -17,8 +17,7 @@ Scenario "Adding a word by hand": `Given I have no words yet` passed (seeding vi
 `When I add the word "necessary" defined as "needed or required"` failed in `e2e/support/actions.ts:28`
 (`typeInto`): `Field did not show the typed text before continuing`. So `setValue` did not produce text whose
 length matches the input. The phone's IME is Samsung Honeyboard (`com.samsung.android.honeyboard`);
-the likely cause is the IME/Appium typing interaction on a real Samsung device (the helper was written against an emulator),
-not the cloud link. Not investigated further. The run took ~7 min mostly due to the wait timeouts, so the link is slow-ish but works.
+this was first suspected to be the keyboard, but see the retry below: it is not. The run took ~7 min mostly due to the wait timeouts, so the link is slow-ish but works.
 
 ## Commands that worked
 ```bash
@@ -35,3 +34,11 @@ tailscale --socket=/tmp/ts.sock status; adb devices
 timeout 30 adb -s 127.0.0.1:15555 shell getprop ro.product.model
 cd e2e && ANDROID_SERIAL=127.0.0.1:15555 npm ci && ANDROID_SERIAL=127.0.0.1:15555 npm run e2e -- --spec features/add_word.feature
 ```
+
+## Retry with a different keyboard
+Switched the phone's IME from Samsung Honeyboard to Appium's `io.appium.settings/.EmptyIME` (the only other
+non-voice IME installed; no Gboard) and re-ran the same spec: same failure at the same step (254 s).
+The e2e config already runs the session with an invisible keyboard (`appium:hideKeyboard`), so the keyboard was
+never the cause. Honeyboard was restored afterwards. Remaining suspects: Compose's set-text action not reflecting
+via `getText()` on this device/Android version, or the add-word field's tag/element not being the focused text node.
+Next step would be to dump the UI hierarchy (`adb exec-out uiautomator dump`) on the Add Word screen.
