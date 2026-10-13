@@ -70,3 +70,10 @@ Spec holds up against the goals and the code (the add screen, blankWordIn, the e
 Fixed: the per-definition checks run as one pass in document order, with limits after it and before
 the base form is added, so both platforms report the same first failure; parsing uses the strict
 default `Json` to match `JSON.parse`; `addWord.save()` scrolls Save into view, since a pasted tree pushes it off screen.
+
+## 2026-10-13 10:51 drop-api-key/spec (opus)
+Wrote `jogging/specs/drop-api-key.md`. `SettingsStore` deletes an earlier version's encrypted key
+and its Keystore entry once; the Internet permission and OkHttp go; `MIGRATION_3_4` drops
+`autoRefresh`/`refreshedOn` with `MIGRATION_2_3`'s rebuild and Room-path test; backups drop the two
+keys and stay version 1; Settings splits into `SettingsContent`. Added build-1 to build-4 and review,
+all Sonnet (build-1, build-3 and review at high effort).

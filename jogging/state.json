@@ -351,13 +351,53 @@
           "phase": 1,
           "model": "opus",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "spec-review",
           "phase": 1,
           "model": "opus",
           "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "Remove ClaudeClient, CardRefresher, the toggle, the key setting and SecretCipher; legacy key cleanup; OkHttp and the Internet permission; claude_lookup e2e",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "Split Settings into SettingsScreen and SettingsContent; component, accessibility and screenshot coverage",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-3",
+          "phase": 2,
+          "title": "Schema v4: MIGRATION_3_4 drops autoRefresh and refreshedOn, migration tests; backup stops writing the two fields",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-4",
+          "phase": 2,
+          "title": "e2e config and log filter cleanup, docs and changelog",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the piece against its spec and the goals, rerun every layer, e2e and the release smoke, bump the minor version",
+          "model": "sonnet",
+          "effort": "high",
           "status": "pending"
         }
       ]
