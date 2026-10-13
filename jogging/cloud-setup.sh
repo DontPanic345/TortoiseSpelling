@@ -67,8 +67,9 @@ if [ ! -x "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" ]; then
     || die 52 "cmdline-tools unzip"
 fi
 sdk="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
-{ yes | "$sdk" --licenses && "$sdk" "platforms;android-37.0" "build-tools;36.0.0"; } >/tmp/sdk.log 2>&1 \
-  || die 53 "SDK packages"
+# Not part of the && chain: yes dies of SIGPIPE, which pipefail turns into a failure.
+yes 2>/dev/null | "$sdk" --licenses >/tmp/sdk.log 2>&1
+"$sdk" "platforms;android-37.0" "build-tools;36.0.0" >>/tmp/sdk.log 2>&1 || die 53 "SDK packages"
 repo="$(cd "$(dirname "$0")/.." && pwd)"
 echo "sdk.dir=$ANDROID_HOME" > "$repo/local.properties"
 
