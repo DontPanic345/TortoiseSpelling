@@ -130,3 +130,10 @@ Object storing only subscriptions, zone, time, the next due day and the last sen
 `reminder`/`test` kind and the service worker (now TypeScript) counts the plan on the device. Quiet days are backfilled
 on the next open for streak parity. The Cloudflare account is Alan's to create, so build-4's deploy blocks on it only.
 Added build-1 to build-4 and review, all Sonnet (build-4 medium, the rest high).
+
+## 2026-10-13 18:05 web-push/spec-review (opus)
+Spec holds up against the goals and the code (ReminderWorker, ReminderScheduler, notifications.feature, web-core/web-ui/shared-specs).
+Fixed: the smoke's sending case registered after its time, which `sentDayOnRegister` marks sent, so it now registers for the
+next minute and waits; `settleQuietDays` runs in `main.tsx` before render (a `#/review` launch could otherwise hide a skipped
+day), never notifies, and marks only while `reminderEnabled` (Android's worker); a dismissed prompt turns reminders off
+silently; the test button re-registers on a 404; the service worker syncs after a reminder push; the e2e fakes are spelt out.

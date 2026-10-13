@@ -646,7 +646,7 @@
           "phase": 1,
           "model": "opus",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-1",
@@ -659,7 +659,7 @@
         {
           "id": "build-2",
           "phase": 2,
-          "title": "Web side: reminder settings, reminderDay, settleQuietDays, PushPlatform (page and service worker), pushApi, reminderSync, PUSH_SERVER and the CSP, the service worker in TypeScript with push, click and subscription-change handlers",
+          "title": "Web side: reminder settings, reminderDay, settleQuietDays (before the first render, never notifying), PushPlatform (page and service worker), pushApi, reminderSync, PUSH_SERVER and the CSP, the service worker in TypeScript with push (with a sync after it), click and subscription-change handlers",
           "model": "sonnet",
           "effort": "high",
           "status": "pending"

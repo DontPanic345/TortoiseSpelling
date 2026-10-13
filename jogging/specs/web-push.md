@@ -306,9 +306,17 @@ was made with.
   `dueCount(words, d) + min(max(0, newWordsPerDay - introducedOn(words, d)),
   availableNewCount(words)) === 0`. Then sets `quietCheckedThrough = T - 1`. One
   transaction. Nothing changes while the app is closed, so the stored words are the words
-  as they stood on those days. `homeState.ts`'s `loadHome` calls it before
-  `markTodaySatisfied()`. Satisfied days only bridge a streak (`currentStreak`), so a
-  day marked with no words does no harm, as on Android.
+  as they stood on those days, as long as it runs before anything can write a word:
+  `main.tsx` awaits it after opening the database and before rendering, so a
+  notification's `#/review` launch can't review an overdue word first and make the day
+  it was skipped look quiet. `homeState.ts`'s `loadHome` also calls it, before
+  `markTodaySatisfied()`, for an app left open across midnight. When
+  `quietCheckedThrough` is already `T - 1` it writes nothing, and it never notifies
+  subscribers (Home calls it on every refresh, so a notifying write would loop). Days
+  are marked only while `reminderEnabled` is on, since Android's worker marks them only
+  when the reminder is on; with it off, the check just advances. Satisfied days only
+  bridge a streak (`currentStreak`), so a day marked with no words does no harm, as on
+  Android.
 
 **Push platform (`web/src/push/pushPlatform.ts`)**, the push half of the platform, in
 both the page and the service worker:
@@ -363,7 +371,8 @@ worker. One `sync`:
 4. A failure leaves the stored state alone, so the next sync retries, and returns
    `"offline"`.
 
-Calls never overlap: a `sync` during a `sync` sets a flag and runs once more after it.
+`sync({ force: true })` skips step 3's "unchanged" check. Calls never overlap: a `sync`
+during a `sync` sets a flag and runs once more after it (forced if either asked).
 `main.tsx` starts it when `container.reminders` isn't `null`: on load, on every
 `repository.subscribe` notification, and on `visibilitychange` to visible. Settings and
 Home await it when the user acts.
@@ -375,7 +384,12 @@ behaviour unchanged, and adds:
   repository with `deviceClock`, reads `todayPlan()`, and shows
   `reminderNotification(kind, total)` with `tag: "reminder"` and `icon:
   "./icons/icon-192.png"`. It also marks today satisfied for a `reminder` with nothing
-  due. An unreadable payload counts as a `reminder`.
+  due. An unreadable payload counts as a `reminder`. After showing it, the same
+  `waitUntil` runs a `reminderSync.sync()` (as `pushsubscriptionchange` does) for a
+  `reminder`. A push still has to show something when reminders are off (the
+  unregister failed offline, say), and that sync then unregisters; a stale `dueDay`,
+  which is what made a push find nothing due, is corrected after one wrong push even if
+  the app isn't opened.
 - `reminderNotification` (pure, in `src/sw/notification.ts`): a total above 0 gives
   "Time to practise spelling" with "1 word ready" or "N words ready"; 0 gives "Reminders
   are working" with "Nothing is due right now.". That is `ReminderWorker`'s copy.
@@ -406,15 +420,20 @@ isn't `null`. Android's copy where Android has the control:
   `reminderEnabled` and permission is `"granted"`, and disabled unless support is
   `"supported"`. Turning it on calls `push.requestPermission()` first thing in the
   handler when permission is `"default"`. Granted: `setReminderEnabled(true)`, then
-  sync. Refused, or already `"denied"`: `setReminderEnabled(false)` and the snackbar
-  "Notifications are blocked for Tortoise Spelling. Allow them in this browser's settings
-  for this site." (web-only: a page can't open the browser's settings, so there's no
-  action). Turning it off: `setReminderEnabled(false)`, then sync, which unregisters.
+  sync. Any other answer, or already `"denied"`: `setReminderEnabled(false)`. When the
+  permission is `"denied"` the snackbar also says "Notifications are blocked for
+  Tortoise Spelling. Allow them in this browser's settings for this site." (web-only: a
+  page can't open the browser's settings, so there's no action). A prompt the user
+  closes, or one the browser hides, leaves the permission `"default"`: reminders go off
+  silently, as a first refusal does on Android, and the switch can ask again. Turning it off: `setReminderEnabled(false)`, then sync, which unregisters.
 - The time: a label "Reminder time" and `<input type="time">` with the test id
   `settings_reminder_time_button` (Android's tag value, so the specs share it), showing
   `HH:MM`, disabled while the switch is off. A change calls `setReminderTime`.
 - "Send a test notification" (a text button). It syncs, then `api.test(endpoint)`:
-  "Test reminder queued." (Android's) on success. Web-only failures: when not effectively
+  "Test reminder queued." (Android's) on success. A 404 means the server has lost the
+  row (a push service refused it, or the table was lost), so it runs `sync({ force:
+  true })`, which registers even when the body is unchanged, and tries the test once
+  more. Web-only failures: when not effectively
   on, "Turn on the daily reminder first."; when the server can't be reached or refuses,
   "Couldn't reach the reminder server.".
 - One help line, by support (web-only):
@@ -454,12 +473,14 @@ steps read the same on the web. The other three get `@android`, each with a comm
 
 `check-specs.mjs` keeps passing (the comment rule, `@slow` with `@android`).
 
-The e2e build's container gets `reminders` built from a fake push platform and a fake
-API (moved from `web/test/support/` to a module the e2e entry can import), since no
-browser under Playwright can subscribe to a real push service. Its CSP gains no origin.
-The seed module adds `window.__tortoiseSpellingPush = { answer(permission) }`, which sets
-what the next permission request returns (`"granted"` by default) and stands in for the
-browser's prompt. Web steps in `web/steps/notifications.steps.ts`:
+The e2e build's container always gets `reminders` built from a fake push platform and
+a fake API (moved from `web/test/support/` to a module the e2e entry can import), whatever
+`PUSH_SERVER` holds, since no browser under Playwright can subscribe to a real push
+service; the fakes make no requests. The fake platform reports `"supported"`, starts at
+`"default"`, and after a request `permission()` returns the answer given, as a browser
+does. The seed module adds `window.__tortoiseSpellingPush = { answer(permission) }`,
+which sets what the next permission request returns (`"granted"` by default) and stands
+in for the browser's prompt. Web steps in `web/steps/notifications.steps.ts`:
 
 | Step | Web |
 |---|---|
@@ -590,12 +611,15 @@ Tests (Vitest, Node):
 
 `scripts/smoke.mjs` starts `wrangler dev --local --test-scheduled --port 8787 --var
 ALLOW_LOCAL_PUSH:true`, with a fresh `VAPID_PRIVATE_JWK` in a temporary `.dev.vars`, and
-a fake push service on a local port that records requests. It checks `GET /key`; a `PUT`
-with a subscription whose keys the script holds, due today, at a time already passed in
-`UTC` (expects no push, `sentDayOnRegister`); a second `PUT` for a zone where the time is
-just past (the script picks one), then `GET /__scheduled`: one push arrives, its VAPID
-JWT verifies, and decrypting it gives `{"kind":"reminder"}`; a second `__scheduled` sends
-nothing; `POST /test` sends `{"kind":"test"}`; the fake service answering 410 to the next
+a fake push service on a local port that records requests. The scheduled route is `wrangler dev`'s test route for the installed version
+(`/__scheduled`, or `/cdn-cgi/handler/scheduled` where that replaces it), and the tick
+uses the real clock. It checks `GET /key`; a `PUT` with a subscription whose keys the
+script holds, due today, at a time already passed in `UTC`, then a scheduled run
+(expects no push: `sentDayOnRegister`); a second `PUT` of the same subscription in UTC
+(or an `Etc/GMT±N` zone if UTC is within two minutes of midnight) at the next minute,
+so registering doesn't mark it sent; a wait until that minute has passed (at most about
+a minute); then a scheduled run: one push arrives, its VAPID JWT verifies, and
+decrypting it gives `{"kind":"reminder"}`; another scheduled run sends nothing; `POST /test` sends `{"kind":"test"}`; the fake service answering 410 to the next
 test removes the row (the following test is 404); `DELETE` is 204. It stops `wrangler`
 whatever happens.
 
@@ -607,7 +631,7 @@ cd push && npx wrangler deploy --dry-run --outdir dist   # bundles with the DO a
 ```
 
 - Temporarily drop the `last_sent_day < localDay` check: `schedule.test.ts` and the
-  smoke's second `__scheduled` fail. Temporarily flip one byte of the RFC salt: the
+  smoke's repeated scheduled run fail. Temporarily flip one byte of the RFC salt: the
   vector test fails. Revert both.
 - `<ci>`: the `push` job is green.
 
@@ -628,21 +652,25 @@ Tests (Vitest):
   `todayPlan()` is non-empty with `testClock` moved to `d` and nothing written (or
   `null`), including suspended words, used-up allowances and no words;
   `settleQuietDays` marks a quiet gap of three days and stops at the first due day, does
-  nothing on its first run, and the streak across the gap carries on (the streak journey
-  from web-core, with the app "closed" for the gap).
+  nothing on its first run, marks nothing (but advances) with `reminderEnabled` off,
+  writes nothing and notifies no subscriber on a second call the same day, and the
+  streak across the gap carries on (the streak journey from web-core, with the app
+  "closed" for the gap). A journey test shows a skipped due day stays unmarked when the
+  app opens straight at `#/review` and the word is reviewed before Home loads.
 - `reminderSync.test.ts` with a fake push platform and a fake API: off → unregisters and
   unsubscribes once; on and granted → subscribes and registers the expected body; an
   unchanged state sends nothing; a new reminder time or a review that moves
   `reminderDay` sends again; the same state a day later sends again; a changed server key
   resubscribes; a changed endpoint unregisters the old one; a failure retries on the next
-  call; overlapping calls run at most twice.
+  call; overlapping calls run at most twice; `force` registers an unchanged body.
 - `pushApi.test.ts`: the request shapes, and the body equals
   `push/test/fixtures/registration.json`'s shape.
 - `precache.test.ts`, adjusted for `precacheManifest`.
 - `sw/notification.test.ts`: the three texts. `sw/handlers.test.ts` with
   `fake-indexeddb`: a push with one word due shows "1 word ready"; with nothing due
   shows "Reminders are working" and marks today satisfied for a reminder but not for a
-  test; a click with a window client focuses it, and without one opens `./#/review`.
+  test; a reminder push with reminders off still shows a notification and then
+  unregisters through the fake API; a click with a window client focuses it, and without one opens `./#/review`.
 - `csp.test.ts`: the policy with and without `PUSH_SERVER`.
 
 Acceptance:
@@ -671,7 +699,8 @@ Tests:
   and the help line for each support value; the time field's value and disabled state;
   turning on with `"default"` calls `requestPermission` before anything async (the fake
   records the call order), and a refusal turns reminders off with the blocked message;
-  the test button's three messages.
+  the test button's three messages, and a 404 that forces a re-register and succeeds on
+  the retry; a dismissed prompt (`"default"`) turns reminders off with no snackbar.
 - `HomeContent.test.tsx`: the card under its rule only (no words, permission decided,
   reminders off, no support, empty server); Turn on and Not now.
 - `testIds.test.ts` with the new lists.
@@ -740,7 +769,8 @@ Review the whole piece against this spec and `GOALS.md`, independently. In parti
   words are overdue, none before the time, catch-up after a missed tick;
 - every push shows a notification, with `ReminderWorker`'s copy;
 - the permission request runs before any `await` in both handlers;
-- `settleQuietDays` can't mark a day that had something to practise;
+- `settleQuietDays` can't mark a day that had something to practise, runs before the
+  first render, and never notifies;
 - the CSP allows exactly `'self'` and `PUSH_SERVER`;
 - nothing in `web/src` outside `browserPlatform.ts` and `src/sw/` touches `navigator`
   or `self.registration`;
