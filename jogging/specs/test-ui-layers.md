@@ -159,7 +159,7 @@ For **Review**, **Home** and the **word list**. Each keeps its public `XScreen` 
 
 | Screen keeps | `XContent(state, …)` gets |
 |---|---|
-| `ReviewScreen`: the ViewModel and the `onFinished` effect | `ReviewContent(state: ReviewUiState, onInputChange, onSubmit, onShowAnswer, onQuit)`: the `Scaffold` and everything in it, the focus requester and the bring-into-view effects |
+| `ReviewScreen`: the ViewModel and the `onFinished` effect | `ReviewContent(state: ReviewUiState, onInputChange, onSubmit, onShowAnswer, onQuit)`: the `Scaffold` and everything in it, the focus requester and the bring-into-view effects. The title reads `state.practiceMode` (the ViewModel already sets it) instead of the screen's parameter |
 | `HomeScreen`: the ViewModel, `LifecycleEventEffect(ON_RESUME)`, `RequestNotificationPermissionIfNeeded` | `HomeContent(state: HomeUiState, onStartReview, onPracticeMore, onAddWord, onOpenWords, onOpenSettings)`: the menu's open state and everything visible |
 | `WordListScreen`: the ViewModel | `WordListContent(state: WordListUiState, onBack, onEdit, onQueryChange, onFilterChange, onToggleSuspended: (Word) -> Unit, onDelete: (Word) -> Unit)`: the pending-delete dialog's state and the dialog |
 
@@ -269,9 +269,11 @@ that:
   `reminderEnabled = false` so Home never raises the notification permission prompt
   over the test;
 - closes the database after each test;
-- renders the real graph:
+- offers `launch()`, which renders the real graph:
   `CompositionLocalProvider(LocalAppContainer provides container) { TortoiseSpellingTheme { TortoiseSpellingNavHost(startInReview = false, onReviewLaunchHandled = {}) } }`
-  in `createAndroidComposeRule<ComponentActivity>()`;
+  in `createAndroidComposeRule<ComponentActivity>()`. Tests seed first and call
+  `launch()` after: Home loads its state once on creation, so words added after the
+  content is set wouldn't show until the next resume;
 - offers `nextDay()`: `activityRule.scenario.moveToState(CREATED)`, `advanceDays(1)`,
   `moveToState(RESUMED)`. That's the user coming back tomorrow: Home's `ON_RESUME`
   refresh is what picks up the new day, as on a phone;
@@ -351,8 +353,10 @@ words only: nothing reads the clock (the content composables take `today` from s
 - A deliberate UI change re-runs `update` and commits the new references in the same
   commit, after looking at them.
 
-References are recorded on Windows and validated on Linux in CI. Font rendering can
-differ by a few pixels between the two. If CI fails on a reference that's visually the
+References are recorded wherever build-5 runs and validated on Linux in CI. Jogging runs
+in the cloud, on Linux, so the two should match exactly; Layoutlib bundles its own fonts.
+A later `update` run on Windows (Alan's PC) can differ by a few pixels in font rendering,
+so CI's Linux rendering is authoritative. If CI fails on a reference that's visually the
 same, raise `imageDifferenceThreshold` to the smallest value that passes (no higher than
 `0.01f`, 1%). If that isn't enough, CI is the reference platform: download the CI run's
 rendered images (`gh run download`), commit them as the references, and say in
@@ -440,8 +444,11 @@ and run `APK=../app/build/outputs/apk/release/app-release.apk npm run e2e:releas
   `${{ matrix.layer }} tests (emulator)`, with `strategy.fail-fast: false` and
   `matrix.layer: [data, component, integration, accessibility]`. Every step is the
   `data` job's, with `package=io.github.dontpanic345.tortoisespelling.${{ matrix.layer }}`
-  and artefacts named per layer. API 26 for all four: the oldest Compose and
-  accessibility runtime a user has.
+  and artefacts named per layer, and `api-level` from the matrix (`include:` entries).
+  API 26, the oldest Compose runtime a user has, for `data`, `component` and
+  `integration`. API 34 for `accessibility`: the checks are about colours, sizes and
+  labels, which don't vary with the API level, and the Compose accessibility checks may
+  not run on old APIs at all; a check that silently does nothing would pass.
 - A `screenshots` job, "Screenshot tests": checkout, `setup-java`,
   `./gradlew validateDebugScreenshotTest`, and on failure upload
   `app/build/reports/screenshotTest/` and `app/build/outputs/screenshotTest-results/`.
@@ -477,12 +484,18 @@ Each build step updates the docs its change makes true:
 ## Build steps
 
 Each step follows `CLAUDE.md`'s Workflow and `PROTOCOL.md`. "Passing" means every command
-exits 0. For connected runs, start the emulator if `adb devices` lists none and set
-`ANDROID_SERIAL` to its serial. `<layer X>` abbreviates:
+exits 0. Connected runs and e2e go to the device `PROTOCOL.md` names: in the cloud,
+`ANDROID_SERIAL` already points at the spare phone (rerun `bash jogging/cloud-setup.sh`
+if `adb devices` doesn't list it); on a PC, start the emulator if `adb devices` lists none
+and set `ANDROID_SERIAL` to its serial. `<layer X>` abbreviates:
 
 ```bash
 ./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=io.github.dontpanic345.tortoisespelling.X
 ```
+
+`<e2e F…>` abbreviates `cd e2e && npm run e2e -- --spec features/F.feature …`, one
+`--spec` per file: in the cloud, e2e crosses a slow link to the phone, so build steps run
+only the features covering what they changed, and the review step runs the whole suite.
 
 On Alan's PC `gh`'s active account is a work one: export
 `GH_TOKEN=$(gh auth token --user DontPanic345)` before any `gh` command.
@@ -501,7 +514,7 @@ Acceptance:
 grep -rnE 'Days\.today\(\)|LocalDate\.now\(\)|LocalTime\.now\(\)|System\.currentTimeMillis\(\)|systemDefaultZone' app/src/main
                                       # only Word.kt's and Backup.kt's defaults
 <layer data>                          # still passes
-cd e2e && npm run e2e                 # every repository and ViewModel changed
+<e2e review completion daily_allowance word_list add_word>   # repository, Home, Completion, word list
 ```
 
 ### build-2: screen content split and component tests (Sonnet, medium)
@@ -515,7 +528,7 @@ Acceptance:
 ```bash
 ./gradlew assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest
 <layer component>                     # every component test passes
-cd e2e && npm run e2e                 # the screens were restructured
+<e2e review completion daily_allowance word_list>   # the screens were restructured
 ```
 
 - Temporarily make Check enabled on blank input: a `ReviewContentTest` test fails.
@@ -537,8 +550,8 @@ Acceptance:
   Temporarily remove `markTodaySatisfied()` from `HomeViewModel.refresh`:
   `StreakJourneyTest` fails. Revert both.
 - If a test exposes an app bug, fix it here with a `CHANGELOG.md` line, and run the e2e
-  suite too. Otherwise only `androidTest` and the one `internal` changed, and e2e isn't
-  needed.
+  features covering it too. Otherwise only `androidTest` and the one `internal` changed,
+  and e2e isn't needed.
 
 ### build-4: accessibility checks (Sonnet, medium)
 
@@ -554,7 +567,8 @@ Acceptance:
 ```
 
 - Temporarily remove the "End session" icon's `contentDescription`: a test fails. Revert.
-- If app code changed, run the e2e suite and add the `### Fixed` lines. Record each fix
+- If app code changed, run the e2e features covering the changed screens and add the
+  `### Fixed` lines. Record each fix
   and any suppression (with its reason) in the log entry.
 
 ### build-5: screenshot tests (Sonnet, medium)

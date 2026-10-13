@@ -34,3 +34,10 @@ Home and the word list split into stateless `XContent`; integration tests drive 
 with a `LocalAppContainer` and a test clock. Screenshots use Google's Compose screenshot plugin
 (Paparazzi is shaky on Gradle 9); a `@release-smoke` e2e journey runs on an R8 build from
 `release.yml`. Added build-1 to build-7 and review, all Sonnet (build-6 high effort).
+
+## 2026-10-13 10:24 test-ui-layers/spec-review (opus)
+Spec holds up against the goals and the code. Fixed: integration tests seed before a new
+`launch()` (Home loads once on creation); build steps follow the cloud rules (the phone via
+`ANDROID_SERIAL`, only the covering e2e features, named per step); screenshot references are
+recorded on Linux with CI authoritative; the accessibility CI layer runs on API 34, since the
+checks may silently no-op on API 26; `ReviewContent` takes its title from `state.practiceMode`.
