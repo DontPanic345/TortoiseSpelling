@@ -21,7 +21,8 @@ Gradle needs `JAVA_HOME`; on this machine use Android Studio's JBR
 ./gradlew testDebugUnitTest --tests '*SrsTest'                  # one class
 ./gradlew testDebugUnitTest --tests '*DaysTest.a quiet*'        # one method (backtick names)
 ./gradlew lintDebug                           # CI fails on lint errors, not warnings
-node --test 'scripts/*.test.mjs'              # release script tests (quote the glob)
+node --test 'scripts/*.test.mjs'              # script tests (quote the glob)
+node scripts/icon.mjs                         # regenerate the app and notification icons
 adb install -r app/build/outputs/apk/debug/app-debug.apk       # install the debug APK
 ```
 
@@ -30,7 +31,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk       # install the deb
 | Unit tests | `app/src/test/` | JVM, no device |
 | Live-API integration test | `ClaudeIntegrationTest` | JVM, real Anthropic API |
 | End-to-end BDD tests | [`e2e/`](e2e/README.md) | The real APK on an emulator |
-| Release script tests | `scripts/*.test.mjs` | Node, no device |
+| Script tests | `scripts/*.test.mjs` | Node, no device |
 
 - **CI** (`.github/workflows/ci.yml`) runs the unit tests, `lintDebug`, the script tests and
   the e2e `check-steps`/`typecheck` on pushes to main and on PRs. It doesn't run the Appium
@@ -169,6 +170,10 @@ the add/edit screen, has Claude rewrite its definition and example.
   `VisualTransformation`.
 - The blank placeholder is a fixed `_____` regardless of word length.
 - `hideWordInDefinition` scrubs the word out of definitions when a word is saved.
+
+**Icons.** `ic_launcher_foreground.xml`, `ic_launcher_monochrome.xml`, `ic_notification.xml`,
+`ic_launcher_background.xml` and `docs/icon.svg` are generated. Edit `scripts/icon.mjs` and
+re-run it; `icon.test.mjs` fails CI if the committed files drift from the script.
 
 **Test tags.** `ui/TestTags.kt` holds Compose `testTag`s for the e2e suite.
 `MainActivity` sets `testTagsAsResourceId`, so Appium sees each tag as a resource-id.

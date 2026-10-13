@@ -9,6 +9,10 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+### Changed
+
+- A redrawn app icon, sharper at every size, with a matching themed icon and notification icon.
+
 ## [0.3.0] - 2026-09-23
 
 ### Added

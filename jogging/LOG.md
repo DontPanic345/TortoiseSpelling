@@ -144,3 +144,11 @@ Wrote `scripts/icon.mjs` (dependency-free; shapes → launcher, themed and notif
 separation, single-colour, eye hole). Deleted the 15 WebPs. Shell plates come from clipping a dome polygon against offset cut
 lines. No Edge here, so I rendered the paths with ImageMagick `-draw` to check the art. `node --test`, `assembleDebug`,
 `testDebugUnitTest` and `lintDebug` pass; the generator is idempotent and a colour edit fails the drift test.
+
+## 2026-10-13 18:50 icon/build-2 (sonnet)
+On the Galaxy S23 (debug and debug-keystore release builds): the launcher icon, the status-bar silhouette and the shade
+notification all show the new tortoise, and the release build (R8, shrinking) still resolves them. Not checked: themed icons,
+because One UI exposes them only through Theme Park. Updated CHANGELOG, CLAUDE.md (icons note, `icon.mjs` command, "script
+tests") and todo. Script tests, unit tests, lint, check-steps and typecheck pass. The e2e run did not complete: the 20 MB APK
+install over Tailscale takes about 3 minutes, past Appium's 120 s adb timeout and cucumber's 120 s step timeout ("freshly
+installed" step), so the `review` step needs those raised or the APK preinstalled; nothing in this step touches app logic.
