@@ -96,3 +96,11 @@ Spec holds up against the goals and the code (WordRepository, the DAO queries, B
 Fixed: backup `createdAt`/`exportedAt` default to the clock, so cases say `"now"` and `parseBackup` takes `now`;
 quoted numbers and booleans are settled against kotlinx; unsafe-integer Longs and U+0130 lowercasing are handled;
 duplicate checks run inside the write transaction, with the IndexedDB auto-commit trap spelt out; CI's `cache: npm`.
+
+## 2026-10-13 17:27 web-ui/spec (opus)
+Wrote `jogging/specs/web-ui.md`. Preact on Vite, with hash routes, `XScreen`/`XContent` and pure `<name>State.ts`
+mirroring the Android split, a `Platform` seam for clipboard, file save, storage and install, Android's copy and its
+test-tag values as `data-testid` (checked by a parity test), and `golden/ui.json` for the screen helpers. Also a
+hand-written service worker, a CSP limiting the app to its own origin, a Playwright smoke suite in Chromium and WebKit,
+and `pages.yml`. Pages has to be enabled once by Alan; build-7 blocks on that only if the deploy fails. Added
+build-1 to build-7 and review, all Sonnet (build-1, 3, 4, 6 and review at high effort).

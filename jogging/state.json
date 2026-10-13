@@ -487,13 +487,77 @@
           "phase": 1,
           "model": "opus",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "spec-review",
           "phase": 1,
           "model": "opus",
           "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "Preact and Vite toolchain, shell (router, container, platform, theme, common components), test ids with parity test, golden/ui.json with both runners and the two Kotlin moves",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "Home and Completion, refreshing, persistent storage request, backup nudge and lastExportedAt",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-3",
+          "phase": 2,
+          "title": "Review and practice: the pure phase machine, ReviewContent, effects, and the first UI journeys",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-4",
+          "phase": 2,
+          "title": "Add and edit: the tree editor, Copy prompt and the paste dialog, save and delete",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-5",
+          "phase": 2,
+          "title": "Word list and Settings: search, filters, suspend, delete; Install, Practice, Backup (export and import) and About",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-6",
+          "phase": 2,
+          "title": "Service worker, manifest and icons, Playwright smoke suite in Chromium and WebKit, reusable web.yml",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-7",
+          "phase": 2,
+          "title": "GitHub Pages deploy workflow and live check (blocker if Pages isn't enabled), docs and changelog",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the piece against its spec and the goals: copy and test-id parity, review state machine, CSP, offline, full checks, live smoke and CI green (no version bump)",
+          "model": "sonnet",
+          "effort": "high",
           "status": "pending"
         }
       ]
