@@ -111,3 +111,9 @@ Fixed: review transitions return a list of effects, since a correct first try bo
 uses pushState with a depth and notifies itself (pushState fires no hashchange); export falls back to download when Safari
 refuses a late share; Copy prompt writes before any await; jsdom stubs for dialog and scrollIntoView; SW registration lives
 in browserPlatform; `lastExportedAt` gets its repository calls; `filterRows` may already be moved by word-forms.
+
+## 2026-10-13 17:39 shared-specs/spec (opus)
+Wrote `jogging/specs/shared-specs.md`. Features move to `specs/` with `@e2e` on each (the only layer tag: lower layers have
+their own frameworks) and `@android`/`@web` only where the platform forbids it, with a reason comment, all checked by
+`scripts/check-specs.mjs`. The web runs them through `playwright-bdd` against a `--mode e2e` build with a seed hook, in
+Chromium and WebKit, inside `web.yml`. Added build-1 to build-3 and review, all Sonnet (build-1 medium, the rest high).

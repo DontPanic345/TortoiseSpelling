@@ -579,13 +579,45 @@
           "phase": 1,
           "model": "opus",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "spec-review",
           "phase": 1,
           "model": "opus",
           "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "Move e2e/features to specs/ with layer and platform tags, the tag check script and its tests, the Android runner and shared fixtures, CI scripts step, Android-side docs",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "Web runner: playwright-bdd, the e2e build with its seed hook, playwright.specs.config.ts, web steps for add_word, review, completion and daily_allowance",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-3",
+          "phase": 2,
+          "title": "Web steps for word_list, word_forms, copy_prompt and backup, the unused-step check, web.yml runs the shared specs, web-side docs",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the piece against its spec and the goals, run every scenario on both platforms, confirm CI green (no version bump unless a parity fix changed Android)",
+          "model": "sonnet",
+          "effort": "high",
           "status": "pending"
         }
       ]
