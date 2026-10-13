@@ -9,6 +9,8 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-13
+
 ### Changed
 
 - A redrawn app icon, sharper at every size, with a matching themed icon and notification icon.
@@ -123,7 +125,8 @@ The first release.
 - Backup export and import as JSON. Importing adds new words and never overwrites the
   progress of words you already have.
 
-[unreleased]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.3.0...HEAD
+[unreleased]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.0.1...v0.1.0

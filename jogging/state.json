@@ -10,7 +10,7 @@
         "docs/todo.md"
       ],
       "dependsOn": [],
-      "status": "active",
+      "status": "done",
       "spec": "jogging/specs/icon.md",
       "steps": [
         {
@@ -49,13 +49,13 @@
           "title": "Review the piece against its spec and the goals, rerun the checks, bump the minor version",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
     {
       "id": "test-data-layer",
-      "title": "androidTest scaffolding, Room DAO tests and the 1→2 migration test, per-layer Gradle tasks and CI",
+      "title": "androidTest scaffolding, Room DAO tests and the 1\u21922 migration test, per-layer Gradle tasks and CI",
       "docs": [
         "docs/testing-and-web-plan.md"
       ],
@@ -80,7 +80,7 @@
         {
           "id": "build-1",
           "phase": 2,
-          "title": "Gradle scaffolding (Room plugin, androidTest deps), DATABASE_VERSION and ALL_MIGRATIONS, TestWords fixture, MigrationTest for 1→2 and the chain from version 1",
+          "title": "Gradle scaffolding (Room plugin, androidTest deps), DATABASE_VERSION and ALL_MIGRATIONS, TestWords fixture, MigrationTest for 1\u21922 and the chain from version 1",
           "model": "sonnet",
           "effort": "medium",
           "status": "pending"
