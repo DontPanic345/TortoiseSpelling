@@ -41,3 +41,12 @@ Spec holds up against the goals and the code. Fixed: integration tests seed befo
 `ANDROID_SERIAL`, only the covering e2e features, named per step); screenshot references are
 recorded on Linux with CI authoritative; the accessibility CI layer runs on API 34, since the
 checks may silently no-op on API 26; `ReviewContent` takes its title from `state.practiceMode`.
+
+## 2026-10-13 10:34 word-forms/spec (opus)
+Wrote `jogging/specs/word-forms.md`. Part of speech sits on the definition, and the base form is
+`definitions[0].forms[0]` by position. `MIGRATION_2_3` rebuilds `words`, so one migration test
+runs through Room's own open path to catch a cascade into `review_log`. `shownAt` is stamped when
+a card is first shown, in practice too. The refresher now appends an example until `drop-api-key`.
+Backups keep version 1, with a `definitions` tree beside the flat root-card fields so older
+builds still import them. Added build-1 to build-4 and review, all Sonnet (build-1, build-3 and
+review at high effort).

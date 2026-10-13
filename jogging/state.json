@@ -221,13 +221,53 @@
           "phase": 1,
           "model": "opus",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "spec-review",
           "phase": 1,
           "model": "opus",
           "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "Schema v3, MIGRATION_2_3 and its tests, the content model, DAO and repository, with review, add and list glue on the root card",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "Review picks the least recently shown example across forms, stamps shownAt, shows the form label; rotation journey test",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-3",
+          "phase": 2,
+          "title": "Content editor: AddWordContent tree of definitions, forms and examples; lookup replaces content; word_forms.feature",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-4",
+          "phase": 2,
+          "title": "Search by form, backup definitions tree with flat root-card fields, docs and CHANGELOG",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the piece against its spec and the goals, rerun every layer, e2e and the release smoke, bump the minor version",
+          "model": "sonnet",
+          "effort": "high",
           "status": "pending"
         }
       ]
