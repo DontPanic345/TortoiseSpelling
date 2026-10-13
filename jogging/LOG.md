@@ -56,3 +56,11 @@ Spec holds up against the goals and the code (review_log's cascade FK, Room 2.8,
 e2e steps). Fixed: the second rotation journey needs `nextDay()`, since a miss makes the word
 due tomorrow; the migration nulls a blank part of speech and `hint` skips blank parts, so
 imported `""` values can't show a stray " · "; an edit save re-reads the word before writing the whole row.
+
+## 2026-10-13 10:43 copy-prompt/spec (opus)
+Wrote `jogging/specs/copy-prompt.md`. The prompt and a `JsonElement` parser with exact messages
+and limits are pure in `domain/` for the web port; the JSON is located between the outer braces
+(fences and prose), validated as it's pasted into a dialog, and Use this replaces the editor's
+word and content, confirming a spelling change. Look up with Claude and its live-api scenarios go;
+Settings' key section now says it's only for keeping cards fresh. Added build-1 to build-3 and
+review, all Sonnet (build-2 and review at high effort).
