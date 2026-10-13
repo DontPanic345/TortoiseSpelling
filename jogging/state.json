@@ -639,13 +639,53 @@
           "phase": 1,
           "model": "opus",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "spec-review",
           "phase": 1,
           "model": "opus",
           "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "The push server in push/: Worker, cron, SQLite Durable Object, validation, timing, VAPID and RFC 8291 encryption with the RFC vector, the wrangler dev smoke with a decrypting fake push service, CI job and Dependabot",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "Web side: reminder settings, reminderDay, settleQuietDays, PushPlatform (page and service worker), pushApi, reminderSync, PUSH_SERVER and the CSP, the service worker in TypeScript with push, click and subscription-change handlers",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-3",
+          "phase": 2,
+          "title": "Settings' Daily reminder section, the Home reminder card, test ids, e2e fakes, notifications.feature's shared scenario and web steps, push.spec.ts",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-4",
+          "phase": 2,
+          "title": "push.yml deploy (blocker if the Cloudflare secrets aren't set), live checks, PUSH_SERVER, PRIVACY.md and the other docs, the phone's Chrome check",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the piece against its spec and the goals: stored columns vs PRIVACY.md, send rules vs Android, permission in the tap, CSP; full checks, live checks and CI green (no version bump)",
+          "model": "sonnet",
+          "effort": "high",
           "status": "pending"
         }
       ]

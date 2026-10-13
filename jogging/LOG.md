@@ -123,3 +123,10 @@ Spec holds up against the goals and the code (the e2e runner, web-ui's Playwrigh
 Fixed: `featuresRoot: "../specs"` is required, or `bddgen` exits on features outside `web/`; `--unused-steps` exists but
 exits 0, so check-steps parses its output; clipboard permissions on the Chromium project only; the seed hook checks `kind`;
 web typecheck covers `steps/` and the shared fixtures; "go back to Home" also takes Done and asserts Home; the review grep skips `.git`.
+
+## 2026-10-13 17:54 web-push/spec (opus)
+Wrote `jogging/specs/web-push.md`. The server is a Cloudflare Worker (free plan) with a 5-minute cron and a SQLite Durable
+Object storing only subscriptions, zone, time, the next due day and the last sent day; pushes carry an encrypted
+`reminder`/`test` kind and the service worker (now TypeScript) counts the plan on the device. Quiet days are backfilled
+on the next open for streak parity. The Cloudflare account is Alan's to create, so build-4's deploy blocks on it only.
+Added build-1 to build-4 and review, all Sonnet (build-4 medium, the rest high).
