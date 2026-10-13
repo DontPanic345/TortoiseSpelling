@@ -7,7 +7,10 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Word::class, ReviewLog::class], version = 2, exportSchema = true)
+/** The schema version the app ships; the migration tests walk up to it. */
+internal const val DATABASE_VERSION = 2
+
+@Database(entities = [Word::class, ReviewLog::class], version = DATABASE_VERSION, exportSchema = true)
 abstract class TortoiseSpellingDatabase : RoomDatabase() {
 
     abstract fun dao(): TortoiseSpellingDao
@@ -29,6 +32,9 @@ abstract class TortoiseSpellingDatabase : RoomDatabase() {
             }
         }
 
+        /** Every migration the builder installs, so the chain test covers each one. */
+        internal val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2)
+
         fun build(context: Context): TortoiseSpellingDatabase =
             Room.databaseBuilder(
                 context.applicationContext,
@@ -38,7 +44,7 @@ abstract class TortoiseSpellingDatabase : RoomDatabase() {
                 // No fallbackToDestructiveMigration: losing the word list on a schema
                 // change is worse than failing loudly. Schemas are exported so real
                 // migrations can be written.
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(*ALL_MIGRATIONS)
                 .build()
     }
 }

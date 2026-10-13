@@ -83,7 +83,7 @@
           "title": "Gradle scaffolding (Room plugin, androidTest deps), DATABASE_VERSION and ALL_MIGRATIONS, TestWords fixture, MigrationTest for 1→2 and the chain from version 1",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-2",

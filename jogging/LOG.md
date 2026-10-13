@@ -159,3 +159,8 @@ stray comments in `icon.mjs`, docs updated. Bumped to 0.4.0 (versionCode 5). The
 install over Tailscale completes. The full e2e run on the S23 still had 4 failures: the "I am told the correct word" steps (the Correct card auto-advances after
 ~1.1s, too fast to observe over the link; reproduced alone in review.feature), one backup import toast, and one SeedWordsActivity timeout. No app logic changed in
 this piece; those steps want a link-tolerant check. Themed icon still unchecked on-device (One UI).
+
+## 2026-10-13 20:05 test-data-layer/build-1 (sonnet)
+Room Gradle plugin, androidTest deps, `DATABASE_VERSION`/`ALL_MIGRATIONS`, `TestWords.kt` and `MigrationTest` (3 tests) added; the plugin leaves `app/schemas` clean.
+Build, unit tests, lint and `assembleDebugAndroidTest` pass; the 3 tests pass on the S23 (XML, HTML report, and `am instrument` by hand), and the mutations (drop the `refreshedOn` ALTER; empty `ALL_MIGRATIONS`) fail 3 and 1 tests. e2e `add_word.feature` passes.
+Oddity: `connectedDebugAndroidTest` exits "There were failing tests" on the S23 even though every test passed (test-result-exit-code 1, no failure recorded; tried `--rerun`, legacy UTP flag). Cause unknown, probably the UTP post-run steps over the Tailscale adb link; use install + `am instrument` here, and watch for it on the CI emulator in build-3.

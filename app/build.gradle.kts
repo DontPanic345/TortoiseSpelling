@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.androidx.room)
 }
 
 android {
@@ -83,8 +84,8 @@ kotlin {
 // Room schemas are checked in so migrations can be written against a known history.
 // Deliberately no fallbackToDestructiveMigration(): the word list is the one thing
 // the user cannot recreate.
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
+room {
+    schemaDirectory("$projectDir/schemas")
 }
 
 dependencies {
@@ -116,4 +117,9 @@ dependencies {
     // Android bundles org.json but stubs it in local unit tests; the real jar lets the
     // response-parsing logic be tested off-device.
     testImplementation(libs.json)
+
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.room.testing)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
 }
