@@ -88,10 +88,15 @@ Goals it leans on:
   Workbox would be a large dependency for about 40 lines of code (goal 7).
 - **Browser APIs go behind a `Platform` interface**: clipboard, file save, storage
   persistence and install. Component and journey tests pass a fake, and only
-  `browserPlatform.ts` touches `navigator`.
+  `browserPlatform.ts` touches `navigator`. That includes the service worker
+  registration, which it exports as `registerServiceWorker()` (not part of `Platform`)
+  for `main.tsx` to call.
 - **Export downloads the file**, except on touch-first devices that can share files
   (`navigator.canShare({ files })` and `(pointer: coarse)`), where it opens the share
-  sheet. That is how an iPhone saves to Files. A cancelled share says nothing.
+  sheet. That is how an iPhone saves to Files. A cancelled share says nothing. Export
+  reads the database before it shares, and Safari can refuse a share that no longer
+  counts as part of the tap (`NotAllowedError`), so any share failure other than a
+  cancel falls back to the download.
 - **"Prompt copied." always shows on the web.** Browsers don't confirm a clipboard
   write, unlike Android 13 and later.
 - **The answer field turns off the keyboard's help with attributes**:
@@ -104,7 +109,9 @@ Goals it leans on:
   for notification permission. The **backup nudge** shows on Home when there are words,
   `navigator.storage.persisted()` is false, and nothing has been exported in the last 30
   days. `lastExportedAt` is a new key in web-core's `settings` store (a new key in an
-  existing store needs no `DB_VERSION` bump).
+  existing store needs no `DB_VERSION` bump). The repository's `settings()` gains
+  `lastExportedAt: number | null`, and `setLastExportedAt(millis)` is a write like the
+  others, so it tells subscribers and Home drops the nudge straight after an export.
 - **No reminder section in Settings yet.** `web-push` adds it. The cloud backup switch
   is Android-only (Google backup), and so is "Open app settings".
 - **The web app has no version number.** About shows "Tortoise Spelling for the web"
@@ -168,7 +175,11 @@ and say so in the log.
 `include: ["test/**/*.test.{ts,tsx}"]`, so Vitest never picks up `smoke/`. UI test
 files start with `// @vitest-environment jsdom`; the domain and data tests stay on
 `node`. Testing Library cleans up after each test, through a setup file if its
-auto-cleanup needs Vitest's globals.
+auto-cleanup needs Vitest's globals. jsdom lacks some of what the screens call, so the
+setup file stubs them when missing: `HTMLDialogElement.prototype.showModal` and `close`
+(toggling `open`), and `Element.prototype.scrollIntoView`. jsdom never turns Escape into
+a dialog's `cancel` event, so `Dialog` dismisses on `cancel` (as browsers fire it for
+Escape) and its test dispatches `cancel`.
 
 `vite.config.ts`: `base: "./"`; `esbuild: { jsx: "automatic", jsxImportSource:
 "preact" }` (or the equivalent option on the Vite major in use); `build.target`
@@ -204,7 +215,8 @@ message into `#app` if `new RegExp("(?<!a)b")` throws or `indexedDB` is missing:
 store words in this browser. Check that it isn't blocking site data for this page."
 Otherwise it builds `container = { repository: createRepository({ db }), clock:
 deviceClock, platform: browserPlatform(), autoAdvanceMillis: 1100 }`, renders `<App
-container={container} />`, and in production builds registers `./sw.js`. Web-core's
+container={container} />`, and in production builds calls `registerServiceWorker()`
+(build-6 adds this; until then there is no `sw.js` to register). Web-core's
 `openDatabase` gains an optional `onVersionChange` callback. With it, the app shows a
 snackbar with a Reload action: "Tortoise Spelling was updated in another tab. Reload to
 keep going."
@@ -215,10 +227,15 @@ keep going."
 
 **`ui/router.ts`**: `type Route = { name: "home" | "review" | "practice" | "completion"
 | "add" | "words" | "settings" } | { name: "edit", id: number }`. It has
-`parseRoute(hash)` (unknown routes become home), `routeHash(route)`, `useRoute()`
-(listening to `hashchange`), `navigate(route)` (push), `replace(route)`, and
-`back(fallback)`. `back` calls `history.back()` if this page load has pushed a route,
-and otherwise `replace(fallback)`, so a deep-linked `#/settings` still goes back home.
+`parseRoute(hash)` (unknown routes become home), `routeHash(route)`, `useRoute()`,
+`navigate(route)` (push), `replace(route)`, and `back(fallback)`. `navigate` and
+`replace` use `history.pushState`/`replaceState` with `{ depth }` in the history state
+(one more than the current entry's for a push, the same for a replace). Neither fires
+`hashchange` or `popstate`, so the router notifies its own listeners after each, and
+`useRoute()` also listens to `popstate` for the browser's back button and typed hashes.
+`back` calls `history.back()` when the current entry's `depth` is above 0, and
+otherwise `replace(fallback)`, so a deep-linked `#/settings` still goes back home and
+the browser's own back button keeps the count right.
 The navigation follows `MainActivity`'s graph:
 
 | From | Action | Web |
@@ -353,13 +370,15 @@ Web-only:
 "Practise a few more anyway". `CompletionScreen` loads Home's state and adds Done.
 
 **Review** (`review/`). `reviewState.ts` ports `ReviewViewModel`'s state machine as pure
-transitions. Each one returns the new state and at most one effect:
+transitions. Each one returns the new state and a list of effects, in order (a correct
+first attempt yields both a `record` and an `autoAdvance`, as the Kotlin does):
 
 ```ts
 type ReviewPhase = { kind: "prompting" } | { kind: "correct" }
   | { kind: "corrective"; attempt: string; diff: SpellingDiff; revealed: boolean; retypeMissed: boolean };
 type ReviewEffect = { record: { wordId: number; correctFirstTry: boolean; typed: string } }
-  | { autoAdvance: number /* index */ } | { markShown: ReviewCard } | null;
+  | { autoAdvance: number /* index */ } | { markShown: ReviewCard };
+type ReviewStep = { state: ReviewState; effects: ReviewEffect[] };
 ```
 
 - `loaded`, `inputChanged`, `submit`, `showAnswer`, `advance` and `autoAdvanceDue` take
@@ -367,7 +386,8 @@ type ReviewEffect = { record: { wordId: number; correctFirstTry: boolean; typed:
   The comparison is `normalizeWord(typed) === card.answer`, and the diff is
   `spellingDiff(card.form, typed)`.
 - `record` effects are dropped in practice mode.
-- A card that becomes current yields `markShown`, in practice mode too.
+- A card that becomes current (after `loaded`, and on `advance` unless finished) yields
+  `markShown` if it has an example, in practice mode too.
 - `ending`, `position`, `total` and `blankedExample` are derived as in `ReviewUiState`.
 - `ReviewScreen` runs the effects: `recordReview`, `markShown`, and a timer of
   `container.autoAdvanceMillis` that is cleared on unmount.
@@ -420,9 +440,10 @@ The paste dialog follows `copy-prompt`:
   summary. The rename and replace lines appear under the same conditions.
 - Use this (`add_word_paste_use`, enabled only for a valid answer) and Cancel.
 
-Copy prompt calls `platform.copyText(lookupPrompt(state.text))`. Then it shows "Prompt
-copied.", or "Couldn't copy the prompt." when the copy fails (web-only). The app never
-reads the clipboard.
+Copy prompt calls `platform.copyText(lookupPrompt(state.text))` synchronously in the
+click handler, before any `await`, since Safari refuses a clipboard write outside the
+tap. Then it shows "Prompt copied.", or "Couldn't copy the prompt." when the copy fails
+(web-only). The app never reads the clipboard.
 
 **Word list** (`words/`). `wordListState.ts` holds `query`, `filter`, `filterCounts`,
 `rows`, `totalCount`, `loading` and `isFiltering`, built with `filterRows` and
@@ -467,7 +488,7 @@ package, and `ui.test.ts` in `web/test/golden/`.
 |---|---|---|
 | `statusLabel(word, today)` | `ui/words/WordListViewModel.kt` | suspended, new, due today, overdue, tomorrow, in N days |
 | `noMatchesBody(query, filter)` | same | the three branches |
-| `filterRows(words, query, filter, today)` | new top-level `internal fun` in the same file, moved out of `WordListViewModel.filtered` unchanged | a form-only match ("practise" finds "practice"), case and spacing, a filter and query together, blank query; the output is `{ text, status, definition }` per row |
+| `filterRows(words, query, filter, today)` | top-level in the same file: `word-forms` may already have pulled it out of `WordListViewModel.filtered`; if not, this piece moves it unchanged | a form-only match ("practise" finds "practice"), case and spacing, a filter and query together, blank query; the output is `{ text, status, definition }` per row |
 | `completionHeadline(nextDueDay, today)` | `ui/complete/CompletionPanel.kt` | tomorrow, later, null |
 | `importMessage(added, skipped)` | new top-level `fun` in `SettingsViewModel.kt`, moved out of `importFrom`'s `buildString` unchanged | 0/0, 1/0, 2/0, 1/3 |
 | `blankedExample(form, example)` | `ReviewUiState.blankedExample` for a one-card queue | no example, blank, found, not found |
@@ -497,8 +518,9 @@ leaving out `sw.js` and source maps, and replaces `__VERSION__` with the first 1
 digits of a SHA-256 over every file's name and contents in sorted order. Any change to
 any file therefore changes the version. The `precache()` plugin calls it in
 `generateBundle` with the bundle and the copied `public/` files, and emits `sw.js`.
-`main.tsx` registers it with `navigator.serviceWorker.register("./sw.js")` after `load`,
-in production only (`import.meta.env.PROD`).
+`registerServiceWorker()` in `browserPlatform.ts` calls
+`navigator.serviceWorker.register("./sw.js")` after `load`, where service workers exist;
+`main.tsx` calls it in production only (`import.meta.env.PROD`).
 
 ### Manifest and icons
 
@@ -659,10 +681,12 @@ every later step uses.
 Tests:
 
 - `router.test.ts`: `parseRoute`/`routeHash` both ways for each route, unknown routes
-  become home, a non-numeric edit id becomes home, and `back` replaces when nothing was
-  pushed.
+  become home, a non-numeric edit id becomes home, `useRoute` follows `navigate`,
+  `replace` and `popstate`, `back` replaces when nothing was pushed, and after a push
+  and the browser's back (`history.back()`), `back` replaces rather than leaving the
+  app's history.
 - `testIds.test.ts`, as above.
-- `common.test.tsx`: Dialog opens and closes, Escape dismisses it; Snackbar shows one
+- `common.test.tsx`: Dialog opens and closes, its `cancel` event (Escape) dismisses it; Snackbar shows one
   message then clears; Stepper's buttons are disabled at its bounds.
 - The `ui.json` runners on both sides.
 
@@ -820,9 +844,10 @@ Acceptance:
 
 ### build-6: offline, install and the smoke suite (Sonnet, high)
 
-"Service worker", "Manifest and icons", "Smoke tests", `web.yml` and `ci.yml`'s use of
-it. High effort: service worker caching and browser automation are where the
-environment differs from local runs.
+"Service worker" (with `registerServiceWorker()` and its call in `main.tsx`), "Manifest
+and icons", "Smoke tests", `web.yml` and `ci.yml`'s use of it. High effort: service
+worker caching and browser automation are where the environment differs from local
+runs.
 
 Tests: `test/build/precache.test.ts` checks the following.
 
@@ -882,8 +907,7 @@ Review the whole piece against this spec and `GOALS.md`, independently. In parti
   first-attempt and no records in practice;
 - nothing in `web/src` reads `Date.now()`, `Math.random()` or the time zone except
   web-core's `clock.ts` and `random.ts`;
-- nothing touches `navigator` outside `browserPlatform.ts` and `main.tsx`'s service
-  worker registration;
+- nothing touches `navigator` outside `browserPlatform.ts`;
 - the CSP has no `'unsafe-inline'` and no other origin;
 - the service worker precaches every built file and nothing else;
 - `PRIVACY.md` says what the web app stores and sends;
@@ -909,8 +933,8 @@ it. No version bump: the piece is web-only (the decision on releases), and the
     or `home_practice_count` works on both.
   - Playwright is installed in `web/`, with `playwright.config.ts` (its `webServer`
     and `baseURL`) and the console-error fixture. The Gherkin runner reuses them.
-  - `<App container>` takes any repository, clock, fuzz, random and
-    `autoAdvanceMillis`, so a test-only entry (not in the production build) can mount
+  - `<App container>` takes any repository (built with any clock, fuzz and random),
+    clock, platform and `autoAdvanceMillis`, so a test-only entry (not in the production build) can mount
     the app with a test clock and fixed fuzz and expose a seed hook over
     `addWord`/`importBackup`. That is the web's `SeedWordsActivity`, which
     `shared-specs` builds.

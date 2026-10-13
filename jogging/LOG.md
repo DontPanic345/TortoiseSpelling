@@ -104,3 +104,10 @@ test-tag values as `data-testid` (checked by a parity test), and `golden/ui.json
 hand-written service worker, a CSP limiting the app to its own origin, a Playwright smoke suite in Chromium and WebKit,
 and `pages.yml`. Pages has to be enabled once by Alan; build-7 blocks on that only if the deploy fails. Added
 build-1 to build-7 and review, all Sonnet (build-1, 3, 4, 6 and review at high effort).
+
+## 2026-10-13 17:30 web-ui/spec-review (opus)
+Spec holds up against the goals and the code (ReviewViewModel, TestTags.kt, SettingsViewModel's import message, web-core's repository).
+Fixed: review transitions return a list of effects, since a correct first try both records and auto-advances; the router
+uses pushState with a depth and notifies itself (pushState fires no hashchange); export falls back to download when Safari
+refuses a late share; Copy prompt writes before any await; jsdom stubs for dialog and scrollIntoView; SW registration lives
+in browserPlatform; `lastExportedAt` gets its repository calls; `filterRows` may already be moved by word-forms.
