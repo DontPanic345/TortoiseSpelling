@@ -99,7 +99,7 @@
           "title": "CI data-layer job on an API 26 emulator; CLAUDE.md and the testing plan doc",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "review",

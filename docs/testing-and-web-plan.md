@@ -13,10 +13,10 @@ implement against. Items marked **(unverified)** are things I believe but haven'
 - **End-to-end:** `e2e/` has 9 Gherkin feature files, run by WebdriverIO + Cucumber through
   Appium's UiAutomator2 driver against the real APK. CI runs only `check-steps` and
   `typecheck` for it, because the scenarios need an emulator.
-- **Gaps:** there is no `app/src/androidTest/` at all. That means no Room DAO tests, no
-  component tests, and no migration tests. The 1→2 migration is untested even though Room
-  has no destructive fallback and the word list is the one thing a user can't recreate.
-  `androidx-room-testing` is already in `gradle/libs.versions.toml` but unused.
+- **Data layer:** `app/src/androidTest/.../data/` holds the migration tests (1→2 and the
+  chain from version 1), the Room DAO tests and a few repository tests, run in CI on an
+  API 26 emulator.
+- **Gaps:** component and integration tests, which `test-ui-layers` adds.
 
 ## Goals
 

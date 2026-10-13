@@ -21,6 +21,9 @@ Gradle needs `JAVA_HOME`; on this machine use Android Studio's JBR
 ./gradlew testDebugUnitTest --tests '*SrsTest'                  # one class
 ./gradlew testDebugUnitTest --tests '*DaysTest.a quiet*'        # one method (backtick names)
 ./gradlew lintDebug                           # CI fails on lint errors, not warnings
+./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=io.github.dontpanic345.tortoisespelling.data
+                                              # data layer tests, on the emulator (set ANDROID_SERIAL)
+./gradlew assembleDebugAndroidTest            # compile the instrumented tests, no device
 node --test 'scripts/*.test.mjs'              # script tests (quote the glob)
 node scripts/icon.mjs                         # regenerate the app and notification icons
 adb install -r app/build/outputs/apk/debug/app-debug.apk       # install the debug APK
@@ -30,12 +33,20 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk       # install the deb
 |---|---|---|
 | Unit tests | `app/src/test/` | JVM, no device |
 | Live-API integration test | `ClaudeIntegrationTest` | JVM, real Anthropic API |
+| Data tests | `app/src/androidTest/.../data/` | Emulator, real SQLite |
 | End-to-end BDD tests | [`e2e/`](e2e/README.md) | The real APK on an emulator |
 | Script tests | `scripts/*.test.mjs` | Node, no device |
 
+Each instrumented layer has its own package under `androidTest`, selected with the runner's
+`package` argument.
+
 - **CI** (`.github/workflows/ci.yml`) runs the unit tests, `lintDebug`, the script tests and
-  the e2e `check-steps`/`typecheck` on pushes to main and on PRs. It doesn't run the Appium
-  scenarios.
+  the e2e `check-steps`/`typecheck` on pushes to main and on PRs. It also runs the data
+  layer on an API 26 emulator. It doesn't run the Appium scenarios.
+
+- **Connected tests** run on every attached device and uninstall the app afterwards, which
+  deletes its data. Set `ANDROID_SERIAL` to the emulator, and never run them on a phone
+  with real data.
 
 - **Live API tests.** `ClaudeIntegrationTest` is skipped unless `TORTOISESPELLING_ANTHROPIC_KEY`
   is set. Gradle doesn't treat env vars as task inputs, so add `--rerun`; otherwise the task
@@ -151,7 +162,9 @@ the add/edit screen, has Claude rewrite its definition and example.
   a device restore), it's treated as absent.
 - Room has **no** `fallbackToDestructiveMigration`. Schemas are exported to `app/schemas/`,
   so any entity change needs a version bump and a real `Migration`. Version 2 added
-  `autoRefresh` and `refreshedOn` to `words`.
+  `autoRefresh` and `refreshedOn` to `words`. A schema change also appends its `Migration`
+  to `ALL_MIGRATIONS`, bumps `DATABASE_VERSION`, and adds a test to `MigrationTest` that
+  seeds the previous version and checks every column comes through.
 - Backups are versioned JSON (`data/Backup.kt`); import merges and never overwrites
   existing words' progress.
 - Android Auto Backup is gated behind `Settings.cloudBackupEnabled` (off by default) via

@@ -167,3 +167,6 @@ Oddity: `connectedDebugAndroidTest` exits "There were failing tests" on the S23 
 
 ## 2026-10-13 20:16 test-data-layer/build-2 (sonnet)
 Added `TortoiseSpellingDaoTest` (17 tests: every query, unique index, cascade and FK refusal) and `WordRepositoryTest` (4: add, rename duplicate, import merge, stale-snapshot `recordReview`). Unit tests, lint and `assembleDebugAndroidTest` pass; all 24 data-layer tests pass on the S23 via install + `am instrument` (gradle connected task not used, per build-1's note). Mutating `dueWords` to `<` fails the DAO test (and `MigrationTest`); reverted. No app bugs found, so no CHANGELOG line or e2e.
+
+## 2026-10-13 20:40 test-data-layer/build-3 (sonnet)
+Added the `data` job to `ci.yml` (API 26, x86_64, KVM enabled, 45 min timeout, report upload on failure; header comment updated) and the CLAUDE.md and testing-plan docs. Not verified: this cloud session has no working `gh` login, so I couldn't watch the run. The `review` step must check the `data` job is green on main and that it ran 24 tests; if the connected task's exit-code oddity from build-1 shows up on the emulator, fix it there.
