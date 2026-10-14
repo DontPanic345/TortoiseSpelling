@@ -12,3 +12,9 @@ Small items that don't have their own design doc yet. Larger ideas live in `docs
       See [copy-prompt-lookup.md](copy-prompt-lookup.md) for the replacement.
 - [x] Word forms and multiple definitions: see [word-forms.md](word-forms.md).
 - [ ] Test layers and web app: see [testing-and-web-plan.md](testing-and-web-plan.md).
+- [ ] Install Matt Pocock's skills with npm/npx; the marketplace plugin is out of date.
+- [ ] Use the writing-for-agents skill to tear apart `CLAUDE.md`.
+- [ ] Fix the auto-mode classifier blocking the release bump properly. It denied
+      `node scripts/bump-version.mjs patch` twice in `test-ui-layers/review` as a production
+      deploy (see `jogging/LOG.md`, 14/10/2026).
+- [ ] Opus review of the proposal, protocol and Phase 0: the step missing from Start Jogging.
