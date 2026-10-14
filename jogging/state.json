@@ -199,7 +199,8 @@
           "title": "Review the piece",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "pending",
+          "attempts": 1
         }
       ]
     },
