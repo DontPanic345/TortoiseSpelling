@@ -27,7 +27,10 @@ is now. It must contain:
 - The design: data model, screens, files touched, migrations, docs to update
   (`CLAUDE.md`, `README.md`, `PRIVACY.md`, `CHANGELOG.md`).
 - **Build steps** small enough for one session each. Every step has a runnable
-  acceptance check: the exact commands, and what passing looks like.
+  acceptance check: the exact commands, and what passing looks like. Name e2e features
+  only for a step that adds or changes a feature or its steps, or changes what the steps
+  find or assert (test tags, text, the order of screens). Logic and data changes are
+  proven by unit and instrumented tests, and the review step runs the whole suite.
 - The **model and effort** for each build step and for the final review step. Default
   to Sonnet; use Haiku for mechanical work. Opus needs a one-line justification in the
   spec, review steps included.
@@ -51,8 +54,8 @@ earlier pieces are built as specified.
 ## Phase 2: build
 
 **Build step.** Do exactly what the step in the spec says, then run its acceptance check.
-Follow `CLAUDE.md`'s Workflow: unit tests and lint, plus the e2e suite on the emulator
-when the step touches the app or `e2e/`. Start the emulator if `adb devices` lists none
+Follow `CLAUDE.md`'s Workflow for unit tests and lint, but run only the e2e features the
+acceptance check names, and none if it names none. Start the emulator if `adb devices` lists none
 (`emulator -avd Medium_Phone -no-window -no-audio`, from `$ANDROID_HOME/emulator`) and
 stop it when you're done (`adb emu kill`). Add a `CHANGELOG.md` line for user-visible
 changes. Commit and push when the check passes.
@@ -62,8 +65,7 @@ If the spec turns out wrong, fix the spec in the same commit and say so in the l
 **In the cloud.** A Cloud Routine runs the crew with `--cloud`; your prompt says so.
 There's no emulator: `ANDROID_SERIAL` points at a real phone (a Galaxy S23) over
 Tailscale, and e2e and connected tests run on it. Every Appium call crosses the link, so
-e2e runs about 20 times slower than on an emulator: a build step runs only the
-feature files that cover what it changed, and the `review` step runs the whole suite.
+e2e runs about 20 times slower than on an emulator.
 Don't wait on the phone forever: if `adb devices` doesn't list it, rerun
 `bash jogging/cloud-setup.sh`, and if that fails, it's a blocker. Never run
 `adb emu kill`.

@@ -553,7 +553,6 @@ Acceptance:
 <layer accessibility>
 ./gradlew updateDebugScreenshotTest    # look at the review references: only the new state differs
 ./gradlew validateDebugScreenshotTest
-<e2e review completion daily_allowance>
 ```
 
 - Temporarily make `pickCard` always take the first candidate: `RotationJourneyTest`
@@ -641,7 +640,6 @@ Acceptance:
 ./gradlew assembleDebug testDebugUnitTest lintDebug assembleDebugAndroidTest
 <layer data>
 <layer component>
-<e2e word_list backup>
 grep -n "Unreleased" -A12 CHANGELOG.md   # the Added and Changed lines are there
 ```
 

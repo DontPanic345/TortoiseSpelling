@@ -464,7 +464,6 @@ git status --short app/schemas         # only the new 4.json
 grep -rn "autoRefresh\|refreshedOn" app/src/main   # only MIGRATION_1_2, MIGRATION_3_4 and their KDocs
 <layer data>                           # every test, including the two new migration tests
 <layer integration>                    # SchedulingJourneyTest and RotationJourneyTest unchanged and passing
-<e2e backup word_list review>
 ```
 
 - Temporarily leave `lapses` out of the `_new_words` copy: the 3→4 test fails.
