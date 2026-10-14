@@ -69,6 +69,8 @@ Each instrumented layer has its own package under `androidTest`, selected with t
   `android`, alias `androiddebugkey`).
 - **R8 is on for release.** Anything that works in debug but reflects on classes must be
   re-checked on a release build on a device. Lint-vital runs as part of `assembleRelease`.
+  `npm run e2e:release` (from `e2e/`, with `APK` set to the release APK) runs the one
+  `@release-smoke` journey; `release-smoke.yml` runs it on CI and `release.yml` waits for it.
 - **E2E tests** live in `e2e/`, with their own npm project. From `e2e/`:
   - `npm run e2e`: needs a running emulator and a built debug APK.
   - `npm run e2e -- --spec features/<name>.feature`: one feature file.
@@ -227,8 +229,8 @@ There are no pull requests, no branches and no branch protection; work directly 
 
 Merging a version bump to main releases it. `.github/workflows/release.yml` runs on every
 push to main and does nothing if `v<versionName>` is already tagged. Otherwise it runs
-`ci.yml`, builds a signed, R8-minified APK from four repo secrets, and publishes it to
-GitHub Releases, creating the tag only then; don't push tags by hand. There is no Play
+`ci.yml` and `release-smoke.yml`, builds a signed, R8-minified APK from four repo secrets,
+and publishes it to GitHub Releases, creating the tag only then; don't push tags by hand. There is no Play
 Store listing. A failed release is re-run from the Actions tab (it runs on main only).
 
 - **Changelog.** `CHANGELOG.md` follows Keep a Changelog. Any user-visible change adds a

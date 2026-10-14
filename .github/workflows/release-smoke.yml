@@ -1,0 +1,75 @@
+name: Release smoke test
+
+# One e2e journey against the R8-minified release build, on an emulator. R8 bugs (Room,
+# backup serialization, WorkManager, navigation) only show up there. The APK is signed
+# with a throwaway key, never the release secrets: same commit and R8 configuration as
+# the published APK, different signature. release.yml calls this before it publishes.
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Release build smoke test (emulator)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Build a release APK signed with a throwaway key
+        run: |
+          keytool -genkeypair -keystore "$RUNNER_TEMP/smoke.keystore" -storepass android -keypass android \
+            -alias smoke -keyalg RSA -keysize 2048 -validity 1 -dname CN=smoke
+          ./gradlew assembleRelease
+        env:
+          RELEASE_KEYSTORE_PATH: ${{ runner.temp }}/smoke.keystore
+          RELEASE_KEYSTORE_PASSWORD: android
+          RELEASE_KEY_ALIAS: smoke
+          RELEASE_KEY_PASSWORD: android
+
+      - name: Install e2e dependencies
+        working-directory: e2e
+        run: npm ci
+
+      # API 33+ is needed for the notification permission the scenario's reset grants.
+      - name: Release smoke journey
+        uses: reactivecircus/android-emulator-runner@v2
+        env:
+          APK: ${{ github.workspace }}/app/build/outputs/apk/release/app-release.apk
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          working-directory: e2e
+          script: npm run e2e:release
+
+      - name: Upload e2e logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-smoke-logs
+          path: e2e/logs/

@@ -12,10 +12,11 @@ export const APK_PATH =
 
 /**
  * Scenarios that run by default. @todo marks steps not implemented yet, @live-api needs
- * a real Anthropic key typed into the app, @slow waits minutes for a real reminder.
+ * a real Anthropic key typed into the app, @slow waits minutes for a real reminder,
+ * @release-smoke needs a release APK (it seeds nothing) and runs via `npm run e2e:release`.
  * Override with --cucumberOpts.tags="..." or the E2E_TAGS environment variable.
  */
-export const DEFAULT_TAGS = 'not @todo and not @live-api and not @slow';
+export const DEFAULT_TAGS = 'not @todo and not @live-api and not @slow and not @release-smoke';
 
 /** Where failure artifacts (page source, screenshots) and the Appium log go. */
 export const LOG_DIR = path.resolve(import.meta.dirname, '../logs');

@@ -94,7 +94,7 @@ To cut one:
 On every push to main, the [release workflow](.github/workflows/release.yml) checks
 whether `versionName` has been released yet. If not, it refuses a version that doesn't
 raise `versionCode` or has no changelog notes, runs the [CI](.github/workflows/ci.yml)
-tests, then builds an R8-minified APK, signs it
+tests and a smoke test of the R8-minified build on an emulator, then builds that APK, signs it
 with the keystore held in the repo's Actions secrets, and publishes it with that version's
 changelog section as the release notes, creating the `v<versionName>` tag as it does. Every future update must be signed with that
 same keystore, so keep an offline backup of it.

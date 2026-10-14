@@ -9,7 +9,8 @@ name: Release
 # along with the release. Nobody pushes tags by hand.
 #
 # Nothing is built unless versionCode is higher than the previous release's and
-# CHANGELOG.md has notes for the version. The release notes are that section. Re-run it
+# CHANGELOG.md has notes for the version. The release notes are that section. A release
+# also waits for the release-build smoke run (release-smoke.yml). Re-run it
 # from the Actions tab (main only) after fixing a failed release.
 
 on:
@@ -67,8 +68,14 @@ jobs:
     if: needs.check.outputs.release == 'true'
     uses: ./.github/workflows/ci.yml
 
+  smoke:
+    name: Release smoke test
+    needs: check
+    if: needs.check.outputs.release == 'true'
+    uses: ./.github/workflows/release-smoke.yml
+
   build-and-release:
-    needs: [check, test]
+    needs: [check, test, smoke]
     runs-on: ubuntu-latest
     permissions:
       contents: write

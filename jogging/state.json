@@ -183,7 +183,7 @@
           "title": "Release smoke run",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-7",

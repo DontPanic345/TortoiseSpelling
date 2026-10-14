@@ -6,6 +6,7 @@
   "scripts": {
     "e2e": "wdio run ./wdio.conf.ts",
     "e2e:slow": "wdio run ./wdio.conf.ts --cucumberOpts.tags=@slow",
+    "e2e:release": "wdio run ./wdio.conf.ts --cucumberOpts.tags=@release-smoke",
     "check-steps": "node --import tsx scripts/checkSteps.ts",
     "typecheck": "tsc --noEmit"
   },

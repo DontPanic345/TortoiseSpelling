@@ -35,10 +35,11 @@ Start an emulator (Android Studio's Device Manager, or `emulator -avd <name>`) s
 
 | Command | What it does |
 |---|---|
-| `npm run e2e` | Every scenario not tagged `@todo`, `@live-api` or `@slow` |
+| `npm run e2e` | Every scenario not tagged `@todo`, `@live-api`, `@slow` or `@release-smoke` |
 | `npm run e2e -- --spec features/add_word.feature` | One feature file |
 | `npm run e2e -- --cucumberOpts.tags="@network"` | Scenarios matching a tag expression |
 | `npm run e2e:slow` | The multi-minute `@slow` scenarios |
+| `npm run e2e:release` | The `@release-smoke` journey, against a release APK (set `APK`) |
 | `npm run check-steps` | Device-free check that every step of the default run is defined (~1 s) |
 | `npm run check-steps -- --all` | The same over every scenario, and fails on unused step definitions (CI runs this) |
 | `npm run typecheck` | TypeScript check |
@@ -51,8 +52,15 @@ RELEASE_KEYSTORE_PATH=~/.android/debug.keystore RELEASE_KEYSTORE_PASSWORD=androi
 ```
 
 ```bash
-APK=../app/build/outputs/apk/release/app-release.apk npm run e2e
+APK=../app/build/outputs/apk/release/app-release.apk npm run e2e:release
 ```
+
+`e2e:release` runs the one `@release-smoke` journey: add a word, get the test
+notification, review it and export and import a backup, which touches Room, WorkManager,
+backup serialization and navigation. The release build has no `SeedWordsActivity`, so the
+default scenarios can't run against it. [`release-smoke.yml`](../.github/workflows/release-smoke.yml)
+runs it on an API 34 emulator, signed with a throwaway key, and `release.yml` waits for it
+before publishing.
 
 ### Tags
 
@@ -62,6 +70,7 @@ APK=../app/build/outputs/apk/release/app-release.apk npm run e2e
 | `@live-api` | Types a real Anthropic key into the app's Settings. For a human to run, with `TORTOISESPELLING_ANTHROPIC_KEY` set |
 | `@slow` | Waits minutes for something real, e.g. a scheduled reminder |
 | `@network` | Needs internet (uses only a deliberately fake key) |
+| `@release-smoke` | The release-build journey; seeds nothing, so it runs only through `npm run e2e:release` |
 
 ## How it's put together
 
