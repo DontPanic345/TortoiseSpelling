@@ -10,13 +10,23 @@ implement against. Items marked **(unverified)** are things I believe but haven'
 - **Unit tests:** 19 JVM test files in `app/src/test/` (mostly `domain/` and parsing, plus
   a few UI-state helpers). One of them, `ClaudeIntegrationTest`, calls the live API and is
   skipped without a key. There are no ViewModel tests by name.
-- **End-to-end:** `e2e/` has 9 Gherkin feature files, run by WebdriverIO + Cucumber through
+- **End-to-end:** `e2e/` has 10 Gherkin feature files, run by WebdriverIO + Cucumber through
   Appium's UiAutomator2 driver against the real APK. CI runs only `check-steps` and
-  `typecheck` for it, because the scenarios need an emulator.
-- **Data layer:** `app/src/androidTest/.../data/` holds the migration tests (1→2 and the
-  chain from version 1), the Room DAO tests and a few repository tests, run in CI on an
-  API 26 emulator.
-- **Gaps:** component and integration tests, which `test-ui-layers` adds.
+  `typecheck` for it, because the scenarios need an emulator. The `@release-smoke` journey
+  runs against the R8 release APK from `release-smoke.yml`, which `release.yml` waits for.
+- **Data layer:** 24 tests in `app/src/androidTest/.../data/`: the migration tests (1→2 and
+  the chain from version 1), the Room DAO tests and a few repository tests.
+- **Component layer:** 36 tests in `.../component/`, one screen's `XContent` with fake state.
+- **Integration layer:** 5 journeys in `.../integration/`: the real nav graph and repository
+  over an in-memory database and a `TestClock`.
+- **Accessibility layer:** 10 tests in `.../accessibility/`, each screen state in light and
+  dark (20 runs), through Compose's accessibility-check integration.
+- **Screenshots:** 20 previews in `app/src/screenshotTest/`, validated on the JVM against the
+  committed references.
+- **CI:** `ci.yml` runs the unit tests and lint, the script and e2e checks, the screenshots,
+  and the data, component, integration and accessibility layers as an `instrumented`
+  matrix of emulator jobs.
+- **Gaps:** none in the Android layers; the web app is still to come.
 
 ## Goals
 

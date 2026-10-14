@@ -53,8 +53,10 @@ Each instrumented layer has its own package under `androidTest`, selected with t
 `package` argument.
 
 - **CI** (`.github/workflows/ci.yml`) runs the unit tests, `lintDebug`, the script tests and
-  the e2e `check-steps`/`typecheck` on pushes to main and on PRs. It also runs the data
-  layer on an API 26 emulator. It doesn't run the Appium scenarios.
+  the e2e `check-steps`/`typecheck` on pushes to main and on PRs. It also validates the
+  screenshots and runs the data, component, integration and accessibility layers, one
+  `instrumented` matrix job each (API 26 emulators; API 34 for accessibility). It doesn't
+  run the Appium scenarios; their release smoke runs from `release.yml`.
 
 - **Connected tests** run on every attached device and uninstall the app afterwards, which
   deletes its data. Set `ANDROID_SERIAL` to the emulator, and never run them on a phone

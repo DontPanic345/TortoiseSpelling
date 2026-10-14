@@ -4,8 +4,10 @@ name: CI
 # request. release.yml calls this too, so a release can't be built from a commit whose
 # tests fail.
 #
-# The screenshot tests validate on the JVM. # The data layer's instrumented tests run on an API 26 emulator. The Appium e2e suite
-# isn't run here: run it locally (see e2e/README.md). ClaudeIntegrationTest is skipped because there's no API key here.
+# The screenshot tests validate on the JVM. The data, component, integration and
+# accessibility layers run as instrumented tests on an emulator, one job each. The Appium
+# e2e suite isn't run here: run it locally (see e2e/README.md); its release smoke runs from
+# release.yml. ClaudeIntegrationTest is skipped because there's no API key here.
 
 on:
   push:
@@ -70,10 +72,25 @@ jobs:
         working-directory: e2e
         run: npm run typecheck
 
-  data:
-    name: Data layer tests (emulator)
+  instrumented:
+    name: ${{ matrix.layer }} tests (emulator)
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        # API 26 is the app's minSdk, so its SQLite (3.18) and Compose runtime are the
+        # oldest any user has. The accessibility checks are about colours, sizes and labels,
+        # which don't vary with the API level, and may not run on old APIs at all.
+        include:
+          - layer: data
+            api-level: 26
+          - layer: component
+            api-level: 26
+          - layer: integration
+            api-level: 26
+          - layer: accessibility
+            api-level: 34
     steps:
       - uses: actions/checkout@v7
 
@@ -90,21 +107,20 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      # API 26 is the app's minSdk, so its SQLite (3.18) is the oldest any user has.
-      - name: Data layer tests
+      - name: ${{ matrix.layer }} tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 26
+          api-level: ${{ matrix.api-level }}
           arch: x86_64
           target: default
           disable-animations: true
-          script: ./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=io.github.dontpanic345.tortoisespelling.data
+          script: ./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=io.github.dontpanic345.tortoisespelling.${{ matrix.layer }}
 
       - name: Upload test reports
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: data-reports
+          name: ${{ matrix.layer }}-reports
           path: |
             app/build/reports/androidTests/
             app/build/outputs/androidTest-results/
@@ -129,4 +145,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: screenshot-reports
-          path: app/build/reports/screenshotTest/
+          path: |
+            app/build/reports/screenshotTest/
+            app/build/outputs/screenshotTest-results/
