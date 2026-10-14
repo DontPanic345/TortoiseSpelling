@@ -260,7 +260,7 @@
           "title": "Search by form, backup definitions tree with flat root-card fields, docs and CHANGELOG",
           "model": "sonnet",
           "effort": "medium",
-          "status": "done"
+          "status": "pending"
         },
         {
           "id": "review",
@@ -390,7 +390,7 @@
           "title": "e2e config and log filter cleanup, docs and changelog",
           "model": "sonnet",
           "effort": "medium",
-          "status": "done"
+          "status": "pending"
         },
         {
           "id": "review",
@@ -458,7 +458,7 @@
           "title": "IndexedDB storage and the repository, repository and journey tests, CLAUDE.md, web and golden READMEs, the plan doc",
           "model": "sonnet",
           "effort": "high",
-          "status": "done"
+          "status": "pending"
         },
         {
           "id": "review",
@@ -526,7 +526,7 @@
           "title": "Add and edit: the tree editor, Copy prompt and the paste dialog, save and delete",
           "model": "sonnet",
           "effort": "high",
-          "status": "done"
+          "status": "pending"
         },
         {
           "id": "build-5",
@@ -678,7 +678,7 @@
           "title": "push.yml deploy (blocker if the Cloudflare secrets aren't set), live checks, PUSH_SERVER, PRIVACY.md and the other docs, the phone's Chrome check",
           "model": "sonnet",
           "effort": "medium",
-          "status": "done"
+          "status": "pending"
         },
         {
           "id": "review",
