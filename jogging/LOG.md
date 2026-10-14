@@ -213,3 +213,7 @@ NOT finished: the `node scripts/bump-version.mjs patch` (0.4.1, for build-4's co
 ## 2026-10-14 22:00 test-ui-layers/review (sonnet)
 Second attempt at the finishing step: `node scripts/bump-version.mjs patch` was denied again by the session's permission classifier (production deploy, since a version bump on main releases). Nothing else changed; the step stays `pending`.
 Needs Alan: run `node scripts/bump-version.mjs patch` himself (or allow it for Jogging sessions), commit, push, then mark `test-ui-layers/review` and the piece done. Main's CI and `release-smoke.yml` are still unchecked (no working `gh` login).
+
+## 2026-10-14 Note for the next session (from Alan's support session)
+The 0.4.1 bump is already on main (versionCode 6, CHANGELOG dated), and CLAUDE.md now allows minor and patch bumps, so `test-ui-layers/review` only needs its finishing step: confirm `versionName` is 0.4.1, mark the step and the piece done, commit, push.
+`gh` is broken in the cloud (invalid GH_TOKEN, 401): see "`gh` is broken in the cloud" in PROTOCOL.md for the curl and git-push routes. `jog.mjs` now retries a 401 read without the token, so it no longer crashes when raising a blocker.

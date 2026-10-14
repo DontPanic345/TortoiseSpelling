@@ -68,6 +68,18 @@ Don't wait on the phone forever: if `adb devices` doesn't list it, rerun
 `bash jogging/cloud-setup.sh`, and if that fails, it's a blocker. Never run
 `adb emu kill`.
 
+**`gh` is broken in the cloud.** The `GH_TOKEN` there is invalid, so `gh` commands fail
+with 401. Don't spend a step on it, and don't make it a blocker:
+- Reads need no token because the repo is public. Use `curl -sS` against the REST API,
+  e.g. `https://api.github.com/repos/DontPanic345/TortoiseSpelling/actions/runs?branch=main&per_page=5`,
+  then `.../actions/runs/<id>/jobs` for the job results. (Add `-o <file>` and read the file
+  rather than piping into `head`, which cuts curl off.)
+- Writes go through git. `git push` works, and the outbox (`jogging/outbox.jsonl`, posted by
+  `jogging-notify.yml`) is how you reach Alan.
+- You can't dispatch a workflow. Pushes to main already run `ci.yml`, so check that run.
+  `release-smoke.yml` only runs on dispatch or from `release.yml`; say in the log that it
+  is unchecked and move on.
+
 **`review` step.** Review the whole piece as built, independently, against its spec and
 the goals. Run the full checks again. Fix substantive findings yourself; leave nits.
 If the piece changes the Android app for users, finish with the release bump from

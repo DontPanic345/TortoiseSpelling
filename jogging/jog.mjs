@@ -200,7 +200,14 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const githubGet = async (route) => {
     const headers = { Accept: "application/vnd.github+json" };
     if (process.env.GH_TOKEN) headers.Authorization = `Bearer ${process.env.GH_TOKEN}`;
-    const res = await fetch(`https://api.github.com/repos/${GH_REPO}${route}`, { headers });
+    const url = `https://api.github.com/repos/${GH_REPO}${route}`;
+    let res = await fetch(url, { headers });
+    if (res.status === 401 && headers.Authorization) {
+        // A stale token turns a public read into a 401; the repo needs no token, so retry without it.
+        log("GH_TOKEN was rejected (401); reading unauthenticated");
+        delete headers.Authorization;
+        res = await fetch(url, { headers });
+    }
     if (!res.ok) throw new Error(`GitHub ${route}: HTTP ${res.status}`);
     return res.json();
 };
