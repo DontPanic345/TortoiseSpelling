@@ -6,3 +6,4 @@
 {"issue":11,"body":"✅ test-data-layer is done: androidTest scaffolding, Room DAO tests and the 1→2 migration test, per-layer Gradle tasks and CI"}
 {"title":"Jogging blocker: test-ui-layers","body":"Step review ended 2 times without finishing. See jogging/LOG.md and jogging/runs/.\n\nReply here, or close the issue, to unblock it."}
 {"issue":11,"body":"💥 Cloud run crashed:\n\n```\nGitHub /issues?state=open&per_page=100: HTTP 401\n```"}
+{"issue":11,"body":"✅ test-ui-layers is done: Injectable clock and fuzz, component and integration test layers, the specialised layer (screenshots, accessibility, R8 smoke)"}
