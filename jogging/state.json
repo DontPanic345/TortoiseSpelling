@@ -305,7 +305,7 @@
           "title": "The prompt and the paste parser (domain, JVM tests)",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-2",
