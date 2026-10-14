@@ -7,3 +7,4 @@
 {"title":"Jogging blocker: test-ui-layers","body":"Step review ended 2 times without finishing. See jogging/LOG.md and jogging/runs/.\n\nReply here, or close the issue, to unblock it."}
 {"issue":11,"body":"💥 Cloud run crashed:\n\n```\nGitHub /issues?state=open&per_page=100: HTTP 401\n```"}
 {"issue":11,"body":"✅ test-ui-layers is done: Injectable clock and fuzz, component and integration test layers, the specialised layer (screenshots, accessibility, R8 smoke)"}
+{"issue":11,"body":"⚠️ Cloud setup failed with exit 42: FAILED: phone not answering (adb: 127.0.0.1:15555 offline, device offline)"}
