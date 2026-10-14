@@ -159,7 +159,7 @@
           "title": "Integration tests",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-4",

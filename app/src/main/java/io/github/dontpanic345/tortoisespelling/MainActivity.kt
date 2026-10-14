@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
 }
 
 @androidx.compose.runtime.Composable
-private fun TortoiseSpellingNavHost(
+fun TortoiseSpellingNavHost(
     startInReview: Boolean,
     onReviewLaunchHandled: () -> Unit,
 ) {
