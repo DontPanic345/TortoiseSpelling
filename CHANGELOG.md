@@ -9,6 +9,8 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-14
+
 ### Added
 
 - The add and edit screen edits a word's whole content by hand: several definitions, other forms of the word (like "ran" for "run") with an optional label, and several example sentences for each, with a warning when an example doesn't contain its form.
@@ -142,7 +144,8 @@ The first release.
 - Backup export and import as JSON. Importing adds new words and never overwrites the
   progress of words you already have.
 
-[unreleased]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.4.1...HEAD
+[unreleased]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.2.0...v0.3.0
