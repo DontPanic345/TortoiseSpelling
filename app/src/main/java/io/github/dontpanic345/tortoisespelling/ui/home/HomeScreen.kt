@@ -79,13 +79,34 @@ fun HomeScreen(
     val container = rememberAppContainer()
     val viewModel: HomeViewModel = viewModel(factory = HomeViewModel.factory(container))
     val state by viewModel.state.collectAsStateWithLifecycle()
-    var menuOpen by remember { mutableStateOf(false) }
 
     // Counts move with the clock and with sessions finished elsewhere in the graph, so
     // they have to be re-read on resume rather than only when the screen is created.
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
 
     RequestNotificationPermissionIfNeeded(ready = !state.loading && state.hasWords)
+
+    HomeContent(
+        state = state,
+        onStartReview = onStartReview,
+        onPracticeMore = onPracticeMore,
+        onAddWord = onAddWord,
+        onOpenWords = onOpenWords,
+        onOpenSettings = onOpenSettings,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeContent(
+    state: HomeUiState,
+    onStartReview: () -> Unit,
+    onPracticeMore: () -> Unit,
+    onAddWord: () -> Unit,
+    onOpenWords: () -> Unit,
+    onOpenSettings: () -> Unit,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {

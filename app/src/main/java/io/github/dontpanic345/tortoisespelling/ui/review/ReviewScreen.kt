@@ -81,14 +81,32 @@ fun ReviewScreen(
         factory = ReviewViewModel.factory(container, practiceMode),
     )
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val focusRequester = remember { FocusRequester() }
-    val answerArea = remember { BringIntoViewRequester() }
-
     LaunchedEffect(state.finished, state.loading) {
         if (state.finished && !state.loading) {
             onFinished()
         }
     }
+
+    ReviewContent(
+        state = state,
+        onInputChange = viewModel::onInputChange,
+        onSubmit = viewModel::submit,
+        onShowAnswer = viewModel::showAnswer,
+        onQuit = onQuit,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ReviewContent(
+    state: ReviewUiState,
+    onInputChange: (String) -> Unit,
+    onSubmit: () -> Unit,
+    onShowAnswer: () -> Unit,
+    onQuit: () -> Unit,
+) {
+    val focusRequester = remember { FocusRequester() }
+    val answerArea = remember { BringIntoViewRequester() }
 
     // Re-focus for each word so the keyboard never has to be summoned by hand.
     LaunchedEffect(state.index, state.phase, state.loading) {
@@ -111,7 +129,7 @@ fun ReviewScreen(
             TopAppBar(
                 title = {
                     Text(
-                        if (practiceMode) "Extra practice" else "${state.position} / ${state.total}",
+                        if (state.practiceMode) "Extra practice" else "${state.position} / ${state.total}",
                     )
                 },
                 navigationIcon = {
@@ -163,12 +181,12 @@ fun ReviewScreen(
                     value = state.input,
                     phase = state.phase,
                     focusRequester = focusRequester,
-                    onValueChange = viewModel::onInputChange,
-                    onSubmit = viewModel::submit,
+                    onValueChange = onInputChange,
+                    onSubmit = onSubmit,
                 )
 
                 Spacer(Modifier.height(16.dp))
-                Feedback(word = word, phase = state.phase, onShowAnswer = viewModel::showAnswer)
+                Feedback(word = word, phase = state.phase, onShowAnswer = onShowAnswer)
             }
 
             // No Continue on the last word: the session closes itself a beat later, so
@@ -176,7 +194,7 @@ fun ReviewScreen(
             if (!state.ending) {
                 Spacer(Modifier.height(24.dp))
                 Button(
-                    onClick = viewModel::submit,
+                    onClick = onSubmit,
                     enabled = state.input.isNotBlank() || state.phase is ReviewPhase.Correct,
                     modifier = Modifier
                         .fillMaxWidth()

@@ -23,6 +23,8 @@ Gradle needs `JAVA_HOME`; on this machine use Android Studio's JBR
 ./gradlew lintDebug                           # CI fails on lint errors, not warnings
 ./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=io.github.dontpanic345.tortoisespelling.data
                                               # data layer tests, on the emulator (set ANDROID_SERIAL)
+./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=io.github.dontpanic345.tortoisespelling.component
+                                              # component tests: each screen's content alone, same device rules
 ./gradlew assembleDebugAndroidTest            # compile the instrumented tests, no device
 node --test 'scripts/*.test.mjs'              # script tests (quote the glob)
 node scripts/icon.mjs                         # regenerate the app and notification icons
@@ -34,6 +36,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk       # install the deb
 | Unit tests | `app/src/test/` | JVM, no device |
 | Live-API integration test | `ClaudeIntegrationTest` | JVM, real Anthropic API |
 | Data tests | `app/src/androidTest/.../data/` | Emulator, real SQLite |
+| Component tests | `app/src/androidTest/.../component/` | Emulator, one screen's `XContent` with fake state |
 | End-to-end BDD tests | [`e2e/`](e2e/README.md) | The real APK on an emulator |
 | Script tests | `scripts/*.test.mjs` | Node, no device |
 
@@ -82,6 +85,8 @@ Navigation is string routes in `ui/Nav.kt`, and the `NavHost` is in `MainActivit
 - `domain/`: pure Kotlin, no Android, and where the unit tests concentrate. Covers
   scheduling, session building, streaks, spelling diffs and word blanking.
 - `ui/<screen>/`: one Screen + ViewModel pair per screen, holding a `MutableStateFlow` of UI state.
+  Screens with component tests (Review, Home, word list) split into a stateful `XScreen` and an
+  `XContent` that takes state and callbacks and touches no ViewModel.
 - `notify/`: the reminder scheduler and worker.
 
 **Dates are epoch days, not millis.** `dueOn`, `firstReviewedOn` and `reviewedOn` are

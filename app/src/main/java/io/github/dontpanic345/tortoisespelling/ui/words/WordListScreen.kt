@@ -58,6 +58,29 @@ fun WordListScreen(
     val container = rememberAppContainer()
     val viewModel: WordListViewModel = viewModel(factory = WordListViewModel.factory(container))
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    WordListContent(
+        state = state,
+        onBack = onBack,
+        onEdit = onEdit,
+        onQueryChange = viewModel::onQueryChange,
+        onFilterChange = viewModel::onFilterChange,
+        onToggleSuspended = viewModel::toggleSuspended,
+        onDelete = viewModel::delete,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun WordListContent(
+    state: WordListUiState,
+    onBack: () -> Unit,
+    onEdit: (Long) -> Unit,
+    onQueryChange: (String) -> Unit,
+    onFilterChange: (WordFilter) -> Unit,
+    onToggleSuspended: (Word) -> Unit,
+    onDelete: (Word) -> Unit,
+) {
     var pendingDelete by remember { mutableStateOf<Word?>(null) }
 
     Scaffold(
@@ -75,7 +98,7 @@ fun WordListScreen(
         ) {
             OutlinedTextField(
                 value = state.query,
-                onValueChange = viewModel::onQueryChange,
+                onValueChange = onQueryChange,
                 label = { Text("Search") },
                 singleLine = true,
                 modifier = Modifier
@@ -89,7 +112,7 @@ fun WordListScreen(
                 WordFilterRow(
                     selected = state.filter,
                     counts = state.filterCounts,
-                    onSelect = viewModel::onFilterChange,
+                    onSelect = onFilterChange,
                 )
             }
 
@@ -113,7 +136,7 @@ fun WordListScreen(
                         WordListItem(
                             row = row,
                             onClick = { onEdit(row.word.id) },
-                            onToggleSuspended = { viewModel.toggleSuspended(row.word) },
+                            onToggleSuspended = { onToggleSuspended(row.word) },
                             onDelete = { pendingDelete = row.word },
                         )
                         HorizontalDivider()
@@ -131,7 +154,7 @@ fun WordListScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.delete(word)
+                        onDelete(word)
                         pendingDelete = null
                     },
                 ) {

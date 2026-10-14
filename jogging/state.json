@@ -151,7 +151,7 @@
           "title": "Screen content split and component tests",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-3",
