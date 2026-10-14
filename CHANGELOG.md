@@ -9,6 +9,11 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+### Changed
+
+- The app icon, themed icon and notification icon are the detailed tortoise again, now
+  drawn as vectors.
+
 ## [0.4.0] - 2026-10-13
 
 ### Changed

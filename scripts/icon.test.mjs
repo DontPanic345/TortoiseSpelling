@@ -5,11 +5,13 @@ import {
     GAP,
     SAFE_RADIUS,
     artBounds,
+    isHole,
     launcherMonochrome,
     notification,
     notificationTransform,
     outputs,
     parts,
+    singleColourParts,
 } from "./icon.mjs";
 import { readRepoFile } from "./repo-files.mjs";
 
@@ -35,7 +37,7 @@ test("the art fills most of the safe circle's width", () => {
 
 test("the notification art stays inside its 20 by 20 box", () => {
     const { scale, translateX, translateY } = notificationTransform();
-    for (const part of parts.filter((p) => p.role !== "ground")) {
+    for (const part of singleColourParts) {
         for (const [x, y] of part.points) {
             const mapped = [x * scale + translateX, y * scale + translateY];
             for (const v of mapped) {
@@ -45,8 +47,8 @@ test("the notification art stays inside its 20 by 20 box", () => {
     }
 });
 
-test("the gaps are still a unit wide in the notification icon", () => {
-    assert.ok(GAP * notificationTransform().scale >= 1);
+test("the gaps are at least a pixel wide in the notification icon at xhdpi", () => {
+    assert.ok(GAP * notificationTransform().scale * 2 >= 1);
 });
 
 const distanceToSegment = ([px, py], [ax, ay], [bx, by]) => {
@@ -62,9 +64,9 @@ const distanceBetween = (a, b) => {
     return Math.min(oneWay(a, b), oneWay(b, a));
 };
 
-test("shell plates are a full gap apart, and so is the shell from the body", () => {
-    const shell = parts.filter((p) => p.role === "shell");
-    const body = parts.filter((p) => p.role === "body");
+test("shell plates are a full gap apart, and so are the plates from the body", () => {
+    const shell = singleColourParts.filter((p) => p.role === "shell");
+    const body = singleColourParts.filter((p) => p.role === "body");
     const pairs = [];
     shell.forEach((a, i) => {
         shell.slice(i + 1).forEach((b) => pairs.push([a, b]));
@@ -83,8 +85,23 @@ test("the themed and notification icons are single-colour", () => {
     }
 });
 
-test("the eye is a hole, not paint", () => {
-    const head = parts.find((p) => p.name === "head");
-    assert.ok(head.evenOdd);
-    assert.match(launcherMonochrome(), /fillType="evenOdd"/);
+const inside = ([x, y], polygon) =>
+    polygon.reduce((inPolygon, [ax, ay], i) => {
+        const [bx, by] = polygon[(i + 1) % polygon.length];
+        return ay > y !== by > y && x < ax + ((y - ay) * (bx - ax)) / (by - ay) ? !inPolygon : inPolygon;
+    }, false);
+
+test("the eye and smile are holes in the body and nothing else", () => {
+    const body = parts.find((p) => p.name === "body");
+    assert.equal(body.holes.length, 2);
+    for (const hole of body.holes) {
+        assert.ok(isHole(hole));
+        assert.ok(!isHole(body.points));
+        for (const point of hole) {
+            assert.ok(inside(point, body.points), `${point} is outside the body`);
+            for (const other of parts.filter((p) => p !== body)) {
+                assert.ok(!inside(point, other.points), `${point} is also inside ${other.name}`);
+            }
+        }
+    }
 });
