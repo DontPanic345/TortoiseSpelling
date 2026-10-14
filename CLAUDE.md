@@ -240,7 +240,8 @@ Store listing. A failed release is re-run from the Actions tab (it runs on main 
   section, not generated notes.
 - **Version bump.** `node scripts/bump-version.mjs <major|minor|patch|X.Y.Z>` raises
   `versionName` and `versionCode` and moves `[Unreleased]` under a dated heading. It
-  doesn't commit or tag.
+  doesn't commit or tag. Bumping a minor or patch version is allowed without asking, and
+  that includes Jogging sessions; a major bump needs the owner's say-so.
 - **Release gate.** `scripts/check-release.mjs` fails the release unless `versionCode`
   beats the previous tag's and the changelog has notes; `--tag` prints `v<versionName>`. The
   logic is in `scripts/version.mjs`, which is pure and covered by `version.test.mjs`.
