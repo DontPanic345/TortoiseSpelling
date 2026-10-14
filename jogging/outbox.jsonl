@@ -5,3 +5,4 @@
 {"issue":11,"body":"☁️ Cloud run finished: budget stop: 5-hour usage 50% ≥ 50%\n\n- web-core/spec-review: done\n- web-ui/spec: done\n- web-ui/spec-review: done\n- shared-specs/spec: done\n- shared-specs/spec-review: done\n- web-push/spec: done\n- web-push/spec-review: done\n- icon/build-1: done\n- icon/build-2: done\n- icon/review: done\n- test-data-layer/build-1: done\n- test-data-layer/build-2: done"}
 {"issue":11,"body":"✅ test-data-layer is done: androidTest scaffolding, Room DAO tests and the 1→2 migration test, per-layer Gradle tasks and CI"}
 {"title":"Jogging blocker: test-ui-layers","body":"Step review ended 2 times without finishing. See jogging/LOG.md and jogging/runs/.\n\nReply here, or close the issue, to unblock it."}
+{"issue":11,"body":"💥 Cloud run crashed:\n\n```\nGitHub /issues?state=open&per_page=100: HTTP 401\n```"}
