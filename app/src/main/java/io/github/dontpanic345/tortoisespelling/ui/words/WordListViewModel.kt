@@ -13,6 +13,7 @@ import io.github.dontpanic345.tortoisespelling.domain.Days
 import io.github.dontpanic345.tortoisespelling.domain.WordFilter
 import io.github.dontpanic345.tortoisespelling.domain.matches
 import io.github.dontpanic345.tortoisespelling.domain.wordFilterCounts
+import java.time.Clock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,7 +35,7 @@ data class WordListUiState(
 }
 
 /** Short human-readable scheduling state for the list. */
-fun statusLabel(word: Word, today: Long = Days.today()): String = when {
+fun statusLabel(word: Word, today: Long): String = when {
     word.suspended -> "suspended"
     word.isNew -> "new"
     word.dueOn <= today -> "due today"
@@ -51,7 +52,10 @@ fun noMatchesBody(query: String, filter: WordFilter): String {
     }
 }
 
-class WordListViewModel(private val repository: WordRepository) : ViewModel() {
+class WordListViewModel(
+    private val repository: WordRepository,
+    private val clock: Clock,
+) : ViewModel() {
 
     private val _state = MutableStateFlow(WordListUiState())
     val state: StateFlow<WordListUiState> = _state.asStateFlow()
@@ -62,7 +66,7 @@ class WordListViewModel(private val repository: WordRepository) : ViewModel() {
         viewModelScope.launch {
             repository.observeWords().collect { words ->
                 allWords = words
-                val today = Days.today()
+                val today = Days.today(clock)
                 _state.update {
                     it.copy(
                         loading = false,
@@ -76,18 +80,18 @@ class WordListViewModel(private val repository: WordRepository) : ViewModel() {
     }
 
     fun onQueryChange(query: String) {
-        _state.update { it.copy(query = query, rows = filtered(allWords, query, it.filter)) }
+        _state.update { it.copy(query = query, rows = filtered(allWords, query, it.filter, Days.today(clock))) }
     }
 
     fun onFilterChange(filter: WordFilter) {
-        _state.update { it.copy(filter = filter, rows = filtered(allWords, it.query, filter)) }
+        _state.update { it.copy(filter = filter, rows = filtered(allWords, it.query, filter, Days.today(clock))) }
     }
 
     private fun filtered(
         words: List<Word>,
         query: String,
         filter: WordFilter,
-        today: Long = Days.today(),
+        today: Long,
     ): List<WordRow> {
         val needle = normalizeWord(query)
         return words
@@ -106,7 +110,7 @@ class WordListViewModel(private val repository: WordRepository) : ViewModel() {
 
     companion object {
         fun factory(container: AppContainer): ViewModelProvider.Factory = viewModelFactory {
-            initializer { WordListViewModel(container.repository) }
+            initializer { WordListViewModel(container.repository, container.clock) }
         }
     }
 }

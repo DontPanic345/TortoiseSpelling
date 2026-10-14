@@ -48,6 +48,7 @@ fun CompletionScreen(
                     reviewedCount = state.reviewedToday,
                     streak = state.streak,
                     nextDueDay = state.nextDueDay,
+                    today = state.today,
                     onPracticeMore = onPracticeMore,
                 )
                 Spacer(Modifier.height(8.dp))

@@ -28,10 +28,10 @@ fun CompletionPanel(
     reviewedCount: Int,
     streak: Int,
     nextDueDay: Long?,
+    today: Long,
     onPracticeMore: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
-    val today = Days.today()
     Column(
         modifier = modifier
             .fillMaxWidth()

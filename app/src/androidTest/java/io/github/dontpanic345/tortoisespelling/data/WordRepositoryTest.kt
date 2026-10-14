@@ -4,6 +4,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.dontpanic345.tortoisespelling.domain.Days
+import io.github.dontpanic345.tortoisespelling.domain.DeviceClock
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -94,8 +95,8 @@ class WordRepositoryTest {
         assertEquals("noun", saved.partOfSpeech)
         assertEquals(1, saved.repetitions)
         assertEquals(false, saved.isNew)
-        assertEquals(Days.today(), saved.firstReviewedOn)
+        assertEquals(Days.today(DeviceClock), saved.firstReviewedOn)
         assertNotNull(saved.lastReviewedAt)
-        assertEquals(1, dao.reviewedCountOn(Days.today()))
+        assertEquals(1, dao.reviewedCountOn(Days.today(DeviceClock)))
     }
 }

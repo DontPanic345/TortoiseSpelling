@@ -1,5 +1,9 @@
 package io.github.dontpanic345.tortoisespelling.domain
 
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneId
+import java.util.TimeZone
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -87,5 +91,28 @@ class DaysTest {
     @Test
     fun `stale streak from long ago does not count`() {
         assertEquals(0, Days.currentStreak(setOf(50L, 51L), today = 100))
+    }
+
+    @Test
+    fun `today follows the clock's zone either side of local midnight`() {
+        val zone = ZoneId.of("Pacific/Auckland") // UTC+13 in January
+        // 2025-01-01T23:59:59 and 2025-01-02T00:00:01 in Auckland.
+        val before = Clock.fixed(Instant.parse("2025-01-01T10:59:59Z"), zone)
+        val after = Clock.fixed(Instant.parse("2025-01-01T11:00:01Z"), zone)
+        assertEquals(20089L, Days.today(before)) // 2025-01-01
+        assertEquals(20090L, Days.today(after))
+    }
+
+    @Test
+    fun `the device clock follows the default time zone`() {
+        val original = TimeZone.getDefault()
+        try {
+            TimeZone.setDefault(TimeZone.getTimeZone("Asia/Tokyo"))
+            assertEquals(ZoneId.of("Asia/Tokyo"), DeviceClock.zone)
+            TimeZone.setDefault(TimeZone.getTimeZone("America/Los_Angeles"))
+            assertEquals(ZoneId.of("America/Los_Angeles"), DeviceClock.zone)
+        } finally {
+            TimeZone.setDefault(original)
+        }
     }
 }

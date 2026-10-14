@@ -72,7 +72,8 @@ Each instrumented layer has its own package under `androidTest`, selected with t
 
 **Wiring.** There's no DI framework. `TortoiseSpellingApp` builds an `AppContainer` (the Room
 database, `SettingsStore`, `ClaudeClient`, `WordRepository`). Composables reach it via
-`rememberAppContainer()`, and each ViewModel has a companion `factory(container, ...)`.
+`rememberAppContainer()` (tests supply one through `LocalAppContainer`), and each ViewModel
+has a companion `factory(container, ...)`.
 Navigation is string routes in `ui/Nav.kt`, and the `NavHost` is in `MainActivity.kt`.
 
 **Layers.**
@@ -86,6 +87,10 @@ Navigation is string routes in `ui/Nav.kt`, and the `NavHost` is in `MainActivit
 **Dates are epoch days, not millis.** `dueOn`, `firstReviewedOn` and `reviewedOn` are
 `LocalDate.toEpochDay()` values, via `domain/Days.kt`; days roll over at local midnight.
 Timestamps named `...At` are millis.
+"Today" and "now" come from the `java.time.Clock` on `AppContainer` (`Days.today(clock)`,
+`DeviceClock` in production), and the repository's due-day fuzz is a constructor
+parameter, so tests can set the date and know the exact day a word returns. The reminder
+(`notify/`) and backup timestamps deliberately read the real time.
 
 **Scheduling.**
 - `WordRepository.recordReview` applies `Sm2Scheduler`, which sits behind the `Scheduler`

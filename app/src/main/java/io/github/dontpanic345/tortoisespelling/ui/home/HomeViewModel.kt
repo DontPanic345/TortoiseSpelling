@@ -8,9 +8,11 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.dontpanic345.tortoisespelling.data.TodayPlan
 import io.github.dontpanic345.tortoisespelling.data.WordRepository
 import io.github.dontpanic345.tortoisespelling.di.AppContainer
+import io.github.dontpanic345.tortoisespelling.domain.Days
 import io.github.dontpanic345.tortoisespelling.domain.MarkedDay
 import io.github.dontpanic345.tortoisespelling.domain.WordProgress
 import io.github.dontpanic345.tortoisespelling.domain.greeting
+import java.time.Clock
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -30,6 +32,7 @@ data class HomeUiState(
     val progress: WordProgress = WordProgress(new = 0, learning = 0, known = 0),
     val greeting: String = "",
     val dateLabel: String = "",
+    val today: Long = 0,
 ) {
     val hasWords: Boolean get() = totalWords > 0
 
@@ -37,7 +40,10 @@ data class HomeUiState(
     val allDone: Boolean get() = hasWords && plan.isClear
 }
 
-class HomeViewModel(private val repository: WordRepository) : ViewModel() {
+class HomeViewModel(
+    private val repository: WordRepository,
+    private val clock: Clock,
+) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeUiState())
     val state: StateFlow<HomeUiState> = _state.asStateFlow()
@@ -66,8 +72,9 @@ class HomeViewModel(private val repository: WordRepository) : ViewModel() {
                 nextDueDay = repository.nextDueDay(),
                 week = repository.lastWeek(),
                 progress = repository.progress(),
-                greeting = greeting(LocalTime.now().hour),
-                dateLabel = LocalDate.now().format(DATE_FORMAT),
+                greeting = greeting(LocalTime.now(clock).hour),
+                today = Days.today(clock),
+                dateLabel = LocalDate.now(clock).format(DATE_FORMAT),
             )
         }
     }
@@ -77,7 +84,7 @@ class HomeViewModel(private val repository: WordRepository) : ViewModel() {
         private val DATE_FORMAT = DateTimeFormatter.ofPattern("EEEE d MMMM")
 
         fun factory(container: AppContainer): ViewModelProvider.Factory = viewModelFactory {
-            initializer { HomeViewModel(container.repository) }
+            initializer { HomeViewModel(container.repository, container.clock) }
         }
     }
 }

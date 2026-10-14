@@ -30,10 +30,10 @@ data class Settings(
  * compromised phone could still expose it. The remedy then is to rotate the key in
  * the Anthropic console. No backend, no proxy, by choice.
  */
-class SettingsStore(context: Context) {
+class SettingsStore(context: Context, fileName: String = FILE) {
 
     private val prefs: SharedPreferences =
-        context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+        context.applicationContext.getSharedPreferences(fileName, Context.MODE_PRIVATE)
 
     private val _settings = MutableStateFlow(read())
     val settings: StateFlow<Settings> = _settings.asStateFlow()

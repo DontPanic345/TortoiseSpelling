@@ -1,5 +1,6 @@
 package io.github.dontpanic345.tortoisespelling.domain
 
+import java.time.Clock
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -9,7 +10,7 @@ import java.time.ZoneId
  * 00:30 counts as a new day.
  */
 object Days {
-    fun today(): Long = LocalDate.now().toEpochDay()
+    fun today(clock: Clock): Long = LocalDate.now(clock).toEpochDay()
 
     fun plus(day: Long, days: Long): Long = day + days
 
@@ -18,7 +19,7 @@ object Days {
         Instant.ofEpochMilli(millis).atZone(zone).toLocalDate().toEpochDay()
 
     /** "today", "tomorrow", "in 5 days", "3 days ago". */
-    fun relativeLabel(day: Long, today: Long = today()): String = when (val delta = day - today) {
+    fun relativeLabel(day: Long, today: Long): String = when (val delta = day - today) {
         0L -> "today"
         1L -> "tomorrow"
         -1L -> "yesterday"
@@ -36,7 +37,7 @@ object Days {
      */
     fun currentStreak(
         studyDays: Set<Long>,
-        today: Long = today(),
+        today: Long,
         satisfiedDays: Set<Long> = emptySet(),
     ): Int {
         if (studyDays.isEmpty()) {
@@ -55,4 +56,13 @@ object Days {
             cursor--
         }
     }
+}
+
+// The system default clock fixes its zone at creation; a time-zone change mid-process must move midnight.
+object DeviceClock : Clock() {
+    override fun instant(): Instant = Instant.now()
+
+    override fun getZone(): ZoneId = ZoneId.systemDefault()
+
+    override fun withZone(zone: ZoneId): Clock = system(zone)
 }

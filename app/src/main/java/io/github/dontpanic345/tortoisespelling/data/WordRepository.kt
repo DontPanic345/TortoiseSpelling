@@ -1,6 +1,7 @@
 package io.github.dontpanic345.tortoisespelling.data
 
 import io.github.dontpanic345.tortoisespelling.domain.Days
+import io.github.dontpanic345.tortoisespelling.domain.DeviceClock
 import io.github.dontpanic345.tortoisespelling.domain.MarkedDay
 import io.github.dontpanic345.tortoisespelling.domain.RESET_BELOW_QUALITY
 import io.github.dontpanic345.tortoisespelling.domain.Scheduler
@@ -14,6 +15,7 @@ import io.github.dontpanic345.tortoisespelling.domain.recentDays
 import io.github.dontpanic345.tortoisespelling.domain.remainingNewToday
 import io.github.dontpanic345.tortoisespelling.domain.wordProgress
 import kotlinx.coroutines.flow.Flow
+import java.time.Clock
 
 /** What today's session looks like before it starts. */
 data class TodayPlan(val dueCount: Int, val newCount: Int) {
@@ -37,6 +39,8 @@ sealed interface UpdateResult {
 class WordRepository(
     private val dao: TortoiseSpellingDao,
     private val settings: SettingsStore,
+    private val clock: Clock = DeviceClock,
+    private val fuzz: (today: Long, intervalDays: Int) -> Long = ::fuzzedDueDay,
     private val scheduler: Scheduler = Sm2Scheduler,
 ) {
 
@@ -67,7 +71,7 @@ class WordRepository(
                 definition = hideWordInDefinition(definition.trim(), trimmed),
                 example = example.trim(),
                 partOfSpeech = partOfSpeech?.trim()?.ifBlank { null },
-                dueOn = Days.today(),
+                dueOn = Days.today(clock),
                 autoRefresh = autoRefresh,
             ),
         )
@@ -128,7 +132,7 @@ class WordRepository(
     // --- today ---
 
     suspend fun todayPlan(): TodayPlan {
-        val today = Days.today()
+        val today = Days.today(clock)
         val allowance = remainingNewToday(
             newWordsPerDay = settings.current().newWordsPerDay,
             introducedToday = dao.introducedOn(today),
@@ -141,7 +145,7 @@ class WordRepository(
 
     /** Due words plus today's new allowance, lightly interleaved. */
     suspend fun buildSession(): List<Word> {
-        val today = Days.today()
+        val today = Days.today(clock)
         val due = dao.dueWords(today)
         val allowance = remainingNewToday(
             newWordsPerDay = settings.current().newWordsPerDay,
@@ -162,12 +166,12 @@ class WordRepository(
      * point the whole app is built around.
      */
     suspend fun recordReview(word: Word, correctFirstTry: Boolean, typedAnswer: String) {
-        val today = Days.today()
+        val today = Days.today(clock)
         // Re-read rather than trusting the session's snapshot: a background card
         // refresh may have rewritten this word's definition since the session opened,
         // and @Update writes every column, so the snapshot would undo it.
         val current = dao.wordById(word.id) ?: word
-        val now = System.currentTimeMillis()
+        val now = clock.millis()
         val quality = if (correctFirstTry) Grade.FIRST_TRY else Grade.AFTER_RETYPE
         val next = scheduler.next(
             SrsState(current.repetitions, current.easeFactor, current.intervalDays),
@@ -178,7 +182,7 @@ class WordRepository(
                 repetitions = next.repetitions,
                 easeFactor = next.easeFactor,
                 intervalDays = next.intervalDays,
-                dueOn = fuzzedDueDay(today, next.intervalDays),
+                dueOn = fuzz(today, next.intervalDays),
                 lapses = current.lapses + if (quality < RESET_BELOW_QUALITY) 1 else 0,
                 lastReviewedAt = now,
                 firstReviewedOn = current.firstReviewedOn ?: today,
@@ -197,20 +201,20 @@ class WordRepository(
         )
     }
 
-    suspend fun reviewedToday(): Int = dao.reviewedCountOn(Days.today())
+    suspend fun reviewedToday(): Int = dao.reviewedCountOn(Days.today(clock))
 
     suspend fun currentStreak(): Int = Days.currentStreak(
         studyDays = dao.recentStudyDays(STREAK_WINDOW_DAYS).toSet(),
-        today = Days.today(),
+        today = Days.today(clock),
         satisfiedDays = settings.satisfiedDays(),
     )
 
     /** The last week, day by day, for Home's week strip. */
     suspend fun lastWeek(): List<MarkedDay> = recentDays(
-        today = Days.today(),
+        today = Days.today(clock),
         studyDays = dao.recentStudyDays(WEEK_DAYS).toSet(),
         satisfiedDays = settings.satisfiedDays(),
-        firstDay = dao.firstCreatedAt()?.let { Days.dayOf(it) },
+        firstDay = dao.firstCreatedAt()?.let { Days.dayOf(it, clock.zone) },
         count = WEEK_DAYS,
     )
 
@@ -220,7 +224,7 @@ class WordRepository(
     suspend fun nextDueDay(): Long? = dao.nextDueDay()
 
     /** Record that today had nothing due, so it bridges rather than breaks the streak. */
-    fun markTodaySatisfied() = settings.markSatisfied(Days.today())
+    fun markTodaySatisfied() = settings.markSatisfied(Days.today(clock))
 
     // --- backup ---
 

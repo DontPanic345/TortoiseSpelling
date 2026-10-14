@@ -151,6 +151,7 @@ fun HomeScreen(
                                 // twice on one screen is noise.
                                 streak = 0,
                                 nextDueDay = state.nextDueDay,
+                                today = state.today,
                                 onPracticeMore = onPracticeMore,
                             )
                         }

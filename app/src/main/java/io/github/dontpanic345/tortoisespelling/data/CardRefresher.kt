@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.time.Clock
 
 /**
  * Keeps flagged words from going stale.
@@ -34,6 +35,7 @@ class CardRefresher(
     private val settings: SettingsStore,
     private val claude: ClaudeClient,
     private val scope: CoroutineScope,
+    private val clock: Clock,
 ) {
 
     /** One session's refresh at a time; two overlapping runs would double-spend. */
@@ -50,7 +52,7 @@ class CardRefresher(
         if (apiKey.isBlank()) {
             return
         }
-        val due = cardsNeedingRefresh(words, Days.today())
+        val due = cardsNeedingRefresh(words, Days.today(clock))
         if (due.isEmpty()) {
             return
         }
@@ -67,7 +69,7 @@ class CardRefresher(
         // Claim the day first. A word whose lookup fails waits until tomorrow rather
         // than being retried on every session start, which is what a rejected key or
         // an exhausted rate limit would otherwise do.
-        repository.markRefreshAttempted(word, Days.today())
+        repository.markRefreshAttempted(word, Days.today(clock))
 
         val result = claude.lookup(
             word = word.text,

@@ -1,6 +1,7 @@
 package io.github.dontpanic345.tortoisespelling.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
 import io.github.dontpanic345.tortoisespelling.TortoiseSpellingApp
 import io.github.dontpanic345.tortoisespelling.di.AppContainer
@@ -20,6 +21,10 @@ object Routes {
     fun edit(wordId: Long) = "edit/$wordId"
 }
 
+/** Tests provide a container of their own; the app never does. */
+val LocalAppContainer = staticCompositionLocalOf<AppContainer?> { null }
+
 @Composable
 fun rememberAppContainer(): AppContainer =
-    (LocalContext.current.applicationContext as TortoiseSpellingApp).container
+    LocalAppContainer.current
+        ?: (LocalContext.current.applicationContext as TortoiseSpellingApp).container
