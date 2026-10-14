@@ -4,7 +4,7 @@ name: CI
 # request. release.yml calls this too, so a release can't be built from a commit whose
 # tests fail.
 #
-# The data layer's instrumented tests run on an API 26 emulator. The Appium e2e suite
+# The screenshot tests validate on the JVM. # The data layer's instrumented tests run on an API 26 emulator. The Appium e2e suite
 # isn't run here: run it locally (see e2e/README.md). ClaudeIntegrationTest is skipped because there's no API key here.
 
 on:
@@ -108,3 +108,25 @@ jobs:
           path: |
             app/build/reports/androidTests/
             app/build/outputs/androidTest-results/
+
+  screenshots:
+    name: Screenshot tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Validate screenshots
+        run: ./gradlew validateDebugScreenshotTest
+
+      - name: Upload screenshot report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: screenshot-reports
+          path: app/build/reports/screenshotTest/

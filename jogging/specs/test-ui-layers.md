@@ -667,3 +667,5 @@ its smoke job for real; watch that run to the end.
   are here, so the Kotlin journeys and golden tests translate one for one.
 - **`shared-specs`**: `@release-smoke` is an Android-only tag (`@android` once platform
   tags exist); the web app has no R8 step.
+
+**build-5 outcome.** `imageDifferenceThreshold` is not in AGP 9.4's `screenshotTests` DSL (unresolved reference), so the default (exact match) applies. References were recorded on Linux in the cloud; the `screenshots` CI job's result is unverified (no `gh` login in that session), so `review` must check it is green and, if cross-platform rendering is the cause, follow "Screenshot tests" above.
