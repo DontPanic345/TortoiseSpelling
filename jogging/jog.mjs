@@ -92,6 +92,15 @@ export const accountProblem = (status) => {
     return null;
 };
 
+// A rejected GH_TOKEN turns even public reads into 401s and leaves every session without `gh`.
+export const tokenProblem = async (token, get = fetch) => {
+    if (!token) return "GH_TOKEN is not set";
+    const res = await get("https://api.github.com/user", {
+        headers: { Accept: "application/vnd.github+json", Authorization: `Bearer ${token}` },
+    });
+    return res.ok ? null : `GitHub rejected GH_TOKEN (HTTP ${res.status})`;
+};
+
 export const parseUsage = (raw) => {
     const limits = raw.limits ?? [];
     const session = limits.find((l) => l.kind === "session");
@@ -436,7 +445,18 @@ const run = async () => {
         assertIdentity();
         const state = readState();
         if (!state.enabled) return log("disabled in state.json");
+        const badToken = CLOUD ? await tokenProblem(process.env.GH_TOKEN) : null;
+        if (badToken) {
+            log(badToken);
+            delete process.env.GH_TOKEN;
+        }
         const logIssue = await ensureLogIssue(state);
+        if (badToken) {
+            notify({
+                issue: logIssue,
+                body: `⚠️ ${badToken}, so this run's sessions have no \`gh\`. Replace it in the cloud environment's variables.`,
+            });
+        }
         await checkReplies(state);
         writeState(state);
         commitState("pick up replies");

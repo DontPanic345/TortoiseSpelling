@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import os from "node:os";
 import path from "node:path";
-import { accountProblem, nextStep, pace, parseUsage } from "./jog.mjs";
+import { accountProblem, nextStep, pace, parseUsage, tokenProblem } from "./jog.mjs";
 
 const resets = new Date("2026-10-17T09:00:00Z");
 const day = (n) => new Date(resets.getTime() - 7 * 86400_000 + (n - 1) * 86400_000 + 3600_000);
@@ -86,4 +86,20 @@ test("the work account is refused", () => {
 
 test("an API key login is refused", () => {
     assert.match(accountProblem({ ...personal, authMethod: "api_key" }), /subscription/);
+});
+
+test("a token GitHub accepts passes", async () => {
+    let auth;
+    const get = async (url, { headers }) => {
+        auth = headers.Authorization;
+        return { ok: true, status: 200 };
+    };
+    assert.equal(await tokenProblem("ghp_good", get), null);
+    assert.equal(auth, "Bearer ghp_good");
+});
+
+test("a missing or rejected token is reported", async () => {
+    const reject = async () => ({ ok: false, status: 401 });
+    assert.match(await tokenProblem("ghp_stale", reject), /HTTP 401/);
+    assert.match(await tokenProblem(undefined, reject), /not set/);
 });
