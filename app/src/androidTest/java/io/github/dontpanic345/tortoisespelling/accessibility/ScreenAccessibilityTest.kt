@@ -7,6 +7,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performTouchInput
 import io.github.dontpanic345.tortoisespelling.component.Fixtures
+import io.github.dontpanic345.tortoisespelling.ui.add.AddWordContent
+import io.github.dontpanic345.tortoisespelling.ui.add.AddWordUiState
 import io.github.dontpanic345.tortoisespelling.ui.complete.CompletionPanel
 import io.github.dontpanic345.tortoisespelling.ui.home.HomeContent
 import io.github.dontpanic345.tortoisespelling.ui.review.ReviewContent
@@ -91,6 +93,19 @@ class ScreenAccessibilityTest(private val dark: Boolean) {
         )
     }
 
+    private fun addWord(state: AddWordUiState) = check {
+        AddWordContent(
+            state = state,
+            onBack = {},
+            onDelete = {},
+            onTextChange = {},
+            onLookUp = {},
+            onEdit = {},
+            onAutoRefreshChange = {},
+            onSave = {},
+        )
+    }
+
     @Test fun reviewPrompting() = review(Fixtures.review(input = "rhy"))
 
     @Test fun reviewMissedHidden() = review(Fixtures.review(Fixtures.missed(revealed = false)))
@@ -108,6 +123,10 @@ class ScreenAccessibilityTest(private val dark: Boolean) {
     @Test fun wordListWithRows() = wordList(Fixtures.wordListWithRows())
 
     @Test fun wordListEmpty() = wordList(Fixtures.wordListEmpty())
+
+    @Test fun addWordNew() = addWord(Fixtures.addNew())
+
+    @Test fun addWordWithTwoDefinitionsAndAForm() = addWord(Fixtures.addRunWithTwoDefinitions())
 
     @Test
     fun completionPanel() = check {

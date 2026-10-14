@@ -7,9 +7,14 @@ import com.android.tools.screenshot.PreviewTest
 import io.github.dontpanic345.tortoisespelling.data.ExampleSentence
 import io.github.dontpanic345.tortoisespelling.data.TodayPlan
 import io.github.dontpanic345.tortoisespelling.data.Word
+import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
 import io.github.dontpanic345.tortoisespelling.domain.ReviewCard
+import io.github.dontpanic345.tortoisespelling.domain.WordContent
+import io.github.dontpanic345.tortoisespelling.domain.apply
 import io.github.dontpanic345.tortoisespelling.domain.WordFilter
 import io.github.dontpanic345.tortoisespelling.domain.spellingDiff
+import io.github.dontpanic345.tortoisespelling.ui.add.AddWordContent
+import io.github.dontpanic345.tortoisespelling.ui.add.AddWordUiState
 import io.github.dontpanic345.tortoisespelling.ui.complete.CompletionPanel
 import io.github.dontpanic345.tortoisespelling.ui.home.HomeContent
 import io.github.dontpanic345.tortoisespelling.ui.home.HomeUiState
@@ -245,3 +250,52 @@ fun CompletionPanelLight() = Themed(false) {
 fun CompletionPanelDark() = Themed(true) {
     CompletionPanel(reviewedCount = 3, streak = 2, nextDueDay = 101, today = 100)
 }
+
+@Composable
+private fun AddWordShot(dark: Boolean, state: AddWordUiState) = Themed(dark) {
+    AddWordContent(
+        state = state,
+        onBack = {},
+        onDelete = {},
+        onTextChange = {},
+        onLookUp = {},
+        onEdit = {},
+        onAutoRefreshChange = {},
+        onSave = {},
+    )
+}
+
+private val runWithTwoDefinitions = AddWordUiState(
+    text = "run",
+    content = WordContent.blank()
+        .apply(ContentEdit.DefinitionText(0, "To move fast on foot."))
+        .apply(ContentEdit.PartOfSpeech(0, "verb"))
+        .apply(ContentEdit.ExampleText(0, 0, 0, "They run every day."))
+        .apply(ContentEdit.AddForm(0))
+        .apply(ContentEdit.FormText(0, 1, "ran"))
+        .apply(ContentEdit.FormLabel(0, 1, "past tense"))
+        .apply(ContentEdit.ExampleText(0, 1, 0, "He ran the whole way home."))
+        .apply(ContentEdit.AddDefinition)
+        .apply(ContentEdit.DefinitionText(1, "A stretch of success or a sequence."))
+        .apply(ContentEdit.PartOfSpeech(1, "noun")),
+)
+
+@PreviewTest
+@Preview(showBackground = true)
+@Composable
+fun AddWordNewLight() = AddWordShot(dark = false, state = AddWordUiState())
+
+@PreviewTest
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
+fun AddWordNewDark() = AddWordShot(dark = true, state = AddWordUiState())
+
+@PreviewTest
+@Preview(showBackground = true)
+@Composable
+fun AddWordTwoDefinitionsLight() = AddWordShot(dark = false, state = runWithTwoDefinitions)
+
+@PreviewTest
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
+fun AddWordTwoDefinitionsDark() = AddWordShot(dark = true, state = runWithTwoDefinitions)

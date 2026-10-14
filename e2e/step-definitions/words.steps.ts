@@ -96,6 +96,13 @@ When('I change the definition to {string}', async (definition: string) => {
     await typeInto(addWord.definitionField(), definition);
 });
 
+When(
+    'I add the form {string} labelled {string} with the example {string}',
+    async (form: string, label: string, example: string) => {
+        await addWord.addForm(1, form, label, example);
+    },
+);
+
 When('I save the changes', async () => {
     await addWord.save();
 });

@@ -41,11 +41,6 @@ data class AddWordUiState(
     val isEditing: Boolean get() = editingId != null
     val canSave: Boolean get() = text.isNotBlank() && content.isComplete()
 
-    /** The root card's fields, which are all the screen edits until the tree editor lands. */
-    val definition: String get() = content.definitions.firstOrNull()?.text.orEmpty()
-    val partOfSpeech: String get() = content.definitions.firstOrNull()?.partOfSpeech.orEmpty()
-    val example: String
-        get() = content.definitions.firstOrNull()?.forms?.firstOrNull()?.examples?.firstOrNull()?.text.orEmpty()
     val canLookUp: Boolean get() = text.isNotBlank() && hasApiKey && !lookingUp
 }
 

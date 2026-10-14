@@ -1,5 +1,5 @@
 import { fieldValue, typeInto } from '../actions.ts';
-import { byTestId } from '../selectors.ts';
+import { byTestId, scrollToTestId } from '../selectors.ts';
 import { testIds } from '../testIds.ts';
 import { home } from './home.ts';
 
@@ -42,7 +42,31 @@ export const addWord = {
         }
     },
 
+    /**
+     * Adds a form with one example to the first definition. The new form is the last one
+     * of definition 0, so `position` is its index there (the base form is 0).
+     */
+    addForm: async (position: number, form: string, label: string, example: string): Promise<void> => {
+        await (await scrollToTestId(testIds.addWordAddForm(0))).click();
+        await (await scrollToTestId(testIds.addWordFormText(0, position))).waitForDisplayed();
+        await typeInto(byTestId(testIds.addWordFormText(0, position)), form);
+        await typeInto(byTestId(testIds.addWordFormLabel(0, position)), label);
+        await typeInto(
+            await scrollToTestId(testIds.addWordExampleAt(0, position, 0)),
+            example,
+        );
+    },
+
     save: async (): Promise<void> => {
+        // The tree editor is long: scroll down until Save is on screen, because
+        // UiScrollable.scrollIntoView only searches forward from where the screen is.
+        for (let swipes = 0; swipes < 8 && !(await addWord.saveButton().isDisplayed()); swipes++) {
+            await driver.execute('mobile: scrollGesture', {
+                elementId: (await $('android=new UiSelector().scrollable(true)')).elementId,
+                direction: 'down',
+                percent: 0.75,
+            });
+        }
         await addWord.saveButton().click();
     },
 

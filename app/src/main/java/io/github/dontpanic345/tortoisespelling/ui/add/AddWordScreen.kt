@@ -31,6 +31,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,6 +39,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
@@ -48,11 +50,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
+import io.github.dontpanic345.tortoisespelling.domain.DefinitionDraft
+import io.github.dontpanic345.tortoisespelling.domain.FormDraft
+import io.github.dontpanic345.tortoisespelling.domain.exampleMissesForm
 import io.github.dontpanic345.tortoisespelling.ui.BackButton
 import io.github.dontpanic345.tortoisespelling.ui.TestTags
 import io.github.dontpanic345.tortoisespelling.ui.rememberAppContainer
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddWordScreen(
     editingId: Long?,
@@ -86,14 +90,44 @@ fun AddWordScreen(
         runCatching { wordFocus.requestFocus() }
     }
 
+    AddWordContent(
+        state = state,
+        snackbarHost = snackbarHost,
+        wordFocus = wordFocus,
+        onBack = onDone,
+        onDelete = viewModel::delete,
+        onTextChange = viewModel::onTextChange,
+        onLookUp = viewModel::lookUp,
+        onEdit = viewModel::onEdit,
+        onAutoRefreshChange = viewModel::onAutoRefreshChange,
+        onSave = viewModel::save,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddWordContent(
+    state: AddWordUiState,
+    onBack: () -> Unit,
+    onDelete: () -> Unit,
+    onTextChange: (String) -> Unit,
+    onLookUp: () -> Unit,
+    onEdit: (ContentEdit) -> Unit,
+    onAutoRefreshChange: (Boolean) -> Unit,
+    onSave: () -> Unit,
+    modifier: Modifier = Modifier,
+    snackbarHost: SnackbarHostState = remember { SnackbarHostState() },
+    wordFocus: FocusRequester = remember { FocusRequester() },
+) {
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = { Text(if (state.isEditing) "Edit word" else "Add word") },
-                navigationIcon = { BackButton(onClick = onDone) },
+                navigationIcon = { BackButton(onClick = onBack) },
                 actions = {
                     if (state.isEditing) {
-                        IconButton(onClick = viewModel::delete) {
+                        IconButton(onClick = onDelete) {
                             Icon(Icons.Default.Delete, contentDescription = "Delete word")
                         }
                     }
@@ -116,7 +150,7 @@ fun AddWordScreen(
 
             OutlinedTextField(
                 value = state.text,
-                onValueChange = viewModel::onTextChange,
+                onValueChange = onTextChange,
                 label = { Text("Word") },
                 singleLine = true,
                 modifier = Modifier
@@ -133,52 +167,30 @@ fun AddWordScreen(
                 enabled = state.canLookUp,
                 loading = state.lookingUp,
                 hasApiKey = state.hasApiKey,
-                onLookUp = viewModel::lookUp,
+                onLookUp = onLookUp,
             )
 
             // Every field stays editable whether or not Claude filled it: the app has to
             // be fully usable offline and with no API key at all.
-            OutlinedTextField(
-                value = state.definition,
-                onValueChange = { viewModel.onEdit(ContentEdit.DefinitionText(0, it)) },
-                label = { Text("Definition") },
-                supportingText = { Text("Shown as the prompt. Should not contain the word.") },
-                minLines = 2,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag(TestTags.ADD_WORD_DEFINITION),
-            )
-
-            OutlinedTextField(
-                value = state.example,
-                onValueChange = { viewModel.onEdit(ContentEdit.ExampleText(0, 0, 0, it)) },
-                label = { Text("Example sentence (optional)") },
-                supportingText = { Text("The word is blanked out during review.") },
-                minLines = 2,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag(TestTags.ADD_WORD_EXAMPLE),
-            )
-
-            OutlinedTextField(
-                value = state.partOfSpeech,
-                onValueChange = { viewModel.onEdit(ContentEdit.PartOfSpeech(0, it)) },
-                label = { Text("Part of speech (optional)") },
-                singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .testTag(TestTags.ADD_WORD_PART_OF_SPEECH),
-            )
+            state.content.definitions.forEachIndexed { d, definition ->
+                DefinitionEditor(d, definition, word = state.text.trim(), onEdit = onEdit)
+            }
+            TextButton(
+                onClick = { onEdit(ContentEdit.AddDefinition) },
+                modifier = Modifier.testTag(TestTags.ADD_WORD_ADD_DEFINITION),
+            ) {
+                Text("Add definition")
+            }
 
             AutoRefreshToggle(
                 checked = state.autoRefresh,
                 hasApiKey = state.hasApiKey,
-                onCheckedChange = viewModel::onAutoRefreshChange,
+                onCheckedChange = onAutoRefreshChange,
             )
 
             Spacer(Modifier.height(4.dp))
             Button(
-                onClick = viewModel::save,
+                onClick = onSave,
                 enabled = state.canSave,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -195,6 +207,159 @@ fun AddWordScreen(
                 )
             }
             Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+@Composable
+private fun DefinitionEditor(
+    d: Int,
+    definition: DefinitionDraft,
+    word: String,
+    onEdit: (ContentEdit) -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text("Definition ${d + 1}", style = MaterialTheme.typography.titleMedium)
+            if (d > 0) {
+                IconButton(onClick = { onEdit(ContentEdit.RemoveDefinition(d)) }) {
+                    Icon(Icons.Default.Delete, contentDescription = "Remove definition ${d + 1}")
+                }
+            }
+        }
+
+        OutlinedTextField(
+            value = definition.text,
+            onValueChange = { onEdit(ContentEdit.DefinitionText(d, it)) },
+            label = { Text("Definition") },
+            isError = definition.text.isBlank(),
+            supportingText = {
+                Text(if (definition.text.isBlank()) "Required" else "Shown as the prompt. Should not contain the word.")
+            },
+            minLines = 2,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(if (d == 0) TestTags.ADD_WORD_DEFINITION else TestTags.addWordDefinition(d)),
+        )
+
+        OutlinedTextField(
+            value = definition.partOfSpeech,
+            onValueChange = { onEdit(ContentEdit.PartOfSpeech(d, it)) },
+            label = { Text("Part of speech (optional)") },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(if (d == 0) Modifier.testTag(TestTags.ADD_WORD_PART_OF_SPEECH) else Modifier),
+        )
+
+        definition.forms.forEachIndexed { f, form ->
+            FormEditor(d, f, form, word, onEdit)
+        }
+        TextButton(
+            onClick = { onEdit(ContentEdit.AddForm(d)) },
+            modifier = Modifier.testTag(TestTags.addWordAddForm(d)),
+        ) {
+            Text("Add form")
+        }
+    }
+}
+
+@Composable
+private fun FormEditor(
+    d: Int,
+    f: Int,
+    form: FormDraft,
+    word: String,
+    onEdit: (ContentEdit) -> Unit,
+) {
+    val isBase = d == 0 && f == 0
+    val spelling = if (isBase) word else form.text.trim()
+    Column(
+        modifier = Modifier.padding(start = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        if (isBase) {
+            Text(
+                text = word.ifEmpty { "The word itself" },
+                style = MaterialTheme.typography.titleSmall,
+            )
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                OutlinedTextField(
+                    value = form.text,
+                    onValueChange = { onEdit(ContentEdit.FormText(d, f, it)) },
+                    label = { Text("Form") },
+                    isError = form.text.isBlank(),
+                    supportingText = if (form.text.isBlank()) ({ Text("Required") }) else null,
+                    singleLine = true,
+                    modifier = Modifier
+                        .weight(1f)
+                        .testTag(TestTags.addWordFormText(d, f)),
+                    keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.None),
+                )
+                IconButton(onClick = { onEdit(ContentEdit.RemoveForm(d, f)) }) {
+                    val name = if (spelling.isEmpty()) "" else " “$spelling”"
+                    Icon(Icons.Default.Delete, contentDescription = "Remove form$name")
+                }
+            }
+        }
+
+        OutlinedTextField(
+            value = form.label,
+            onValueChange = { onEdit(ContentEdit.FormLabel(d, f, it)) },
+            label = { Text("Label (optional)") },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(TestTags.addWordFormLabel(d, f)),
+        )
+
+        form.examples.forEachIndexed { e, example ->
+            val misses = spelling.isNotEmpty() && exampleMissesForm(example.text, spelling)
+            OutlinedTextField(
+                value = example.text,
+                onValueChange = { onEdit(ContentEdit.ExampleText(d, f, e, it)) },
+                label = { Text("Example sentence (optional)") },
+                supportingText = {
+                    Text(
+                        if (misses) {
+                            "Doesn't contain “$spelling”, so review can't blank it."
+                        } else {
+                            "The word is blanked out during review."
+                        },
+                        color = if (misses) MaterialTheme.colorScheme.error else Color.Unspecified,
+                    )
+                },
+                trailingIcon = {
+                    IconButton(onClick = { onEdit(ContentEdit.RemoveExample(d, f, e)) }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Remove example")
+                    }
+                },
+                minLines = 2,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(
+                        if (d == 0 && f == 0 && e == 0) {
+                            TestTags.ADD_WORD_EXAMPLE
+                        } else {
+                            TestTags.addWordExample(d, f, e)
+                        },
+                    ),
+            )
+        }
+        TextButton(
+            onClick = { onEdit(ContentEdit.AddExample(d, f)) },
+            modifier = Modifier.testTag(TestTags.addWordAddExample(d, f)),
+        ) {
+            Text("Add example")
         }
     }
 }

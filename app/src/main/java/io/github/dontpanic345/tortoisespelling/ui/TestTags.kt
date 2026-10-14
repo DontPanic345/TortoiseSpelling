@@ -22,6 +22,19 @@ object TestTags {
     const val ADD_WORD_PART_OF_SPEECH = "add_word_part_of_speech"
     const val ADD_WORD_SAVE = "add_word_save"
     const val ADD_WORD_LOOK_UP = "add_word_look_up"
+    const val ADD_WORD_ADD_DEFINITION = "add_word_add_definition"
+
+    /**
+     * The tree editor's fields by position (definition, form, example). The first
+     * definition, its part of speech and the base form's first example keep the plain
+     * tags above.
+     */
+    fun addWordDefinition(d: Int) = "add_word_definition_$d"
+    fun addWordAddForm(d: Int) = "add_word_add_form_$d"
+    fun addWordFormText(d: Int, f: Int) = "add_word_form_text_${d}_$f"
+    fun addWordFormLabel(d: Int, f: Int) = "add_word_form_label_${d}_$f"
+    fun addWordAddExample(d: Int, f: Int) = "add_word_add_example_${d}_$f"
+    fun addWordExample(d: Int, f: Int, e: Int) = "add_word_example_${d}_${f}_$e"
 
     const val WORD_LIST_SEARCH = "word_list_search"
 

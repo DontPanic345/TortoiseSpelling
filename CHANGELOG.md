@@ -9,6 +9,10 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+### Added
+
+- The add and edit screen edits a word's whole content by hand: several definitions, other forms of the word (like "ran" for "run") with an optional label, and several example sentences for each, with a warning when an example doesn't contain its form.
+
 ### Changed
 
 - Review shows the example sentence you have seen least recently, so a word with several examples takes them in turn, and asks for the form that sentence uses (with a "verb · past tense" hint).

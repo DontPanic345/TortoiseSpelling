@@ -3,8 +3,12 @@ package io.github.dontpanic345.tortoisespelling.component
 import io.github.dontpanic345.tortoisespelling.data.TodayPlan
 import io.github.dontpanic345.tortoisespelling.data.testCard
 import io.github.dontpanic345.tortoisespelling.data.testWord
+import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
+import io.github.dontpanic345.tortoisespelling.domain.WordContent
 import io.github.dontpanic345.tortoisespelling.domain.WordFilter
+import io.github.dontpanic345.tortoisespelling.domain.apply
 import io.github.dontpanic345.tortoisespelling.domain.spellingDiff
+import io.github.dontpanic345.tortoisespelling.ui.add.AddWordUiState
 import io.github.dontpanic345.tortoisespelling.ui.home.HomeUiState
 import io.github.dontpanic345.tortoisespelling.ui.review.ReviewPhase
 import io.github.dontpanic345.tortoisespelling.ui.review.ReviewUiState
@@ -68,5 +72,33 @@ object Fixtures {
             rows = words.zip(statuses) { w, s -> WordRow(w, s, "A definition of ${w.text}.") },
             totalCount = 3,
         )
+    }
+
+    fun addNew() = AddWordUiState()
+
+    /** "run" with a "ran" form (past tense) whose example contains it. */
+    fun addRun() = AddWordUiState(
+        text = "run",
+        content = WordContent.blank()
+            .apply(ContentEdit.DefinitionText(0, "To move fast on foot."))
+            .apply(ContentEdit.PartOfSpeech(0, "verb"))
+            .apply(ContentEdit.ExampleText(0, 0, 0, "They run every day."))
+            .apply(ContentEdit.AddForm(0))
+            .apply(ContentEdit.FormText(0, 1, "ran"))
+            .apply(ContentEdit.FormLabel(0, 1, "past tense"))
+            .apply(ContentEdit.ExampleText(0, 1, 0, "He ran the whole way home.")),
+    )
+
+    fun addRunWithTwoDefinitions() = addRun().let {
+        it.copy(
+            content = it.content
+                .apply(ContentEdit.AddDefinition)
+                .apply(ContentEdit.DefinitionText(1, "A stretch of success or a sequence."))
+                .apply(ContentEdit.PartOfSpeech(1, "noun")),
+        )
+    }
+
+    fun addRunWithExampleMissingTheForm() = addRun().let {
+        it.copy(content = it.content.apply(ContentEdit.ExampleText(0, 1, 0, "He sprinted the whole way home.")))
     }
 }

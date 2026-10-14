@@ -17,6 +17,11 @@ export const testIds = {
     addWordPartOfSpeech: 'add_word_part_of_speech',
     addWordSave: 'add_word_save',
     addWordLookUp: 'add_word_look_up',
+    /** The tree editor's fields by position (definition, form, example). */
+    addWordAddForm: (d: number): string => `add_word_add_form_${d}`,
+    addWordFormText: (d: number, f: number): string => `add_word_form_text_${d}_${f}`,
+    addWordFormLabel: (d: number, f: number): string => `add_word_form_label_${d}_${f}`,
+    addWordExampleAt: (d: number, f: number, e: number): string => `add_word_example_${d}_${f}_${e}`,
 
     wordListSearch: 'word_list_search',
     /** The horizontally scrolling row of filter chips. */
