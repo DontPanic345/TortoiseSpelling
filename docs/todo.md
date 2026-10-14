@@ -10,5 +10,5 @@ Small items that don't have their own design doc yet. Larger ideas live in `docs
       `autoRefresh`/`refreshedOn` columns (version 3 migration), backup format, e2e
       `@live-api` scenarios, and the docs (`CLAUDE.md`, `PRIVACY.md`, `README.md`).
       See [copy-prompt-lookup.md](copy-prompt-lookup.md) for the replacement.
-- [ ] Word forms and multiple definitions: see [word-forms.md](word-forms.md).
+- [x] Word forms and multiple definitions: see [word-forms.md](word-forms.md).
 - [ ] Test layers and web app: see [testing-and-web-plan.md](testing-and-web-plan.md).

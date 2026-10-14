@@ -260,7 +260,7 @@
           "title": "Search by form, backup definitions tree with flat root-card fields, docs and CHANGELOG",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "review",

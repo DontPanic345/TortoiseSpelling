@@ -10,10 +10,12 @@ import io.github.dontpanic345.tortoisespelling.data.WordRepository
 import io.github.dontpanic345.tortoisespelling.data.WordWithContent
 import io.github.dontpanic345.tortoisespelling.data.normalizeWord
 import io.github.dontpanic345.tortoisespelling.data.sorted
+import io.github.dontpanic345.tortoisespelling.data.toContent
 import io.github.dontpanic345.tortoisespelling.di.AppContainer
 import io.github.dontpanic345.tortoisespelling.domain.Days
 import io.github.dontpanic345.tortoisespelling.domain.WordFilter
 import io.github.dontpanic345.tortoisespelling.domain.matches
+import io.github.dontpanic345.tortoisespelling.domain.searchTerms
 import io.github.dontpanic345.tortoisespelling.domain.wordFilterCounts
 import java.time.Clock
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,6 +44,23 @@ fun statusLabel(word: Word, today: Long): String = when {
     word.isNew -> "new"
     word.dueOn <= today -> "due today"
     else -> Days.relativeLabel(word.dueOn, today)
+}
+
+/** The rows matching [filter] and a query that is a substring of the root or of any form's spelling. */
+fun filterRows(
+    words: List<WordWithContent>,
+    query: String,
+    filter: WordFilter,
+    today: Long,
+): List<WordRow> {
+    val needle = normalizeWord(query)
+    return words
+        .filter { needle.isEmpty() || it.toContent().searchTerms(it.word.text).any { term -> term.contains(needle) } }
+        .filter { filter.matches(it.word, today) }
+        .map { content ->
+            val definition = content.sorted().definitions.firstOrNull()?.definition?.text.orEmpty()
+            WordRow(content.word, statusLabel(content.word, today), definition)
+        }
 }
 
 /** The empty state's body when the query and filter together match nothing. */
@@ -94,16 +113,7 @@ class WordListViewModel(
         query: String,
         filter: WordFilter,
         today: Long,
-    ): List<WordRow> {
-        val needle = normalizeWord(query)
-        return words
-            .filter { needle.isEmpty() || it.word.normalizedText.contains(needle) }
-            .filter { filter.matches(it.word, today) }
-            .map { content ->
-                val definition = content.sorted().definitions.firstOrNull()?.definition?.text.orEmpty()
-                WordRow(content.word, statusLabel(content.word, today), definition)
-            }
-    }
+    ): List<WordRow> = filterRows(words, query, filter, today)
 
     fun toggleSuspended(word: Word) {
         viewModelScope.launch { repository.setSuspended(word, !word.suspended) }

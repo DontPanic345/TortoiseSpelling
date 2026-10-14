@@ -8,7 +8,7 @@ a word, using your own Anthropic API key.
 
 Everything is stored in the app's private storage on your device:
 
-- your words, their definitions and example sentences;
+- your words, their definitions, word forms and example sentences;
 - when each word is next due, and a log of your reviews (what you typed and whether it
   was right);
 - your settings: the reminder time, new words per day, and the days that count towards

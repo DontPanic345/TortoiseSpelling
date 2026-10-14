@@ -12,10 +12,12 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 ### Added
 
 - The add and edit screen edits a word's whole content by hand: several definitions, other forms of the word (like "ran" for "run") with an optional label, and several example sentences for each, with a warning when an example doesn't contain its form.
+- Searching the word list matches every form of a word, so "practise" finds "practice".
 
 ### Changed
 
 - Review shows the example sentence you have seen least recently, so a word with several examples takes them in turn, and asks for the form that sentence uses (with a "verb · past tense" hint).
+- Backups carry each word's definitions, forms and examples; older versions of the app can still import them (they read the first definition and example).
 - "Keep this card fresh" now adds a new example sentence to the word instead of rewriting its definition and example.
 
 ## [0.4.1] - 2026-10-14

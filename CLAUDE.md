@@ -93,10 +93,12 @@ has a companion `factory(container, ...)`.
 Navigation is string routes in `ui/Nav.kt`, and the `NavHost` is in `MainActivity.kt`.
 
 **Layers.**
-- `data/`: Room entities `Word` and `ReviewLog`, the DAO, `WordRepository`, `SettingsStore`,
-  and backup (de)serialization.
+- `data/`: Room entities `Word`, `Definition`, `WordForm`, `ExampleSentence` and `ReviewLog`
+  (`WordWithContent` loads a word's tree), the DAO, `WordRepository`, `SettingsStore`, and
+  backup (de)serialization.
 - `domain/`: pure Kotlin, no Android, and where the unit tests concentrate. Covers
-  scheduling, session building, streaks, spelling diffs and word blanking.
+  scheduling, session building, streaks, spelling diffs, word blanking, the content model
+  (`WordContent`) and card picking (`CardPick.kt`).
 - `ui/<screen>/`: one Screen + ViewModel pair per screen, holding a `MutableStateFlow` of UI state.
   Screens with component tests (Review, Home, word list) split into a stateful `XScreen` and an
   `XContent` that takes state and callbacks and touches no ViewModel.
@@ -104,7 +106,7 @@ Navigation is string routes in `ui/Nav.kt`, and the `NavHost` is in `MainActivit
 
 **Dates are epoch days, not millis.** `dueOn`, `firstReviewedOn` and `reviewedOn` are
 `LocalDate.toEpochDay()` values, via `domain/Days.kt`; days roll over at local midnight.
-Timestamps named `...At` are millis.
+Timestamps named `...At` (including an example's `shownAt`) are millis.
 "Today" and "now" come from the `java.time.Clock` on `AppContainer` (`Days.today(clock)`,
 `DeviceClock` in production), and the repository's due-day fuzz is a constructor
 parameter, so tests can set the date and know the exact day a word returns. The reminder
@@ -125,6 +127,9 @@ parameter, so tests can set the date and know the exact day a word returns. The 
 - A session is every due word plus the new-word allowance, interleaved (`SessionBuilder.kt`).
 - The allowance counts words *introduced* today (`firstReviewedOn == today`), not reviews
   done today, so a heavy review day can't starve new words.
+- Each word becomes a `ReviewCard` through `pickCard`: the least recently shown example
+  across all its forms, random among ties, and the review asks for that form's spelling.
+  `shownAt` is stamped when a card is first shown, in practice mode too.
 - Practice mode (`randomWords`) never writes scheduling state or logs.
 
 **Streak.** It combines the days in `review_log` with "satisfied" days stored in
@@ -153,6 +158,8 @@ re-opens Review.
 - The model isn't configurable. It's discovered at runtime from `GET /v1/models` (the
   newest model whose id contains "haiku"), with `LookupModel.FALLBACK` as the fallback, and
   a 404 clears the cached choice.
+- A lookup fills one definition, the base form and one example, and replaces the editor's
+  content.
 - The prompt asks for JSON with a corrected spelling, and an example sentence that
   contains the exact word form so the review screen can blank it out. `parseLookup` is
   lenient: prose around the JSON is tolerated, and unparseable output is handed to the
@@ -163,7 +170,7 @@ re-opens Review.
   sentence comes back.
 
 **Keeping cards fresh** (`data/CardRefresher.kt`). A word's `autoRefresh` flag, set from
-the add/edit screen, has Claude rewrite its definition and example.
+the add/edit screen, has Claude add a new example to the base form (it doesn't rewrite the card).
 - The trigger is a review session starting; `domain/CardRefresh.kt` decides which words
   are due, capped at one rewrite per word per day. Practice mode never triggers it.
 - The rewrite is deliberately *not* raced against the session that started it. It lands
@@ -174,7 +181,7 @@ the add/edit screen, has Claude rewrite its definition and example.
   quitting the session doesn't cancel it. It is not WorkManager: if the process dies the
   rest of the words keep their old cards and the next session picks them up.
 - `refreshedOn` is stamped *before* the call, so a rejected key isn't retried all day.
-- The write is a targeted `updateContent` query, and `recordReview` re-reads the row
+- The write is a targeted `markRefreshed` query plus an appended example, and `recordReview` re-reads the row
   before writing. Both are needed: the refresh runs while the user is reviewing, and a
   whole-row `@Update` from the session's opening snapshot would otherwise roll back
   whichever of the two wrote first.
@@ -185,11 +192,16 @@ the add/edit screen, has Claude rewrite its definition and example.
   a device restore), it's treated as absent.
 - Room has **no** `fallbackToDestructiveMigration`. Schemas are exported to `app/schemas/`,
   so any entity change needs a version bump and a real `Migration`. Version 2 added
-  `autoRefresh` and `refreshedOn` to `words`. A schema change also appends its `Migration`
+  `autoRefresh` and `refreshedOn` to `words`. Version 3 moved `definition`, `example` and
+  `partOfSpeech` into `definitions`, `word_forms` and `example_sentences`, rebuilding
+  `words` (the pattern a later column drop copies). A schema change also appends its `Migration`
   to `ALL_MIGRATIONS`, bumps `DATABASE_VERSION`, and adds a test to `MigrationTest` that
   seeds the previous version and checks every column comes through.
 - Backups are versioned JSON (`data/Backup.kt`); import merges and never overwrites
-  existing words' progress.
+  existing words' progress. Each word carries a `definitions` tree beside flat
+  `definition`, `example` and `partOfSpeech` fields from its root card, so older builds
+  still read the file and the format version stays 1; a file with no tree imports as
+  one definition, one form and one example.
 - Android Auto Backup is gated behind `Settings.cloudBackupEnabled` (off by default) via
   `TortoiseSpellingBackupAgent` (`android:backupAgent`, `android:fullBackupOnly="true"`),
   which calls `super.onFullBackup` only when the switch is on, or the pass is a
@@ -205,7 +217,9 @@ the add/edit screen, has Claude rewrite its definition and example.
   autocorrect or suggest the answer; the text isn't masked, because there's no
   `VisualTransformation`.
 - The blank placeholder is a fixed `_____` regardless of word length.
-- `hideWordInDefinition` scrubs the word out of definitions when a word is saved.
+- The blank and the answer are the asked form's, and `hideWordInDefinition` scrubs every
+  form of the word from every definition when a word is saved.
+- Word-list search matches the root and every form's spelling (`searchTerms`), never definitions.
 
 **Icons.** `ic_launcher_foreground.xml`, `ic_launcher_monochrome.xml`, `ic_notification.xml`,
 `ic_launcher_background.xml` and `docs/icon.svg` are generated. Edit `scripts/icon.mjs` and

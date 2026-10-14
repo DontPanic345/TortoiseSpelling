@@ -1,8 +1,13 @@
-# Word forms (design doc, not yet implemented)
+# Word forms (design doc)
 
-Status: **proposal**. Captures a conversation about extending word cards to cover
+Status: **implemented**. Captures a conversation about extending word cards to cover
 related word forms (plurals, verb tenses, etc.) without turning them into separate
-SRS items. Nothing here is built yet — this is the plan to implement against.
+SRS items.
+
+What differs from the sketch below: part of speech lives on the definition; the base
+form is positional (the first form of the first definition, always the word's own
+spelling); and "Keep this card fresh" appends an example until the API key goes. See
+`jogging/specs/word-forms.md` for the built design.
 
 ## Problem
 

@@ -1,5 +1,9 @@
 package io.github.dontpanic345.tortoisespelling.data
 
+import io.github.dontpanic345.tortoisespelling.domain.DefinitionDraft
+import io.github.dontpanic345.tortoisespelling.domain.ExampleDraft
+import io.github.dontpanic345.tortoisespelling.domain.FormDraft
+import io.github.dontpanic345.tortoisespelling.domain.WordContent
 import io.github.dontpanic345.tortoisespelling.domain.simpleContent
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -44,7 +48,27 @@ data class BackupWord(
     // backups on a downgrade.
     val autoRefresh: Boolean = false,
     val refreshedOn: Long? = null,
+    // The whole teaching tree. The flat fields above mirror its root card, so an older
+    // build reads this file as it always did and the format version stays 1.
+    val definitions: List<BackupDefinition> = emptyList(),
 )
+
+@Serializable
+data class BackupDefinition(
+    val text: String,
+    val partOfSpeech: String? = null,
+    val forms: List<BackupForm> = emptyList(),
+)
+
+@Serializable
+data class BackupForm(
+    val text: String,
+    val label: String? = null,
+    val examples: List<BackupExample> = emptyList(),
+)
+
+@Serializable
+data class BackupExample(val text: String, val shownAt: Long? = null)
 
 val BackupJson = Json {
     prettyPrint = true
@@ -55,6 +79,7 @@ val BackupJson = Json {
 /** The flat fields come from the root card: the first definition and the base form's first example. */
 fun WordWithContent.toBackup(): BackupWord {
     val definition = sorted().definitions.firstOrNull()
+    val tree = toContent().definitions.map { it.toBackup() }
     return BackupWord(
         text = word.text,
         definition = definition?.definition?.text.orEmpty(),
@@ -72,8 +97,33 @@ fun WordWithContent.toBackup(): BackupWord {
         suspended = word.suspended,
         autoRefresh = word.autoRefresh,
         refreshedOn = word.refreshedOn,
+        definitions = tree,
     )
 }
+
+private fun DefinitionDraft.toBackup() = BackupDefinition(
+    text = text,
+    partOfSpeech = partOfSpeech.ifBlank { null },
+    forms = forms.map { form ->
+        BackupForm(
+            text = form.text,
+            label = form.label.ifBlank { null },
+            examples = form.examples.map { BackupExample(it.text, it.shownAt) },
+        )
+    },
+)
+
+private fun BackupDefinition.toDraft() = DefinitionDraft(
+    text = text,
+    partOfSpeech = partOfSpeech.orEmpty(),
+    forms = forms.map { form ->
+        FormDraft(
+            text = form.text,
+            label = form.label.orEmpty(),
+            examples = form.examples.map { ExampleDraft(it.text, it.shownAt) },
+        )
+    },
+)
 
 fun BackupWord.toImport() = ImportedWord(
     word = Word(
@@ -92,7 +142,11 @@ fun BackupWord.toImport() = ImportedWord(
         autoRefresh = autoRefresh,
         refreshedOn = refreshedOn,
     ),
-    content = simpleContent(text, definition, partOfSpeech, example),
+    content = if (definitions.isEmpty()) {
+        simpleContent(text, definition, partOfSpeech, example)
+    } else {
+        WordContent(definitions.map { it.toDraft() })
+    },
 )
 
 /** Thrown when a file is not a Tortoise Spelling backup, or is from a newer app version. */

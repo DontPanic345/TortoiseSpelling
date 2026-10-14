@@ -7,9 +7,11 @@ reminder so the habit sticks. Slow and steady wins the race 🐢.
 ## 🐇 How it works
 
 - 📝 **Your words, not a canned list.** Add the words you want to learn; Claude can
-  fill in the definition and example, or you type them yourself.
+  fill in the definition and example, or you type them yourself. A word can have several
+  definitions, other forms ("ran", "practise") and several example sentences.
 - ✍️ **You spell it from memory.** Each review shows the definition and an example
-  sentence with the word blanked out — no multiple choice.
+  sentence with the word blanked out — no multiple choice. Sentences rotate, so a word
+  with several examples is asked in turn, in the form each one uses.
 - ✅ **Immediate correction.** A miss shows a character-level diff, then makes you
   retype the word correctly before moving on.
 - 🐢 **Spaced repetition (SM-2).** Correct spellings push the word further out
