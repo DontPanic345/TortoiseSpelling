@@ -14,15 +14,15 @@ import java.time.Clock
 /**
  * Keeps flagged words from going stale.
  *
- * A word that has climbed to a week-long interval has had its definition and example
- * read a dozen times, and by then the sentence teaches nothing. When a review session
- * starts, every flagged word in it is handed back to Claude for a new definition and
- * example, at most once a day.
+ * A word that has climbed to a week-long interval has had its example read a dozen
+ * times, and by then the sentence teaches nothing. When a review session starts, every
+ * flagged word in it is handed back to Claude for a new example, at most once a day,
+ * and the answer is added to the word's base form beside the ones it already has.
  *
- * The rewrite deliberately does not race the session it was started by: it lands in
+ * The refresh deliberately does not race the session it was started by: it lands in
  * the database while the user reviews the old card, and shows up the *next* time the
  * word comes round. Doing it any sooner would mean sitting through a spinner, and a
- * definition that changed halfway through answering would be worse than a stale one.
+ * sentence that changed halfway through answering would be worse than a stale one.
  *
  * Runs on an application-scoped coroutine rather than the review ViewModel's, so
  * quitting the session partway does not cancel the work. It is not, however, a
@@ -71,27 +71,20 @@ class CardRefresher(
         // an exhausted rate limit would otherwise do.
         repository.markRefreshAttempted(word, Days.today(clock))
 
+        val content = repository.contentById(word.id)
+        val first = content?.definitions?.firstOrNull()
         val result = claude.lookup(
             word = word.text,
             apiKey = apiKey,
-            stale = StaleCard(definition = word.definition, example = word.example),
+            stale = StaleCard(
+                definition = first?.definition?.text.orEmpty(),
+                example = first?.forms?.firstOrNull()?.examples?.lastOrNull()?.text.orEmpty(),
+            ),
         )
-        if (result !is LookupResult.Success) {
-            return
+        // Only the example is kept: the definition may now be one of several, and
+        // result.word is ignored because a refresh is not a rename.
+        if (result is LookupResult.Success && result.example.isNotBlank()) {
+            repository.addExample(word, result.example)
         }
-        // Only what actually came back is replaced, so a half-empty answer can't wipe
-        // a definition that was fine. result.word is ignored on purpose: the row
-        // already exists under this spelling, and a refresh is not a rename.
-        val definition = result.definition.ifBlank { word.definition }
-        val example = result.example.ifBlank { word.example }
-        if (definition == word.definition && example == word.example) {
-            return
-        }
-        repository.refreshContent(
-            word = word,
-            definition = definition,
-            example = example,
-            partOfSpeech = result.partOfSpeech ?: word.partOfSpeech,
-        )
     }
 }

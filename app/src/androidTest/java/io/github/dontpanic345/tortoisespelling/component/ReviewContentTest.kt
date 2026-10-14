@@ -9,7 +9,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
-import io.github.dontpanic345.tortoisespelling.data.testWord
+import io.github.dontpanic345.tortoisespelling.data.testCard
 import io.github.dontpanic345.tortoisespelling.domain.spellingDiff
 import io.github.dontpanic345.tortoisespelling.ui.TestTags
 import io.github.dontpanic345.tortoisespelling.ui.review.ReviewContent
@@ -25,8 +25,8 @@ class ReviewContentTest {
     val compose = createComposeRule()
 
     private val queue = listOf(
-        testWord("rhythm", definition = "A strong, regular pattern of sound.", example = "The rhythm of the drums was steady."),
-        testWord("necessary", definition = "Required to be done.", example = "It is necessary to rest."),
+        testCard("rhythm", definition = "A strong, regular pattern of sound.", example = "The rhythm of the drums was steady."),
+        testCard("necessary", definition = "Required to be done.", example = "It is necessary to rest."),
     )
 
     private val inputs = mutableListOf<String>()

@@ -236,7 +236,7 @@
           "title": "Schema v3, MIGRATION_2_3 and its tests, the content model, DAO and repository, with review, add and list glue on the root card",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-2",

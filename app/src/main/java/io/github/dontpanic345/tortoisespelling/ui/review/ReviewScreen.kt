@@ -59,8 +59,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import io.github.dontpanic345.tortoisespelling.data.Word
 import io.github.dontpanic345.tortoisespelling.domain.BLANK_PLACEHOLDER
+import io.github.dontpanic345.tortoisespelling.domain.ReviewCard
 import io.github.dontpanic345.tortoisespelling.domain.SpellingDiff
 import io.github.dontpanic345.tortoisespelling.ui.TestTags
 import io.github.dontpanic345.tortoisespelling.ui.rememberAppContainer
@@ -152,7 +152,7 @@ fun ReviewContent(
             return@Scaffold
         }
 
-        val word = state.current ?: return@Scaffold
+        val card = state.current ?: return@Scaffold
 
         Column(
             modifier = Modifier
@@ -173,7 +173,7 @@ fun ReviewContent(
             }
 
             Spacer(Modifier.height(28.dp))
-            Prompt(word = word, phase = state.phase, blanked = state.blankedExample?.text)
+            Prompt(card = card, phase = state.phase, blanked = state.blankedExample?.text)
 
             Spacer(Modifier.height(28.dp))
             Column(Modifier.bringIntoViewRequester(answerArea)) {
@@ -186,7 +186,7 @@ fun ReviewContent(
                 )
 
                 Spacer(Modifier.height(16.dp))
-                Feedback(word = word, phase = state.phase, onShowAnswer = onShowAnswer)
+                Feedback(card = card, phase = state.phase, onShowAnswer = onShowAnswer)
             }
 
             // No Continue on the last word: the session closes itself a beat later, so
@@ -216,9 +216,9 @@ fun ReviewContent(
 }
 
 @Composable
-private fun Prompt(word: Word, phase: ReviewPhase, blanked: String?) {
+private fun Prompt(card: ReviewCard, phase: ReviewPhase, blanked: String?) {
     Column {
-        word.partOfSpeech?.let { partOfSpeech ->
+        card.partOfSpeech?.let { partOfSpeech ->
             Text(
                 text = partOfSpeech,
                 style = MaterialTheme.typography.labelLarge,
@@ -227,17 +227,18 @@ private fun Prompt(word: Word, phase: ReviewPhase, blanked: String?) {
             )
             Spacer(Modifier.height(4.dp))
         }
-        Text(text = word.definition, style = MaterialTheme.typography.headlineSmall)
+        Text(text = card.definition, style = MaterialTheme.typography.headlineSmall)
 
         Spacer(Modifier.height(20.dp))
 
         val revealed = phase is ReviewPhase.Correct
+        val sentence = card.example?.text
         when {
             // Once answered, show the sentence intact: seeing the word in context is
             // most of the value of having an example at all. It stays in the body
             // face, same as the blanked sentence below, so nothing jumps.
-            revealed && word.example.isNotBlank() ->
-                Text(word.example, style = MaterialTheme.typography.bodyLarge)
+            revealed && !sentence.isNullOrBlank() ->
+                Text(sentence, style = MaterialTheme.typography.bodyLarge)
 
             blanked != null -> BlankedExample(blanked)
 
@@ -362,7 +363,7 @@ private fun AnswerField(
 }
 
 @Composable
-private fun Feedback(word: Word, phase: ReviewPhase, onShowAnswer: () -> Unit) {
+private fun Feedback(card: ReviewCard, phase: ReviewPhase, onShowAnswer: () -> Unit) {
     val feedback = LocalFeedbackColors.current
     when (phase) {
         ReviewPhase.Prompting -> Unit
@@ -381,7 +382,7 @@ private fun Feedback(word: Word, phase: ReviewPhase, onShowAnswer: () -> Unit) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                word.text,
+                card.form,
                 color = feedback.correct,
                 style = WordStyle,
                 modifier = Modifier.testTag(TestTags.REVIEW_CORRECT_WORD),
@@ -412,7 +413,7 @@ private fun Feedback(word: Word, phase: ReviewPhase, onShowAnswer: () -> Unit) {
                         .background(feedback.correctContainer, RoundedCornerShape(8.dp))
                         .padding(8.dp),
                 ) {
-                    DiffRow(label = "Correct", text = word.text, diff = phase.diff, isAttempt = false)
+                    DiffRow(label = "Correct", text = card.form, diff = phase.diff, isAttempt = false)
                 }
             } else {
                 TextButton(onClick = onShowAnswer) {

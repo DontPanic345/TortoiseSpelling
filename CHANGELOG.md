@@ -9,6 +9,10 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+### Changed
+
+- "Keep this card fresh" now adds a new example sentence to the word instead of rewriting its definition and example.
+
 ## [0.4.1] - 2026-10-14
 
 ### Fixed

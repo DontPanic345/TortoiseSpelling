@@ -1,5 +1,6 @@
 package io.github.dontpanic345.tortoisespelling.data
 
+import io.github.dontpanic345.tortoisespelling.domain.simpleContent
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -51,43 +52,47 @@ val BackupJson = Json {
     encodeDefaults = true
 }
 
-fun Word.toBackup() = BackupWord(
-    text = text,
-    definition = definition,
-    example = example,
-    partOfSpeech = partOfSpeech,
-    createdAt = createdAt,
-    repetitions = repetitions,
-    easeFactor = easeFactor,
-    intervalDays = intervalDays,
-    dueOn = dueOn,
-    lapses = lapses,
-    lastReviewedAt = lastReviewedAt,
-    firstReviewedOn = firstReviewedOn,
-    isNew = isNew,
-    suspended = suspended,
-    autoRefresh = autoRefresh,
-    refreshedOn = refreshedOn,
-)
+/** The flat fields come from the root card: the first definition and the base form's first example. */
+fun WordWithContent.toBackup(): BackupWord {
+    val definition = sorted().definitions.firstOrNull()
+    return BackupWord(
+        text = word.text,
+        definition = definition?.definition?.text.orEmpty(),
+        example = definition?.forms?.firstOrNull()?.examples?.firstOrNull()?.text.orEmpty(),
+        partOfSpeech = definition?.definition?.partOfSpeech,
+        createdAt = word.createdAt,
+        repetitions = word.repetitions,
+        easeFactor = word.easeFactor,
+        intervalDays = word.intervalDays,
+        dueOn = word.dueOn,
+        lapses = word.lapses,
+        lastReviewedAt = word.lastReviewedAt,
+        firstReviewedOn = word.firstReviewedOn,
+        isNew = word.isNew,
+        suspended = word.suspended,
+        autoRefresh = word.autoRefresh,
+        refreshedOn = word.refreshedOn,
+    )
+}
 
-fun BackupWord.toWord() = Word(
-    text = text.trim(),
-    normalizedText = normalizeWord(text),
-    definition = definition,
-    example = example,
-    partOfSpeech = partOfSpeech,
-    createdAt = createdAt,
-    repetitions = repetitions,
-    easeFactor = easeFactor,
-    intervalDays = intervalDays,
-    dueOn = dueOn,
-    lapses = lapses,
-    lastReviewedAt = lastReviewedAt,
-    firstReviewedOn = firstReviewedOn,
-    isNew = isNew,
-    suspended = suspended,
-    autoRefresh = autoRefresh,
-    refreshedOn = refreshedOn,
+fun BackupWord.toImport() = ImportedWord(
+    word = Word(
+        text = text.trim(),
+        normalizedText = normalizeWord(text),
+        createdAt = createdAt,
+        repetitions = repetitions,
+        easeFactor = easeFactor,
+        intervalDays = intervalDays,
+        dueOn = dueOn,
+        lapses = lapses,
+        lastReviewedAt = lastReviewedAt,
+        firstReviewedOn = firstReviewedOn,
+        isNew = isNew,
+        suspended = suspended,
+        autoRefresh = autoRefresh,
+        refreshedOn = refreshedOn,
+    ),
+    content = simpleContent(text, definition, partOfSpeech, example),
 )
 
 /** Thrown when a file is not a Tortoise Spelling backup, or is from a newer app version. */

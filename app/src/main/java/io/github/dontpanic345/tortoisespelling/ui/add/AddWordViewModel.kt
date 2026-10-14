@@ -11,7 +11,15 @@ import io.github.dontpanic345.tortoisespelling.data.UpdateResult
 import io.github.dontpanic345.tortoisespelling.data.WordRepository
 import io.github.dontpanic345.tortoisespelling.data.remote.ClaudeClient
 import io.github.dontpanic345.tortoisespelling.data.remote.LookupResult
+import io.github.dontpanic345.tortoisespelling.data.toContent
 import io.github.dontpanic345.tortoisespelling.di.AppContainer
+import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
+import io.github.dontpanic345.tortoisespelling.domain.ExampleDraft
+import io.github.dontpanic345.tortoisespelling.domain.WordContent
+import io.github.dontpanic345.tortoisespelling.domain.apply
+import io.github.dontpanic345.tortoisespelling.domain.isComplete
+import io.github.dontpanic345.tortoisespelling.domain.preparedFor
+import io.github.dontpanic345.tortoisespelling.domain.simpleContent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,9 +29,7 @@ import kotlinx.coroutines.launch
 data class AddWordUiState(
     val editingId: Long? = null,
     val text: String = "",
-    val definition: String = "",
-    val example: String = "",
-    val partOfSpeech: String = "",
+    val content: WordContent = WordContent.blank(),
     val autoRefresh: Boolean = false,
     val lookingUp: Boolean = false,
     val hasApiKey: Boolean = false,
@@ -33,8 +39,32 @@ data class AddWordUiState(
     val dismissed: Boolean = false,
 ) {
     val isEditing: Boolean get() = editingId != null
-    val canSave: Boolean get() = text.isNotBlank() && definition.isNotBlank()
+    val canSave: Boolean get() = text.isNotBlank() && content.isComplete()
+
+    /** The root card's fields, which are all the screen edits until the tree editor lands. */
+    val definition: String get() = content.definitions.firstOrNull()?.text.orEmpty()
+    val partOfSpeech: String get() = content.definitions.firstOrNull()?.partOfSpeech.orEmpty()
+    val example: String
+        get() = content.definitions.firstOrNull()?.forms?.firstOrNull()?.examples?.firstOrNull()?.text.orEmpty()
     val canLookUp: Boolean get() = text.isNotBlank() && hasApiKey && !lookingUp
+}
+
+/**
+ * Content the editor can type into: the prepared tree (so a word with no definition or
+ * base form still has a first definition and base form) with a blank example to fill
+ * when the base form has none.
+ */
+private fun WordContent.editable(word: String): WordContent {
+    val prepared = preparedFor(word)
+    val first = prepared.definitions.first()
+    val base = first.forms.first()
+    if (base.examples.isNotEmpty()) {
+        return prepared
+    }
+    val withExample = base.copy(examples = listOf(ExampleDraft("")))
+    return WordContent(
+        listOf(first.copy(forms = listOf(withExample) + first.forms.drop(1))) + prepared.definitions.drop(1),
+    )
 }
 
 class AddWordViewModel(
@@ -62,14 +92,12 @@ class AddWordViewModel(
         }
         if (editingId != null) {
             viewModelScope.launch {
-                repository.wordById(editingId)?.let { word ->
+                repository.contentById(editingId)?.let { loaded ->
                     _state.update {
                         it.copy(
-                            text = word.text,
-                            definition = word.definition,
-                            example = word.example,
-                            partOfSpeech = word.partOfSpeech.orEmpty(),
-                            autoRefresh = word.autoRefresh,
+                            text = loaded.word.text,
+                            content = loaded.toContent().editable(loaded.word.text),
+                            autoRefresh = loaded.word.autoRefresh,
                         )
                     }
                 }
@@ -81,16 +109,8 @@ class AddWordViewModel(
         _state.update { it.copy(text = value) }
     }
 
-    fun onDefinitionChange(value: String) {
-        _state.update { it.copy(definition = value) }
-    }
-
-    fun onExampleChange(value: String) {
-        _state.update { it.copy(example = value) }
-    }
-
-    fun onPartOfSpeechChange(value: String) {
-        _state.update { it.copy(partOfSpeech = value) }
+    fun onEdit(edit: ContentEdit) {
+        _state.update { it.copy(content = it.content.apply(edit)) }
     }
 
     fun onAutoRefreshChange(value: Boolean) {
@@ -124,9 +144,12 @@ class AddWordViewModel(
                         it.copy(
                             lookingUp = false,
                             text = result.word,
-                            definition = result.definition,
-                            example = result.example,
-                            partOfSpeech = result.partOfSpeech.orEmpty(),
+                            content = simpleContent(
+                                word = result.word,
+                                definition = result.definition,
+                                partOfSpeech = result.partOfSpeech,
+                                example = result.example,
+                            ).editable(result.word),
                             message = if (corrected) {
                                 "Corrected spelling to “${result.word}”."
                             } else {
@@ -141,7 +164,7 @@ class AddWordViewModel(
                 is LookupResult.Unparsed -> _state.update {
                     it.copy(
                         lookingUp = false,
-                        definition = result.rawText,
+                        content = it.content.apply(ContentEdit.DefinitionText(0, result.rawText)),
                         message = "Claude didn't return the expected format — edit as needed.",
                     )
                 }
@@ -173,13 +196,8 @@ class AddWordViewModel(
             if (editingId != null) {
                 val existing = repository.wordById(editingId) ?: return@launch
                 val result = repository.updateWord(
-                    existing.copy(
-                        text = snapshot.text,
-                        definition = snapshot.definition,
-                        example = snapshot.example,
-                        partOfSpeech = snapshot.partOfSpeech.ifBlank { null },
-                        autoRefresh = snapshot.autoRefresh,
-                    ),
+                    existing.copy(text = snapshot.text, autoRefresh = snapshot.autoRefresh),
+                    snapshot.content,
                 )
                 _state.value = when (result) {
                     UpdateResult.Updated -> _state.value.copy(dismissed = true)
@@ -190,13 +208,7 @@ class AddWordViewModel(
                 return@launch
             }
 
-            when (val result = repository.addWord(
-                text = snapshot.text,
-                definition = snapshot.definition,
-                example = snapshot.example,
-                partOfSpeech = snapshot.partOfSpeech.ifBlank { null },
-                autoRefresh = snapshot.autoRefresh,
-            )) {
+            when (val result = repository.addWord(snapshot.text, snapshot.content, snapshot.autoRefresh)) {
                 is AddResult.Added -> {
                     val total = repository.wordCount()
                     // Stay on the screen with the fields cleared: adding words happens in

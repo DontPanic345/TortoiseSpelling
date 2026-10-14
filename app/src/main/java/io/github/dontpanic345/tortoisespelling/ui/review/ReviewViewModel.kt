@@ -11,6 +11,7 @@ import io.github.dontpanic345.tortoisespelling.data.WordRepository
 import io.github.dontpanic345.tortoisespelling.data.normalizeWord
 import io.github.dontpanic345.tortoisespelling.di.AppContainer
 import io.github.dontpanic345.tortoisespelling.domain.BlankedText
+import io.github.dontpanic345.tortoisespelling.domain.ReviewCard
 import io.github.dontpanic345.tortoisespelling.domain.SpellingDiff
 import io.github.dontpanic345.tortoisespelling.domain.blankWordIn
 import io.github.dontpanic345.tortoisespelling.domain.spellingDiff
@@ -45,14 +46,14 @@ sealed interface ReviewPhase {
 
 data class ReviewUiState(
     val loading: Boolean = true,
-    val queue: List<Word> = emptyList(),
+    val queue: List<ReviewCard> = emptyList(),
     val index: Int = 0,
     val input: String = "",
     val phase: ReviewPhase = ReviewPhase.Prompting,
     val finished: Boolean = false,
     val practiceMode: Boolean = false,
 ) {
-    val current: Word? get() = queue.getOrNull(index)
+    val current: ReviewCard? get() = queue.getOrNull(index)
     val total: Int get() = queue.size
     val position: Int get() = (index + 1).coerceAtMost(total)
 
@@ -62,10 +63,10 @@ data class ReviewUiState(
      */
     val ending: Boolean get() = phase == ReviewPhase.Correct && index == queue.lastIndex
 
-    /** The example sentence with the target word masked, when it can be found in it. */
+    /** The example sentence with the asked form masked, when it can be found in it. */
     val blankedExample: BlankedText?
-        get() = current?.let { word ->
-            if (word.example.isBlank()) null else blankWordIn(word.example, word.text)
+        get() = current?.let { card ->
+            card.example?.text?.takeIf { it.isNotBlank() }?.let { blankWordIn(it, card.form) }
         }
 }
 
@@ -95,7 +96,7 @@ class ReviewViewModel(
             // word's state alone. Fire and forget — this session shows today's cards
             // either way, and the work outlives the ViewModel.
             if (!practiceMode) {
-                cardRefresher.refreshInBackground(queue)
+                cardRefresher.refreshInBackground(queue.map { it.word })
             }
         }
     }
@@ -106,33 +107,33 @@ class ReviewViewModel(
 
     fun submit() {
         val snapshot = _state.value
-        val word = snapshot.current ?: return
+        val card = snapshot.current ?: return
         val typed = snapshot.input.trim()
         if (typed.isEmpty()) {
             return
         }
 
         when (snapshot.phase) {
-            ReviewPhase.Prompting -> gradeFirstAttempt(word, typed)
+            ReviewPhase.Prompting -> gradeFirstAttempt(card, typed)
             is ReviewPhase.Corrective -> if (snapshot.phase.revealed) {
-                checkRetype(snapshot.phase, word, typed)
+                checkRetype(snapshot.phase, card, typed)
             } else {
-                gradeSecondAttempt(word, typed)
+                gradeSecondAttempt(card, typed)
             }
             ReviewPhase.Correct -> advance()
         }
     }
 
-    private fun gradeFirstAttempt(word: Word, typed: String) {
-        if (normalizeWord(typed) == word.normalizedText) {
-            markCorrect(word)
-            record(word, correctFirstTry = true, typed = typed)
+    private fun gradeFirstAttempt(card: ReviewCard, typed: String) {
+        if (normalizeWord(typed) == card.answer) {
+            markCorrect(card)
+            record(card.word, correctFirstTry = true, typed = typed)
         } else {
             _state.update {
                 it.copy(
                     phase = ReviewPhase.Corrective(
                         attempt = typed,
-                        diff = spellingDiff(word.text, typed),
+                        diff = spellingDiff(card.form, typed),
                         revealed = false,
                         retypeMissed = false,
                     ),
@@ -141,20 +142,20 @@ class ReviewViewModel(
             }
             // Recorded at the miss, not at the retype: abandoning mid-correction should
             // still count as a lapse rather than leaving the word untouched.
-            record(word, correctFirstTry = false, typed = typed)
+            record(card.word, correctFirstTry = false, typed = typed)
         }
     }
 
     /** Already recorded as a miss at the first attempt, so this only decides what shows. */
-    private fun gradeSecondAttempt(word: Word, typed: String) {
-        if (normalizeWord(typed) == word.normalizedText) {
-            markCorrect(word)
+    private fun gradeSecondAttempt(card: ReviewCard, typed: String) {
+        if (normalizeWord(typed) == card.answer) {
+            markCorrect(card)
         } else {
             _state.update {
                 it.copy(
                     phase = ReviewPhase.Corrective(
                         attempt = typed,
-                        diff = spellingDiff(word.text, typed),
+                        diff = spellingDiff(card.form, typed),
                         revealed = true,
                         retypeMissed = false,
                     ),
@@ -175,13 +176,13 @@ class ReviewViewModel(
         }
     }
 
-    private fun markCorrect(word: Word) {
-        _state.update { it.copy(phase = ReviewPhase.Correct, input = word.text) }
+    private fun markCorrect(card: ReviewCard) {
+        _state.update { it.copy(phase = ReviewPhase.Correct, input = card.form) }
         scheduleAutoAdvance(_state.value.index)
     }
 
-    private fun checkRetype(phase: ReviewPhase.Corrective, word: Word, typed: String) {
-        if (normalizeWord(typed) == word.normalizedText) {
+    private fun checkRetype(phase: ReviewPhase.Corrective, card: ReviewCard, typed: String) {
+        if (normalizeWord(typed) == card.answer) {
             advance()
         } else {
             _state.update {

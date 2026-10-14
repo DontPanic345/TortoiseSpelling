@@ -9,7 +9,7 @@ import kotlin.random.Random
 class SessionBuilderTest {
 
     private fun word(id: Long, text: String) =
-        Word(id = id, text = text, normalizedText = text, definition = "", example = "", dueOn = 0)
+        Word(id = id, text = text, normalizedText = text, dueOn = 0)
 
     @Test
     fun `allowance subtracts words introduced today`() {

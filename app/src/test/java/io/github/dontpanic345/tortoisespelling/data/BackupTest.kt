@@ -1,5 +1,6 @@
 package io.github.dontpanic345.tortoisespelling.data
 
+import io.github.dontpanic345.tortoisespelling.domain.simpleContent
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -13,9 +14,6 @@ class BackupTest {
         id = 7,
         text = "Accommodate",
         normalizedText = "accommodate",
-        definition = "To provide room for.",
-        example = "The hall can hold two hundred.",
-        partOfSpeech = "verb",
         repetitions = 3,
         easeFactor = 2.36,
         intervalDays = 17,
@@ -27,17 +25,38 @@ class BackupTest {
         refreshedOn = 20_399,
     )
 
+    private val content = WordWithContent(
+        word = word,
+        definitions = listOf(
+            DefinitionWithForms(
+                Definition(id = 1, wordId = 7, text = "To provide room for.", partOfSpeech = "verb", orderIndex = 0),
+                listOf(
+                    FormWithExamples(
+                        WordForm(id = 1, definitionId = 1, text = "Accommodate", orderIndex = 0),
+                        listOf(
+                            ExampleSentence(id = 1, wordFormId = 1, text = "The hall can hold two hundred.", orderIndex = 0),
+                            ExampleSentence(id = 2, wordFormId = 1, text = "We can accommodate you.", orderIndex = 1),
+                        ),
+                    ),
+                ),
+            ),
+        ),
+    )
+
     @Test
-    fun `a word survives a round trip with its scheduling intact`() {
+    fun `a word survives a round trip with its scheduling and root card intact`() {
         val json = BackupJson.encodeToString(
             BackupFile.serializer(),
-            BackupFile(words = listOf(word.toBackup())),
+            BackupFile(words = listOf(content.toBackup())),
         )
-        val restored = parseBackup(json).words.single().toWord()
+        val imported = parseBackup(json).words.single().toImport()
+        val restored = imported.word
 
         assertEquals(word.text, restored.text)
-        assertEquals(word.definition, restored.definition)
-        assertEquals(word.partOfSpeech, restored.partOfSpeech)
+        assertEquals(
+            simpleContent("Accommodate", "To provide room for.", "verb", "The hall can hold two hundred."),
+            imported.content,
+        )
         assertEquals(word.repetitions, restored.repetitions)
         assertEquals(word.easeFactor, restored.easeFactor, 1e-9)
         assertEquals(word.intervalDays, restored.intervalDays)
@@ -58,7 +77,7 @@ class BackupTest {
               {"text":"rhythm","definition":"A pattern of sound.","dueOn":20400}
             ]}
             """.trimIndent(),
-        ).words.single().toWord()
+        ).words.single().toImport().word
 
         assertFalse(restored.autoRefresh)
         assertNull(restored.refreshedOn)
@@ -66,7 +85,7 @@ class BackupTest {
 
     @Test
     fun `normalized text is rebuilt on import rather than trusted`() {
-        val restored = BackupWord(text = "  Paris  ", definition = "A capital.", dueOn = 1).toWord()
+        val restored = BackupWord(text = "  Paris  ", definition = "A capital.", dueOn = 1).toImport().word
         assertEquals("Paris", restored.text)
         assertEquals("paris", restored.normalizedText)
     }
@@ -104,8 +123,9 @@ class BackupTest {
     @Test
     fun `optional fields fall back to sensible defaults`() {
         val json = """{"version":1,"words":[{"text":"cat","definition":"An animal.","dueOn":3}]}"""
-        val restored = parseBackup(json).words.single().toWord()
-        assertEquals("", restored.example)
+        val imported = parseBackup(json).words.single().toImport()
+        val restored = imported.word
+        assertEquals(simpleContent("cat", "An animal.", null, ""), imported.content)
         assertEquals(2.5, restored.easeFactor, 1e-9)
         assertTrue(restored.isNew)
     }

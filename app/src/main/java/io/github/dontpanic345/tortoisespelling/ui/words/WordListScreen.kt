@@ -216,7 +216,7 @@ private fun WordListItem(
         ) {
             Text(row.word.text, style = MaterialTheme.typography.titleMedium)
             Text(
-                text = row.word.definition,
+                text = row.definition,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,

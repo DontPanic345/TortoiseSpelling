@@ -3,8 +3,14 @@ package io.github.dontpanic345.tortoisespelling.data
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
 import io.github.dontpanic345.tortoisespelling.domain.Days
+import io.github.dontpanic345.tortoisespelling.domain.DefinitionDraft
 import io.github.dontpanic345.tortoisespelling.domain.DeviceClock
+import io.github.dontpanic345.tortoisespelling.domain.FormDraft
+import io.github.dontpanic345.tortoisespelling.domain.WordContent
+import io.github.dontpanic345.tortoisespelling.domain.apply
+import io.github.dontpanic345.tortoisespelling.domain.simpleContent
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -51,10 +57,63 @@ class WordRepositoryTest {
         repo.addWord("beta", "Second.", "A beta.", null)
         val beta = dao.wordByNormalizedText("beta")!!
 
-        val result = repo.updateWord(beta.copy(text = " Alpha "))
+        val before = dao.contentById(beta.id)!!.toContent()
+        val result = repo.updateWord(beta.copy(text = " Alpha "), before)
 
         assertTrue(result is UpdateResult.Duplicate)
         assertEquals(beta, dao.wordById(beta.id))
+        assertEquals(before, dao.contentById(beta.id)!!.toContent())
+    }
+
+    @Test
+    fun addWordScrubsAFormsTextOutOfTheDefinition() = runTest {
+        val content = WordContent(
+            listOf(
+                DefinitionDraft(
+                    "To practise a skill; practice makes perfect.",
+                    forms = listOf(FormDraft("practice"), FormDraft("practise")),
+                ),
+            ),
+        )
+        repo.addWord("practice", content)
+
+        val saved = dao.allContentOnce().single().toContent()
+        assertEquals("To _____ a skill; _____ makes perfect.", saved.definitions.single().text)
+        assertEquals(listOf("practice", "practise"), saved.definitions.single().forms.map { it.text })
+    }
+
+    @Test
+    fun updateWordRenamingTheWordRenamesTheBaseForm() = runTest {
+        repo.addWord("recieve", "To get.", "I recieve mail.", null)
+        val word = dao.wordByNormalizedText("recieve")!!
+        val content = dao.contentById(word.id)!!.toContent()
+
+        val result = repo.updateWord(word.copy(text = "receive"), content)
+
+        assertEquals(UpdateResult.Updated, result)
+        assertEquals("receive", dao.wordById(word.id)!!.text)
+        assertEquals("receive", dao.contentById(word.id)!!.toContent().definitions[0].forms[0].text)
+    }
+
+    @Test
+    fun updateWordKeepsSchedulingAndShownAt() = runTest {
+        repo.addWord("rhythm", "A pattern.", "The rhythm held.", null)
+        val word = dao.wordByNormalizedText("rhythm")!!
+        dao.updateWord(word.copy(repetitions = 4, intervalDays = 15, isNew = false))
+        val example = dao.contentById(word.id)!!.sorted().definitions[0].forms[0].examples[0]
+        dao.markShown(example.id, 777)
+
+        repo.updateWord(
+            dao.wordById(word.id)!!,
+            dao.contentById(word.id)!!.toContent().apply(ContentEdit.DefinitionText(0, "A beat.")),
+        )
+
+        val saved = dao.wordById(word.id)!!
+        assertEquals(4, saved.repetitions)
+        assertEquals(15, saved.intervalDays)
+        val content = dao.contentById(word.id)!!.toContent()
+        assertEquals("A beat.", content.definitions[0].text)
+        assertEquals(777L, content.definitions[0].forms[0].examples[0].shownAt)
     }
 
     @Test
@@ -66,37 +125,65 @@ class WordRepositoryTest {
         dao.insertWord(existing)
         val before = dao.wordByNormalizedText("known")!!
 
+        fun incoming(word: Word) = ImportedWord(word, simpleContent(word.text, "A definition.", "noun", "Use it."))
         val summary = repo.importWords(
             listOf(
-                testWord("fresh"),
-                testWord("Known", dueOn = 0, repetitions = 0),
-                testWord("   "),
-                testWord("FRESH"),
-                testWord("other"),
+                incoming(testWord("fresh")),
+                incoming(testWord("Known", dueOn = 0, repetitions = 0)),
+                incoming(testWord("   ")),
+                incoming(testWord("FRESH")),
+                incoming(testWord("other")),
             ),
         )
 
         assertEquals(ImportSummary(added = 2, skipped = 3), summary)
         assertEquals(before, dao.wordByNormalizedText("known"))
         assertEquals(3, dao.wordCount())
+        val fresh = dao.contentById(dao.wordByNormalizedText("fresh")!!.id)!!.toContent()
+        assertEquals(simpleContent("fresh", "A definition.", "noun", "Use it."), fresh)
     }
 
     @Test
-    fun recordReviewWithAStaleSnapshotKeepsRefreshedContent() = runTest {
-        repo.addWord("rhythm", "Old definition.", "Old example.", null)
+    fun recordReviewWithAStaleSnapshotKeepsTheRefreshStamp() = runTest {
+        repo.addWord("rhythm", "A definition.", "An example.", null, autoRefresh = true)
         val stale = dao.wordByNormalizedText("rhythm")!!
 
-        repo.refreshContent(stale, "New definition.", "New example.", "noun")
+        repo.markRefreshAttempted(stale, 20_000)
         repo.recordReview(stale, correctFirstTry = true, typedAnswer = "rhythm")
 
         val saved = dao.wordById(stale.id)!!
-        assertEquals("New definition.", saved.definition)
-        assertEquals("New example.", saved.example)
-        assertEquals("noun", saved.partOfSpeech)
+        assertEquals(20_000L, saved.refreshedOn)
         assertEquals(1, saved.repetitions)
         assertEquals(false, saved.isNew)
         assertEquals(Days.today(DeviceClock), saved.firstReviewedOn)
         assertNotNull(saved.lastReviewedAt)
         assertEquals(1, dao.reviewedCountOn(Days.today(DeviceClock)))
+    }
+
+    @Test
+    fun addExampleAppendsToTheBaseFormAndSkipsRepeats() = runTest {
+        repo.addWord("rhythm", "A pattern.", "The rhythm held.", null)
+        val word = dao.wordByNormalizedText("rhythm")!!
+
+        repo.addExample(word, "  A new rhythm. ")
+        repo.addExample(word, "a new RHYTHM.")
+        repo.addExample(word, "   ")
+
+        val examples = dao.contentById(word.id)!!.toContent().definitions[0].forms[0].examples
+        assertEquals(listOf("The rhythm held.", "A new rhythm."), examples.map { it.text })
+        assertEquals(listOf(null, null), examples.map { it.shownAt })
+    }
+
+    @Test
+    fun exportAllCarriesTheTreeOldestFirst() = runTest {
+        repo.addWord("beta", "Second.", "A beta.", null)
+        dao.updateWord(dao.wordByNormalizedText("beta")!!.copy(createdAt = 20))
+        repo.addWord("alpha", "First.", "An alpha.", "noun")
+        dao.updateWord(dao.wordByNormalizedText("alpha")!!.copy(createdAt = 10))
+
+        val exported = repo.exportAll()
+
+        assertEquals(listOf("alpha", "beta"), exported.map { it.word.text })
+        assertEquals("First.", exported[0].toContent().definitions[0].text)
     }
 }

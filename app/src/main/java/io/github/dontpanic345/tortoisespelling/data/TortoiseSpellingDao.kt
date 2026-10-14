@@ -4,7 +4,9 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
+import io.github.dontpanic345.tortoisespelling.domain.WordContent
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -24,31 +26,12 @@ interface TortoiseSpellingDao {
     @Query("SELECT * FROM words WHERE id = :id")
     suspend fun wordById(id: Long): Word?
 
-    /**
-     * Rewrite only a word's teaching content.
-     *
-     * Targeted rather than [updateWord] on a copy, because a card refresh runs in the
-     * background while the user is reviewing: writing back a whole row built from the
-     * session's opening snapshot would roll back the scheduling a review just wrote.
-     */
-    @Query(
-        """
-        UPDATE words
-        SET definition = :definition, example = :example, partOfSpeech = :partOfSpeech
-        WHERE id = :id
-        """,
-    )
-    suspend fun updateContent(id: Long, definition: String, example: String, partOfSpeech: String?)
-
     /** Claim today's one refresh for a word, before making the call that may fail. */
     @Query("UPDATE words SET refreshedOn = :day WHERE id = :id")
     suspend fun markRefreshed(id: Long, day: Long)
 
     @Query("SELECT * FROM words WHERE normalizedText = :normalized LIMIT 1")
     suspend fun wordByNormalizedText(normalized: String): Word?
-
-    @Query("SELECT * FROM words ORDER BY createdAt DESC")
-    fun observeAllWords(): Flow<List<Word>>
 
     @Query("SELECT COUNT(*) FROM words")
     suspend fun wordCount(): Int
@@ -104,6 +87,99 @@ interface TortoiseSpellingDao {
     @Query("SELECT * FROM words WHERE suspended = 0 ORDER BY RANDOM() LIMIT :limit")
     suspend fun randomWords(limit: Int): List<Word>
 
+    // --- teaching content ---
+
+    @Insert
+    suspend fun insertDefinition(definition: Definition): Long
+
+    @Insert
+    suspend fun insertForm(form: WordForm): Long
+
+    @Insert
+    suspend fun insertExample(example: ExampleSentence): Long
+
+    /** Forms and examples go with the definitions, by cascade. */
+    @Query("DELETE FROM definitions WHERE wordId = :wordId")
+    suspend fun deleteContent(wordId: Long)
+
+    /** Store a prepared [content] tree under [wordId], `orderIndex` being list position. */
+    @Transaction
+    suspend fun insertContent(wordId: Long, content: WordContent) {
+        content.definitions.forEachIndexed { d, definition ->
+            val definitionId = insertDefinition(
+                Definition(
+                    wordId = wordId,
+                    text = definition.text,
+                    partOfSpeech = definition.partOfSpeech.ifBlank { null },
+                    orderIndex = d,
+                ),
+            )
+            definition.forms.forEachIndexed { f, form ->
+                val formId = insertForm(
+                    WordForm(
+                        definitionId = definitionId,
+                        text = form.text,
+                        label = form.label.ifBlank { null },
+                        orderIndex = f,
+                    ),
+                )
+                form.examples.forEachIndexed { e, example ->
+                    insertExample(
+                        ExampleSentence(
+                            wordFormId = formId,
+                            text = example.text,
+                            orderIndex = e,
+                            shownAt = example.shownAt,
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    @Transaction
+    suspend fun insertWordWithContent(word: Word, content: WordContent): Long {
+        val id = insertWord(word)
+        insertContent(id, content)
+        return id
+    }
+
+    /** Write the word row and replace its whole tree; its review log is untouched. */
+    @Transaction
+    suspend fun updateWordWithContent(word: Word, content: WordContent) {
+        updateWord(word)
+        deleteContent(word.id)
+        insertContent(word.id, content)
+    }
+
+    @Transaction
+    @Query("SELECT * FROM words WHERE id = :id")
+    suspend fun contentById(id: Long): WordWithContent?
+
+    /** Chunked below SQLite's 999-variable limit on API 26; the order is unspecified. */
+    @Transaction
+    suspend fun contentFor(ids: List<Long>): List<WordWithContent> =
+        ids.chunked(CONTENT_CHUNK).flatMap { contentForChunk(it) }
+
+    @Transaction
+    @Query("SELECT * FROM words WHERE id IN (:ids)")
+    suspend fun contentForChunk(ids: List<Long>): List<WordWithContent>
+
+    @Transaction
+    @Query("SELECT * FROM words ORDER BY createdAt DESC")
+    fun observeWordsWithContent(): Flow<List<WordWithContent>>
+
+    @Transaction
+    @Query("SELECT * FROM words ORDER BY createdAt")
+    suspend fun allContentOnce(): List<WordWithContent>
+
+    @Query("UPDATE example_sentences SET shownAt = :at WHERE id = :id")
+    suspend fun markShown(id: Long, at: Long)
+
+    /** The `orderIndex` that appends to a form's examples. */
+    @Query("SELECT COALESCE(MAX(orderIndex) + 1, 0) FROM example_sentences WHERE wordFormId = :formId")
+    suspend fun nextExampleIndex(formId: Long): Int
+
     // --- review log ---
 
     @Insert
@@ -121,4 +197,8 @@ interface TortoiseSpellingDao {
 
     @Query("DELETE FROM words")
     suspend fun clearWords()
+
+    private companion object {
+        const val CONTENT_CHUNK = 500
+    }
 }

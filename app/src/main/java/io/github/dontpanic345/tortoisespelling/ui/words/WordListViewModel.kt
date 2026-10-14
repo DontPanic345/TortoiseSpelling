@@ -7,7 +7,9 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.dontpanic345.tortoisespelling.data.Word
 import io.github.dontpanic345.tortoisespelling.data.WordRepository
+import io.github.dontpanic345.tortoisespelling.data.WordWithContent
 import io.github.dontpanic345.tortoisespelling.data.normalizeWord
+import io.github.dontpanic345.tortoisespelling.data.sorted
 import io.github.dontpanic345.tortoisespelling.di.AppContainer
 import io.github.dontpanic345.tortoisespelling.domain.Days
 import io.github.dontpanic345.tortoisespelling.domain.WordFilter
@@ -20,7 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class WordRow(val word: Word, val status: String)
+data class WordRow(val word: Word, val status: String, val definition: String)
 
 data class WordListUiState(
     val query: String = "",
@@ -60,18 +62,18 @@ class WordListViewModel(
     private val _state = MutableStateFlow(WordListUiState())
     val state: StateFlow<WordListUiState> = _state.asStateFlow()
 
-    private var allWords: List<Word> = emptyList()
+    private var allWords: List<WordWithContent> = emptyList()
 
     init {
         viewModelScope.launch {
-            repository.observeWords().collect { words ->
+            repository.observeWordsWithContent().collect { words ->
                 allWords = words
                 val today = Days.today(clock)
                 _state.update {
                     it.copy(
                         loading = false,
                         totalCount = words.size,
-                        filterCounts = wordFilterCounts(words, today),
+                        filterCounts = wordFilterCounts(words.map { it.word }, today),
                         rows = filtered(words, it.query, it.filter, today),
                     )
                 }
@@ -88,16 +90,19 @@ class WordListViewModel(
     }
 
     private fun filtered(
-        words: List<Word>,
+        words: List<WordWithContent>,
         query: String,
         filter: WordFilter,
         today: Long,
     ): List<WordRow> {
         val needle = normalizeWord(query)
         return words
-            .filter { needle.isEmpty() || it.normalizedText.contains(needle) }
-            .filter { filter.matches(it, today) }
-            .map { WordRow(it, statusLabel(it, today)) }
+            .filter { needle.isEmpty() || it.word.normalizedText.contains(needle) }
+            .filter { filter.matches(it.word, today) }
+            .map { content ->
+                val definition = content.sorted().definitions.firstOrNull()?.definition?.text.orEmpty()
+                WordRow(content.word, statusLabel(content.word, today), definition)
+            }
     }
 
     fun toggleSuspended(word: Word) {

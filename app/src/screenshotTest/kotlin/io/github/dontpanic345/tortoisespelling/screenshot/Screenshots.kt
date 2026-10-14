@@ -4,8 +4,10 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.android.tools.screenshot.PreviewTest
+import io.github.dontpanic345.tortoisespelling.data.ExampleSentence
 import io.github.dontpanic345.tortoisespelling.data.TodayPlan
 import io.github.dontpanic345.tortoisespelling.data.Word
+import io.github.dontpanic345.tortoisespelling.domain.ReviewCard
 import io.github.dontpanic345.tortoisespelling.domain.WordFilter
 import io.github.dontpanic345.tortoisespelling.domain.spellingDiff
 import io.github.dontpanic345.tortoisespelling.ui.complete.CompletionPanel
@@ -19,19 +21,26 @@ import io.github.dontpanic345.tortoisespelling.ui.words.WordListContent
 import io.github.dontpanic345.tortoisespelling.ui.words.WordListUiState
 import io.github.dontpanic345.tortoisespelling.ui.words.WordRow
 
-private fun word(text: String, definition: String, example: String, id: Long = 0) = Word(
+private fun word(text: String, id: Long = 0) = Word(
     id = id,
     text = text,
     normalizedText = text.lowercase(),
-    definition = definition,
-    example = example,
     createdAt = 0,
     dueOn = 100,
 )
 
+private fun card(text: String, definition: String, example: String) = ReviewCard(
+    word = word(text),
+    definition = definition,
+    partOfSpeech = null,
+    form = text,
+    label = null,
+    example = ExampleSentence(wordFormId = 0, text = example, orderIndex = 0),
+)
+
 private val queue = listOf(
-    word("rhythm", "A strong, regular pattern of sound.", "The rhythm of the drums was steady."),
-    word("necessary", "Required to be done.", "It is necessary to rest."),
+    card("rhythm", "A strong, regular pattern of sound.", "The rhythm of the drums was steady."),
+    card("necessary", "Required to be done.", "It is necessary to rest."),
 )
 
 private fun review(phase: ReviewPhase = ReviewPhase.Prompting, input: String = "") =
@@ -64,15 +73,15 @@ private fun home(
 
 private fun wordListWithRows(): WordListUiState {
     val words = listOf(
-        word("rhythm", "A strong, regular pattern of sound.", "The rhythm of the drums.", 1),
-        word("necessary", "Required to be done.", "It is necessary to rest.", 2),
-        word("liaison", "A close connection.", "She acted as a liaison.", 3),
+        word("rhythm", 1) to "A strong, regular pattern of sound.",
+        word("necessary", 2) to "Required to be done.",
+        word("liaison", 3) to "A close connection.",
     )
     val statuses = listOf("new", "due today", "in 4 days")
     return WordListUiState(
         loading = false,
         filterCounts = WordFilter.entries.associateWith { 3 },
-        rows = words.zip(statuses) { w, s -> WordRow(w, s) },
+        rows = words.zip(statuses) { (w, definition), s -> WordRow(w, s, definition) },
         totalCount = 3,
     )
 }

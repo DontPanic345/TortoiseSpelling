@@ -1,6 +1,7 @@
 package io.github.dontpanic345.tortoisespelling.component
 
 import io.github.dontpanic345.tortoisespelling.data.TodayPlan
+import io.github.dontpanic345.tortoisespelling.data.testCard
 import io.github.dontpanic345.tortoisespelling.data.testWord
 import io.github.dontpanic345.tortoisespelling.domain.WordFilter
 import io.github.dontpanic345.tortoisespelling.domain.spellingDiff
@@ -13,8 +14,8 @@ import io.github.dontpanic345.tortoisespelling.ui.words.WordRow
 /** Screen states shared by the component and accessibility tests. */
 object Fixtures {
     private val queue = listOf(
-        testWord("rhythm", definition = "A strong, regular pattern of sound.", example = "The rhythm of the drums was steady."),
-        testWord("necessary", definition = "Required to be done.", example = "It is necessary to rest."),
+        testCard("rhythm", definition = "A strong, regular pattern of sound.", example = "The rhythm of the drums was steady."),
+        testCard("necessary", definition = "Required to be done.", example = "It is necessary to rest."),
     )
 
     fun review(phase: ReviewPhase = ReviewPhase.Prompting, input: String = "") = ReviewUiState(
@@ -64,7 +65,7 @@ object Fixtures {
         return WordListUiState(
             loading = false,
             filterCounts = WordFilter.entries.associateWith { 3 },
-            rows = words.zip(statuses) { w, s -> WordRow(w, s) },
+            rows = words.zip(statuses) { w, s -> WordRow(w, s, "A definition of ${w.text}.") },
             totalCount = 3,
         )
     }

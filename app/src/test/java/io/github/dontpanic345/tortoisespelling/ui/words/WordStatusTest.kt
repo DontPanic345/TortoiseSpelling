@@ -14,8 +14,6 @@ class WordStatusTest {
     ) = Word(
         text = "cat",
         normalizedText = "cat",
-        definition = "An animal.",
-        example = "",
         dueOn = dueOn,
         isNew = isNew,
         suspended = suspended,

@@ -52,7 +52,7 @@ class WordListContentTest {
     private fun listState() = WordListUiState(
         loading = false,
         filterCounts = WordFilter.entries.associateWith { 3 },
-        rows = words.zip(statuses) { w, s -> WordRow(w, s) },
+        rows = words.zip(statuses) { w, s -> WordRow(w, s, "A definition of ${w.text}.") },
         totalCount = 3,
     )
 

@@ -16,8 +16,6 @@ class CardRefreshTest {
     ) = Word(
         text = text,
         normalizedText = text,
-        definition = "a definition",
-        example = "an example",
         dueOn = today,
         autoRefresh = autoRefresh,
         refreshedOn = refreshedOn,

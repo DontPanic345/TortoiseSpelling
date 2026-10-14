@@ -18,7 +18,7 @@ import io.github.dontpanic345.tortoisespelling.data.parseBackup
 import io.github.dontpanic345.tortoisespelling.data.remote.ClaudeClient
 import io.github.dontpanic345.tortoisespelling.data.remote.KeyTestResult
 import io.github.dontpanic345.tortoisespelling.data.toBackup
-import io.github.dontpanic345.tortoisespelling.data.toWord
+import io.github.dontpanic345.tortoisespelling.data.toImport
 import io.github.dontpanic345.tortoisespelling.di.AppContainer
 import io.github.dontpanic345.tortoisespelling.notify.ReminderScheduler
 import kotlinx.coroutines.Dispatchers
@@ -159,7 +159,7 @@ class SettingsViewModel(
                     stream.bufferedReader().use { it.readText() }
                 }
                 val backup = parseBackup(raw)
-                val summary = repository.importWords(backup.words.map { it.toWord() })
+                val summary = repository.importWords(backup.words.map { it.toImport() })
                 buildString {
                     append("Imported ${summary.added} word")
                     if (summary.added != 1) {

@@ -5,7 +5,9 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 
 /**
- * A word the user is learning to spell, plus its SM-2 scheduling state.
+ * A word the user is learning to spell, plus its SM-2 scheduling state. Its teaching
+ * content (definitions, forms, example sentences) lives in [Definition], [WordForm] and
+ * [ExampleSentence]; only the scheduling stays here.
  *
  * [text] keeps the casing the user typed, so proper nouns display correctly.
  * [normalizedText] is the lowercased, trimmed form used for duplicate detection
@@ -23,9 +25,6 @@ data class Word(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val text: String,
     val normalizedText: String,
-    val definition: String,
-    val example: String,
-    val partOfSpeech: String? = null,
 
     val createdAt: Long = System.currentTimeMillis(),
 
@@ -48,14 +47,14 @@ data class Word(
 
     // --- card upkeep ---
     /**
-     * Rewrite this word's definition and example with Claude, once a day, on the days
-     * it comes up for review. Off by default, including for every word that existed
+     * Have Claude add a fresh example sentence, once a day, on the days it comes up
+     * for review. Off by default, including for every word that existed
      * before the flag did: spending on the API is never switched on by an upgrade.
      */
     val autoRefresh: Boolean = false,
     /**
      * Epoch day the card was last handed to Claude, or null if it never has been.
-     * This is what holds the rewrite to one a day, and it is set when the call is
+     * This is what holds the refresh to one a day, and it is set when the call is
      * made rather than when it succeeds, so a failing key can't be retried all day.
      */
     val refreshedOn: Long? = null,

@@ -1,19 +1,29 @@
 package io.github.dontpanic345.tortoisespelling.ui.review
 
+import io.github.dontpanic345.tortoisespelling.data.ExampleSentence
 import io.github.dontpanic345.tortoisespelling.data.Word
+import io.github.dontpanic345.tortoisespelling.domain.ReviewCard
 import io.github.dontpanic345.tortoisespelling.domain.spellingDiff
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ReviewUiStateTest {
 
-    private fun word(text: String) =
-        Word(text = text, normalizedText = text, definition = "", example = "", dueOn = 0)
+    private fun card(form: String, example: String? = null) = ReviewCard(
+        word = Word(text = form, normalizedText = form, dueOn = 0),
+        definition = "",
+        partOfSpeech = null,
+        form = form,
+        label = null,
+        example = example?.let { ExampleSentence(wordFormId = 1, text = it, orderIndex = 0) },
+    )
 
     private fun state(index: Int, phase: ReviewPhase) = ReviewUiState(
         loading = false,
-        queue = listOf(word("one"), word("two")),
+        queue = listOf(card("one"), card("two")),
         index = index,
         phase = phase,
     )
@@ -42,5 +52,19 @@ class ReviewUiStateTest {
             retypeMissed = false,
         )
         assertFalse(state(index = 1, phase = corrective).ending)
+    }
+
+    @Test
+    fun `the example is blanked at the asked form`() {
+        val state = ReviewUiState(
+            loading = false,
+            queue = listOf(card("ran", example = "He ran the whole way home.")),
+        )
+        assertEquals("He _____ the whole way home.", state.blankedExample?.text)
+    }
+
+    @Test
+    fun `a card without an example has nothing to blank`() {
+        assertNull(ReviewUiState(loading = false, queue = listOf(card("ran"))).blankedExample)
     }
 }

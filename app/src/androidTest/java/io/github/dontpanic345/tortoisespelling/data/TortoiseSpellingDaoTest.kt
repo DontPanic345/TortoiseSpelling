@@ -4,8 +4,18 @@ import android.database.sqlite.SQLiteConstraintException
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import io.github.dontpanic345.tortoisespelling.domain.DefinitionDraft
+import io.github.dontpanic345.tortoisespelling.domain.ExampleDraft
+import io.github.dontpanic345.tortoisespelling.domain.FormDraft
+import io.github.dontpanic345.tortoisespelling.domain.WordContent
+import io.github.dontpanic345.tortoisespelling.domain.simpleContent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -125,16 +135,36 @@ class TortoiseSpellingDaoTest {
     }
 
     @Test
-    fun observeAllWordsIsNewestFirstAndEmitsAfterInsert() = runTest {
-        dao.insertWord(testWord("old", createdAt = 1))
-        dao.insertWord(testWord("new", createdAt = 2))
-        assertEquals(listOf("new", "old"), dao.observeAllWords().first().map { it.text })
+    fun observeWordsWithContentIsNewestFirstAndEmitsAfterInsertAndContentChange() = runTest {
+        dao.insertWordWithContent(testWord("old", createdAt = 1), simpleContent("old", "Aged.", null, ""))
+        val newId = dao.insertWordWithContent(testWord("new", createdAt = 2), simpleContent("new", "Recent.", null, ""))
+        assertEquals(listOf("new", "old"), dao.observeWordsWithContent().first().map { it.word.text })
 
-        dao.insertWord(testWord("newest", createdAt = 3))
+        dao.insertWordWithContent(testWord("newest", createdAt = 3), simpleContent("newest", "Latest.", null, ""))
         assertEquals(
             listOf("newest", "new", "old"),
-            dao.observeAllWords().first().map { it.text },
+            dao.observeWordsWithContent().first().map { it.word.text },
         )
+
+        val definitions = Channel<List<String>>(Channel.UNLIMITED)
+        val collector = launch(Dispatchers.Default) {
+            dao.observeWordsWithContent().collect { words ->
+                definitions.send(words.single { it.word.id == newId }.definitions.map { it.definition.text })
+            }
+        }
+        withContext(Dispatchers.Default) {
+            withTimeout(5_000) {
+                assertEquals(listOf("Recent."), definitions.receive())
+                dao.updateWordWithContent(
+                    dao.wordById(newId)!!,
+                    simpleContent("new", "Brand new.", null, ""),
+                )
+                while (definitions.receive() != listOf("Brand new.")) {
+                    // Wait for the content-only change to reach the flow.
+                }
+            }
+        }
+        collector.cancel()
     }
 
     @Test
@@ -154,24 +184,128 @@ class TortoiseSpellingDaoTest {
         assertEquals(2, dao.wordCount())
     }
 
+    private val tree = WordContent(
+        listOf(
+            DefinitionDraft(
+                "To move fast on foot.",
+                "verb",
+                listOf(
+                    FormDraft("run", examples = listOf(ExampleDraft("I run daily."), ExampleDraft("We run on.", shownAt = 7))),
+                    FormDraft("ran", label = "past tense", examples = listOf(ExampleDraft("He ran home."))),
+                ),
+            ),
+            DefinitionDraft(
+                "An enclosed pen.",
+                forms = listOf(FormDraft("run", examples = listOf(ExampleDraft("A chicken run.")))),
+            ),
+        ),
+    )
+
     @Test
-    fun updateContentChangesOnlyContent() = runTest {
-        val id = dao.insertWord(
+    fun insertWordWithContentStoresTheTreeInOrder() = runTest {
+        val id = dao.insertWordWithContent(testWord("run"), tree)
+
+        assertEquals(tree, dao.contentById(id)!!.toContent())
+        val stored = dao.contentById(id)!!.sorted()
+        assertEquals(listOf(0, 1), stored.definitions.map { it.definition.orderIndex })
+        assertEquals(listOf(0, 1), stored.definitions[0].forms.map { it.form.orderIndex })
+        assertEquals(listOf(null, "past tense"), stored.definitions[0].forms.map { it.form.label })
+        assertEquals(listOf<String?>("verb", null), stored.definitions.map { it.definition.partOfSpeech })
+        assertEquals(7L, stored.definitions[0].forms[0].examples[1].shownAt)
+    }
+
+    @Test
+    fun contentByIdSortsByOrderIndexWhateverTheInsertOrder() = runTest {
+        val wordId = dao.insertWord(testWord("run"))
+        val second = dao.insertDefinition(Definition(wordId = wordId, text = "Second.", orderIndex = 1))
+        val first = dao.insertDefinition(Definition(wordId = wordId, text = "First.", orderIndex = 0))
+        val lateForm = dao.insertForm(WordForm(definitionId = first, text = "ran", orderIndex = 1))
+        val earlyForm = dao.insertForm(WordForm(definitionId = first, text = "run", orderIndex = 0))
+        dao.insertExample(ExampleSentence(wordFormId = earlyForm, text = "B.", orderIndex = 1))
+        dao.insertExample(ExampleSentence(wordFormId = earlyForm, text = "A.", orderIndex = 0))
+        dao.insertForm(WordForm(definitionId = second, text = "runs", orderIndex = 0))
+
+        val content = dao.contentById(wordId)!!.sorted()
+
+        assertEquals(listOf("First.", "Second."), content.definitions.map { it.definition.text })
+        assertEquals(listOf("run", "ran"), content.definitions[0].forms.map { it.form.text })
+        assertEquals(listOf("A.", "B."), content.definitions[0].forms[0].examples.map { it.text })
+        assertEquals(lateForm, content.definitions[0].forms[1].form.id)
+    }
+
+    @Test
+    fun updateWordWithContentReplacesTheTreeAndLeavesSchedulingAndLogsAlone() = runTest {
+        val id = dao.insertWordWithContent(
             testWord(
                 "plural",
                 repetitions = 3, easeFactor = 2.36, intervalDays = 6, dueOn = 40, lapses = 1,
                 lastReviewedAt = 99, firstReviewedOn = 30, isNew = false, suspended = true,
                 autoRefresh = true, refreshedOn = 8,
             ),
+            simpleContent("plural", "Old.", "noun", "An old plural."),
         )
+        dao.insertLog(log(id, 30))
         val before = dao.wordById(id)!!
 
-        dao.updateContent(id, "New definition", "New example", "noun")
+        dao.updateWordWithContent(before, simpleContent("plural", "New.", null, "A new plural."))
 
+        assertEquals(before, dao.wordById(id))
+        assertEquals(1, dao.reviewedCountOn(30))
         assertEquals(
-            before.copy(definition = "New definition", example = "New example", partOfSpeech = "noun"),
-            dao.wordById(id),
+            simpleContent("plural", "New.", null, "A new plural."),
+            dao.contentById(id)!!.toContent(),
         )
+        assertEquals(1, db.query("SELECT COUNT(*) FROM definitions", null).use { it.moveToFirst(); it.getInt(0) })
+    }
+
+    @Test
+    fun deletingAWordCascadesThroughAllThreeContentTables() = runTest {
+        val kept = dao.insertWordWithContent(testWord("kept"), tree)
+        val gone = dao.insertWordWithContent(testWord("gone"), tree)
+
+        dao.deleteWord(dao.wordById(gone)!!)
+
+        for ((table, perWord) in listOf("definitions" to 2, "word_forms" to 3, "example_sentences" to 4)) {
+            db.query("SELECT COUNT(*) FROM $table", null).use {
+                it.moveToFirst()
+                assertEquals(table, perWord, it.getInt(0))
+            }
+        }
+        assertNotNull(dao.contentById(kept))
+        assertNull(dao.contentById(gone))
+    }
+
+    @Test
+    fun markShownChangesOnlyItsRow() = runTest {
+        val id = dao.insertWordWithContent(testWord("run"), tree)
+        val before = dao.contentById(id)!!.sorted().definitions.flatMap { d -> d.forms.flatMap { it.examples } }
+
+        dao.markShown(before[0].id, 12_345)
+
+        val after = dao.contentById(id)!!.sorted().definitions.flatMap { d -> d.forms.flatMap { it.examples } }
+        assertEquals(before.drop(1), after.drop(1))
+        assertEquals(before[0].copy(shownAt = 12_345), after[0])
+    }
+
+    @Test
+    fun contentForReturnsEveryWordEvenPastTheVariableLimit() = runTest {
+        val ids = (1..1_200).map { dao.insertWord(testWord("word$it")) }
+
+        val found = dao.contentFor(ids)
+
+        assertEquals(1_200, found.size)
+        assertEquals(ids.toSet(), found.map { it.word.id }.toSet())
+    }
+
+    @Test
+    fun nextExampleIndexAppendsToAForm() = runTest {
+        val id = dao.insertWordWithContent(testWord("run"), tree)
+        val form = dao.contentById(id)!!.sorted().definitions[0].forms[0].form.id
+        val ran = dao.contentById(id)!!.sorted().definitions[0].forms[1].form.id
+
+        assertEquals(2, dao.nextExampleIndex(form))
+        assertEquals(1, dao.nextExampleIndex(ran))
+        assertEquals(0, dao.nextExampleIndex(-1))
     }
 
     @Test

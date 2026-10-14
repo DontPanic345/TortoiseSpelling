@@ -47,6 +47,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
 import io.github.dontpanic345.tortoisespelling.ui.BackButton
 import io.github.dontpanic345.tortoisespelling.ui.TestTags
 import io.github.dontpanic345.tortoisespelling.ui.rememberAppContainer
@@ -139,7 +140,7 @@ fun AddWordScreen(
             // be fully usable offline and with no API key at all.
             OutlinedTextField(
                 value = state.definition,
-                onValueChange = viewModel::onDefinitionChange,
+                onValueChange = { viewModel.onEdit(ContentEdit.DefinitionText(0, it)) },
                 label = { Text("Definition") },
                 supportingText = { Text("Shown as the prompt. Should not contain the word.") },
                 minLines = 2,
@@ -150,7 +151,7 @@ fun AddWordScreen(
 
             OutlinedTextField(
                 value = state.example,
-                onValueChange = viewModel::onExampleChange,
+                onValueChange = { viewModel.onEdit(ContentEdit.ExampleText(0, 0, 0, it)) },
                 label = { Text("Example sentence (optional)") },
                 supportingText = { Text("The word is blanked out during review.") },
                 minLines = 2,
@@ -161,7 +162,7 @@ fun AddWordScreen(
 
             OutlinedTextField(
                 value = state.partOfSpeech,
-                onValueChange = viewModel::onPartOfSpeechChange,
+                onValueChange = { viewModel.onEdit(ContentEdit.PartOfSpeech(0, it)) },
                 label = { Text("Part of speech (optional)") },
                 singleLine = true,
                 modifier = Modifier
@@ -199,7 +200,7 @@ fun AddWordScreen(
 }
 
 /**
- * Opts a word into having its card rewritten by Claude.
+ * Opts a word into getting a fresh example sentence from Claude.
  *
  * Off by default: it spends on the API every day the word is reviewed, which is not
  * something to switch on for someone. Worth it for a word that has climbed to a long
@@ -228,11 +229,11 @@ private fun AutoRefreshToggle(
             Text("Keep this card fresh", style = MaterialTheme.typography.bodyLarge)
             Text(
                 text = if (hasApiKey) {
-                    "Claude writes a new definition and example once a day when this " +
+                    "Claude adds a fresh example sentence once a day when this " +
                         "word comes up, ready for the time after."
                 } else {
-                    "Needs an API key in Settings. Claude would write a new definition " +
-                        "and example once a day when this word comes up."
+                    "Needs an API key in Settings. Claude would add a fresh example " +
+                        "sentence once a day when this word comes up."
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

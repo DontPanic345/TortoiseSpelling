@@ -4,15 +4,19 @@ import io.github.dontpanic345.tortoisespelling.domain.Days
 import io.github.dontpanic345.tortoisespelling.domain.DeviceClock
 import io.github.dontpanic345.tortoisespelling.domain.MarkedDay
 import io.github.dontpanic345.tortoisespelling.domain.RESET_BELOW_QUALITY
+import io.github.dontpanic345.tortoisespelling.domain.ReviewCard
 import io.github.dontpanic345.tortoisespelling.domain.Scheduler
 import io.github.dontpanic345.tortoisespelling.domain.Sm2Scheduler
 import io.github.dontpanic345.tortoisespelling.domain.SrsState
+import io.github.dontpanic345.tortoisespelling.domain.WordContent
 import io.github.dontpanic345.tortoisespelling.domain.WordProgress
 import io.github.dontpanic345.tortoisespelling.domain.fuzzedDueDay
-import io.github.dontpanic345.tortoisespelling.domain.hideWordInDefinition
 import io.github.dontpanic345.tortoisespelling.domain.interleaveSession
+import io.github.dontpanic345.tortoisespelling.domain.preparedFor
 import io.github.dontpanic345.tortoisespelling.domain.recentDays
 import io.github.dontpanic345.tortoisespelling.domain.remainingNewToday
+import io.github.dontpanic345.tortoisespelling.domain.rootCard
+import io.github.dontpanic345.tortoisespelling.domain.simpleContent
 import io.github.dontpanic345.tortoisespelling.domain.wordProgress
 import kotlinx.coroutines.flow.Flow
 import java.time.Clock
@@ -44,19 +48,15 @@ class WordRepository(
     private val scheduler: Scheduler = Sm2Scheduler,
 ) {
 
-    fun observeWords(): Flow<List<Word>> = dao.observeAllWords()
+    fun observeWordsWithContent(): Flow<List<WordWithContent>> = dao.observeWordsWithContent()
 
     suspend fun wordCount(): Int = dao.wordCount()
 
     suspend fun wordById(id: Long): Word? = dao.wordById(id)
 
-    suspend fun addWord(
-        text: String,
-        definition: String,
-        example: String,
-        partOfSpeech: String?,
-        autoRefresh: Boolean = false,
-    ): AddResult {
+    suspend fun contentById(id: Long): WordWithContent? = dao.contentById(id)?.sorted()
+
+    suspend fun addWord(text: String, content: WordContent, autoRefresh: Boolean = false): AddResult {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) {
             return AddResult.Blank
@@ -64,21 +64,28 @@ class WordRepository(
         val normalized = normalizeWord(trimmed)
         dao.wordByNormalizedText(normalized)?.let { return AddResult.Duplicate(it) }
 
-        val id = dao.insertWord(
+        val id = dao.insertWordWithContent(
             Word(
                 text = trimmed,
                 normalizedText = normalized,
-                definition = hideWordInDefinition(definition.trim(), trimmed),
-                example = example.trim(),
-                partOfSpeech = partOfSpeech?.trim()?.ifBlank { null },
                 dueOn = Days.today(clock),
                 autoRefresh = autoRefresh,
             ),
+            content.preparedFor(trimmed),
         )
         return AddResult.Added(id)
     }
 
-    suspend fun updateWord(word: Word): UpdateResult {
+    suspend fun addWord(
+        text: String,
+        definition: String,
+        example: String,
+        partOfSpeech: String?,
+        autoRefresh: Boolean = false,
+    ): AddResult = addWord(text, simpleContent(text.trim(), definition, partOfSpeech, example), autoRefresh)
+
+    /** Save an edit: the word row, with [content] replacing its tree. Scheduling is kept. */
+    suspend fun updateWord(word: Word, content: WordContent): UpdateResult {
         val trimmed = word.text.trim()
         val normalized = normalizeWord(trimmed)
         // Renaming a word onto one that already exists would otherwise violate the
@@ -88,12 +95,9 @@ class WordRepository(
                 return UpdateResult.Duplicate(clash)
             }
         }
-        dao.updateWord(
-            word.copy(
-                text = trimmed,
-                normalizedText = normalized,
-                definition = hideWordInDefinition(word.definition.trim(), trimmed),
-            ),
+        dao.updateWordWithContent(
+            word.copy(text = trimmed, normalizedText = normalized),
+            content.preparedFor(trimmed),
         )
         return UpdateResult.Updated
     }
@@ -104,25 +108,23 @@ class WordRepository(
     suspend fun markRefreshAttempted(word: Word, day: Long) = dao.markRefreshed(word.id, day)
 
     /**
-     * Swap in freshly written teaching content, leaving scheduling state, the review
-     * log and the streak untouched: a word whose example has gone stale after a dozen
-     * reviews should keep every one of those reviews.
-     *
-     * The spelling is deliberately not part of this. The row already exists under its
-     * normalized form, so rewriting the text here could collide with another word's
-     * unique index — [updateWord] is the path for a rename.
+     * Append [text] to the base form's examples, unless it is already there. A new
+     * example has never been shown, so review picks it next.
      */
-    suspend fun refreshContent(
-        word: Word,
-        definition: String,
-        example: String,
-        partOfSpeech: String?,
-    ) = dao.updateContent(
-        id = word.id,
-        definition = hideWordInDefinition(definition.trim(), word.text),
-        example = example.trim(),
-        partOfSpeech = partOfSpeech?.trim()?.ifBlank { null },
-    )
+    suspend fun addExample(word: Word, text: String) {
+        val trimmed = text.trim()
+        val form = contentById(word.id)?.definitions?.firstOrNull()?.forms?.firstOrNull() ?: return
+        if (trimmed.isEmpty() || form.examples.any { normalizeWord(it.text) == normalizeWord(trimmed) }) {
+            return
+        }
+        dao.insertExample(
+            ExampleSentence(
+                wordFormId = form.form.id,
+                text = trimmed,
+                orderIndex = dao.nextExampleIndex(form.form.id),
+            ),
+        )
+    }
 
     suspend fun deleteWord(word: Word) = dao.deleteWord(word)
 
@@ -144,7 +146,7 @@ class WordRepository(
     }
 
     /** Due words plus today's new allowance, lightly interleaved. */
-    suspend fun buildSession(): List<Word> {
+    suspend fun buildSession(): List<ReviewCard> {
         val today = Days.today(clock)
         val due = dao.dueWords(today)
         val allowance = remainingNewToday(
@@ -152,11 +154,17 @@ class WordRepository(
             introducedToday = dao.introducedOn(today),
         )
         val fresh = if (allowance > 0) dao.newWords(allowance) else emptyList()
-        return interleaveSession(due, fresh)
+        return cardsFor(interleaveSession(due, fresh))
     }
 
     /** Free practice. Never touches scheduling or the review log, by design. */
-    suspend fun practicePool(limit: Int = 10): List<Word> = dao.randomWords(limit)
+    suspend fun practicePool(limit: Int = 10): List<ReviewCard> = cardsFor(dao.randomWords(limit))
+
+    /** One card per word, in the words' order. */
+    private suspend fun cardsFor(words: List<Word>): List<ReviewCard> {
+        val content = dao.contentFor(words.map { it.id }).associateBy { it.word.id }
+        return words.map { word -> rootCard(content[word.id] ?: WordWithContent(word, emptyList())) }
+    }
 
     /**
      * Apply SM-2 and log the review.
@@ -168,8 +176,8 @@ class WordRepository(
     suspend fun recordReview(word: Word, correctFirstTry: Boolean, typedAnswer: String) {
         val today = Days.today(clock)
         // Re-read rather than trusting the session's snapshot: a background card
-        // refresh may have rewritten this word's definition since the session opened,
-        // and @Update writes every column, so the snapshot would undo it.
+        // refresh may have stamped markRefreshed since the session opened, and @Update
+        // writes every column, so the snapshot would undo it.
         val current = dao.wordById(word.id) ?: word
         val now = clock.millis()
         val quality = if (correctFirstTry) Grade.FIRST_TRY else Grade.AFTER_RETYPE
@@ -228,22 +236,25 @@ class WordRepository(
 
     // --- backup ---
 
-    suspend fun exportAll(): List<Word> = dao.allWordsOnce()
+    suspend fun exportAll(): List<WordWithContent> = dao.allContentOnce()
 
     /**
      * Merge an imported list in. Words already present keep their local scheduling
      * state — a backup should never quietly undo progress made since it was taken.
      */
-    suspend fun importWords(words: List<Word>): ImportSummary {
+    suspend fun importWords(words: List<ImportedWord>): ImportSummary {
         var added = 0
         var skipped = 0
         for (incoming in words) {
-            val normalized = normalizeWord(incoming.text)
+            val normalized = normalizeWord(incoming.word.text)
             if (normalized.isEmpty() || dao.wordByNormalizedText(normalized) != null) {
                 skipped++
                 continue
             }
-            dao.insertWord(incoming.copy(id = 0, normalizedText = normalized))
+            dao.insertWordWithContent(
+                incoming.word.copy(id = 0, normalizedText = normalized),
+                incoming.content.preparedFor(incoming.word.text),
+            )
             added++
         }
         return ImportSummary(added = added, skipped = skipped)
@@ -256,3 +267,6 @@ class WordRepository(
 }
 
 data class ImportSummary(val added: Int, val skipped: Int)
+
+/** A word read from a backup, with its teaching content. */
+data class ImportedWord(val word: Word, val content: WordContent)
