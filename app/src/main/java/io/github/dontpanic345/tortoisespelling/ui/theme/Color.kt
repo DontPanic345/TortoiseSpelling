@@ -14,7 +14,7 @@ val Ink = Color(0xFF1B1C1A)
 val ShellAmber = Color(0xFF8A5A1F)
 val ShellAmberDark = Color(0xFFE7BE8A)
 
-val CorrectGreen = Color(0xFF2E7D52)
+val CorrectGreen = Color(0xFF1B5E3A)
 val CorrectGreenContainer = Color(0xFFD3EFDF)
 val WrongRed = Color(0xFFB3261E)
 

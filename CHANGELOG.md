@@ -9,6 +9,10 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+### Fixed
+
+- The "Not quite" and "Correct" spelling highlights are easier to read in the light theme: a darker green and a lighter highlight meet the 4.5:1 text contrast minimum.
+
 ## [0.4.0] - 2026-10-13
 
 ### Changed

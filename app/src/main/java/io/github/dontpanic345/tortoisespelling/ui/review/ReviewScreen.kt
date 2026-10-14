@@ -451,10 +451,9 @@ private fun DiffRow(label: String, text: String, diff: SpellingDiff, isAttempt: 
                         SpanStyle(
                             color = if (diverged) highlight else muted,
                             background = if (index == diff.firstDivergence) {
-                                // The Correct row sits on correctContainer, which needs
-                                // more than the 0.22 alpha that is legible on a plain
-                                // background.
-                                highlight.copy(alpha = 0.35f)
+                                // Any stronger and the highlight colour on its own tint
+                                // drops under 4.5:1 contrast in the light theme.
+                                highlight.copy(alpha = 0.2f)
                             } else {
                                 Color.Transparent
                             },

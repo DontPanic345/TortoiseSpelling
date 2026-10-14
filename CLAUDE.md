@@ -27,6 +27,8 @@ Gradle needs `JAVA_HOME`; on this machine use Android Studio's JBR
                                               # component tests: each screen's content alone, same device rules
 ./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=io.github.dontpanic345.tortoisespelling.integration
                                               # integration tests: real navigation + repository, in-memory DB, test clock
+./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=io.github.dontpanic345.tortoisespelling.accessibility
+                                              # accessibility checks: each screen state, light and dark, through Compose's ATF integration
 ./gradlew assembleDebugAndroidTest            # compile the instrumented tests, no device
 node --test 'scripts/*.test.mjs'              # script tests (quote the glob)
 node scripts/icon.mjs                         # regenerate the app and notification icons
@@ -40,6 +42,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk       # install the deb
 | Data tests | `app/src/androidTest/.../data/` | Emulator, real SQLite |
 | Component tests | `app/src/androidTest/.../component/` | Emulator, one screen's `XContent` with fake state |
 | Integration tests | `app/src/androidTest/.../integration/` | Emulator, the real nav graph over an in-memory DB and a `TestClock` |
+| Accessibility tests | `app/src/androidTest/.../accessibility/` | Emulator, the same `XContent` states as the component tests (`component/Fixtures.kt`), both themes |
 | End-to-end BDD tests | [`e2e/`](e2e/README.md) | The real APK on an emulator |
 | Script tests | `scripts/*.test.mjs` | Node, no device |
 
