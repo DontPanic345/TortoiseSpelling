@@ -53,11 +53,13 @@ fun testCard(
     definition: String = "A definition of $text.",
     example: String = "",
     partOfSpeech: String? = null,
+    form: String = text,
+    label: String? = null,
 ): ReviewCard = ReviewCard(
     word = testWord(text),
     definition = definition,
     partOfSpeech = partOfSpeech,
-    form = text,
-    label = null,
+    form = form,
+    label = label,
     example = example.takeIf { it.isNotBlank() }?.let { ExampleSentence(wordFormId = 0, text = it, orderIndex = 0) },
 )

@@ -11,6 +11,7 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ### Changed
 
+- Review shows the example sentence you have seen least recently, so a word with several examples takes them in turn, and asks for the form that sentence uses (with a "verb · past tense" hint).
 - "Keep this card fresh" now adds a new example sentence to the word instead of rewriting its definition and example.
 
 ## [0.4.1] - 2026-10-14

@@ -78,6 +78,31 @@ class ReviewContentTest {
         compose.onNodeWithText("rhythm", substring = true).assertDoesNotExist()
     }
 
+    private val ranQueue = listOf(
+        testCard(
+            "run",
+            definition = "To move fast on foot.",
+            example = "He ran the whole way home.",
+            partOfSpeech = "verb",
+            form = "ran",
+            label = "past tense",
+        ),
+    )
+
+    @Test
+    fun aCardForAnotherFormShowsItsLabelAndBlanksThatForm() {
+        show(state().copy(queue = ranQueue))
+        compose.onNodeWithText("verb · past tense").assertExists()
+        compose.onNodeWithText("He _____ the whole way home.").assertExists()
+    }
+
+    @Test
+    fun aCardForAnotherFormRevealsThatFormWhenCorrect() {
+        show(state(phase = ReviewPhase.Correct, input = "ran").copy(queue = ranQueue))
+        compose.onNodeWithTag(TestTags.REVIEW_CORRECT_WORD).assertTextEquals("ran")
+        compose.onNodeWithText("He ran the whole way home.").assertExists()
+    }
+
     @Test
     fun checkIsDisabledUntilSomethingIsTyped() {
         show(state())

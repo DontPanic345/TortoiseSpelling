@@ -98,6 +98,7 @@ class ReviewViewModel(
             if (!practiceMode) {
                 cardRefresher.refreshInBackground(queue.map { it.word })
             }
+            queue.firstOrNull()?.let(::markShown)
         }
     }
 
@@ -213,6 +214,12 @@ class ReviewViewModel(
         }
     }
 
+    /** Rotation: the sentence on screen counts as shown, in practice mode too. */
+    private fun markShown(card: ReviewCard) {
+        val example = card.example ?: return
+        viewModelScope.launch { repository.markShown(example) }
+    }
+
     fun advance() {
         advanceJob?.cancel()
         _state.update { snapshot ->
@@ -224,6 +231,7 @@ class ReviewViewModel(
                 finished = next >= snapshot.queue.size,
             )
         }
+        _state.value.takeUnless { it.finished }?.current?.let(::markShown)
     }
 
     companion object {

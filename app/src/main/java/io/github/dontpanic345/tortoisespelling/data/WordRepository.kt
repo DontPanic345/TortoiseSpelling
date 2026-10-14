@@ -15,7 +15,7 @@ import io.github.dontpanic345.tortoisespelling.domain.interleaveSession
 import io.github.dontpanic345.tortoisespelling.domain.preparedFor
 import io.github.dontpanic345.tortoisespelling.domain.recentDays
 import io.github.dontpanic345.tortoisespelling.domain.remainingNewToday
-import io.github.dontpanic345.tortoisespelling.domain.rootCard
+import io.github.dontpanic345.tortoisespelling.domain.pickCard
 import io.github.dontpanic345.tortoisespelling.domain.simpleContent
 import io.github.dontpanic345.tortoisespelling.domain.wordProgress
 import kotlinx.coroutines.flow.Flow
@@ -160,10 +160,13 @@ class WordRepository(
     /** Free practice. Never touches scheduling or the review log, by design. */
     suspend fun practicePool(limit: Int = 10): List<ReviewCard> = cardsFor(dao.randomWords(limit))
 
-    /** One card per word, in the words' order. */
+    /** Stamps [example] as shown now, so the next pick for its word rotates to another. */
+    suspend fun markShown(example: ExampleSentence) = dao.markShown(example.id, clock.millis())
+
+    /** One card per word (its least recently shown example), in the words' order. */
     private suspend fun cardsFor(words: List<Word>): List<ReviewCard> {
         val content = dao.contentFor(words.map { it.id }).associateBy { it.word.id }
-        return words.map { word -> rootCard(content[word.id] ?: WordWithContent(word, emptyList())) }
+        return words.map { word -> pickCard(content[word.id] ?: WordWithContent(word, emptyList())) }
     }
 
     /**

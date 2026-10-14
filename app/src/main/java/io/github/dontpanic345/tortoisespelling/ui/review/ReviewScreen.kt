@@ -218,9 +218,9 @@ fun ReviewContent(
 @Composable
 private fun Prompt(card: ReviewCard, phase: ReviewPhase, blanked: String?) {
     Column {
-        card.partOfSpeech?.let { partOfSpeech ->
+        card.hint?.let { hint ->
             Text(
-                text = partOfSpeech,
+                text = hint,
                 style = MaterialTheme.typography.labelLarge,
                 fontStyle = FontStyle.Italic,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

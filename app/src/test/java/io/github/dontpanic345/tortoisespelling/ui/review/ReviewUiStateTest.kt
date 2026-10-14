@@ -64,6 +64,15 @@ class ReviewUiStateTest {
     }
 
     @Test
+    fun `the example is blanked at a non-root form`() {
+        val state = ReviewUiState(
+            loading = false,
+            queue = listOf(card("ran", example = "He ran the whole way home.").copy(word = Word(text = "run", normalizedText = "run", dueOn = 0))),
+        )
+        assertEquals("He _____ the whole way home.", state.blankedExample?.text)
+    }
+
+    @Test
     fun `a card without an example has nothing to blank`() {
         assertNull(ReviewUiState(loading = false, queue = listOf(card("ran"))).blankedExample)
     }

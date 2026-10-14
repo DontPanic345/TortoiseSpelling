@@ -29,12 +29,19 @@ private fun word(text: String, id: Long = 0) = Word(
     dueOn = 100,
 )
 
-private fun card(text: String, definition: String, example: String) = ReviewCard(
+private fun card(
+    text: String,
+    definition: String,
+    example: String,
+    form: String = text,
+    label: String? = null,
+    partOfSpeech: String? = null,
+) = ReviewCard(
     word = word(text),
     definition = definition,
-    partOfSpeech = null,
-    form = text,
-    label = null,
+    partOfSpeech = partOfSpeech,
+    form = form,
+    label = label,
     example = ExampleSentence(wordFormId = 0, text = example, orderIndex = 0),
 )
 
@@ -159,6 +166,21 @@ fun ReviewCorrectLight() = ReviewShot(dark = false, state = review(ReviewPhase.C
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun ReviewCorrectDark() = ReviewShot(dark = true, state = review(ReviewPhase.Correct))
+
+private val labelled = ReviewUiState(
+    loading = false,
+    queue = listOf(card("run", "To move fast on foot.", "He ran the whole way home.", form = "ran", label = "past tense", partOfSpeech = "verb")),
+)
+
+@PreviewTest
+@Preview(showBackground = true)
+@Composable
+fun ReviewFormLabelLight() = ReviewShot(dark = false, state = labelled)
+
+@PreviewTest
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
+fun ReviewFormLabelDark() = ReviewShot(dark = true, state = labelled)
 
 @PreviewTest
 @Preview(showBackground = true)
