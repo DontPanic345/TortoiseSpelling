@@ -1,10 +1,13 @@
 package io.github.dontpanic345.tortoisespelling.screenshot
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.tooling.preview.Preview
 import com.android.tools.screenshot.PreviewTest
 import io.github.dontpanic345.tortoisespelling.data.ExampleSentence
+import io.github.dontpanic345.tortoisespelling.data.Settings
 import io.github.dontpanic345.tortoisespelling.data.TodayPlan
 import io.github.dontpanic345.tortoisespelling.data.Word
 import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
@@ -23,6 +26,8 @@ import io.github.dontpanic345.tortoisespelling.ui.home.HomeUiState
 import io.github.dontpanic345.tortoisespelling.ui.review.ReviewContent
 import io.github.dontpanic345.tortoisespelling.ui.review.ReviewPhase
 import io.github.dontpanic345.tortoisespelling.ui.review.ReviewUiState
+import io.github.dontpanic345.tortoisespelling.ui.settings.SettingsContent
+import io.github.dontpanic345.tortoisespelling.ui.settings.SettingsUiState
 import io.github.dontpanic345.tortoisespelling.ui.theme.TortoiseSpellingTheme
 import io.github.dontpanic345.tortoisespelling.ui.words.WordListContent
 import io.github.dontpanic345.tortoisespelling.ui.words.WordListUiState
@@ -346,3 +351,40 @@ fun AddWordPasteRenamesLight() = AddWordShot(dark = false, state = pasteThatRena
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun AddWordPasteRenamesDark() = AddWordShot(dark = true, state = pasteThatRenames)
+
+@Composable
+private fun SettingsShot(dark: Boolean, reminderEnabled: Boolean) = Themed(dark) {
+    SettingsContent(
+        state = SettingsUiState(settings = Settings(reminderEnabled = reminderEnabled)),
+        remindersOn = reminderEnabled,
+        snackbarHost = remember { SnackbarHostState() },
+        onBack = {},
+        onReminderToggle = {},
+        onPickTime = { _, _ -> },
+        onSendTest = {},
+        onNewWordsPerDayChange = {},
+        onExport = {},
+        onImport = {},
+        onCloudBackupChange = {},
+    )
+}
+
+@PreviewTest
+@Preview(showBackground = true)
+@Composable
+fun SettingsDefaultsLight() = SettingsShot(dark = false, reminderEnabled = true)
+
+@PreviewTest
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
+fun SettingsDefaultsDark() = SettingsShot(dark = true, reminderEnabled = true)
+
+@PreviewTest
+@Preview(showBackground = true)
+@Composable
+fun SettingsRemindersOffLight() = SettingsShot(dark = false, reminderEnabled = false)
+
+@PreviewTest
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
+fun SettingsRemindersOffDark() = SettingsShot(dark = true, reminderEnabled = false)

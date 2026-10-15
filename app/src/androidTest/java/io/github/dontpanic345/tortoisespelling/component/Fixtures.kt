@@ -1,5 +1,6 @@
 package io.github.dontpanic345.tortoisespelling.component
 
+import io.github.dontpanic345.tortoisespelling.data.Settings
 import io.github.dontpanic345.tortoisespelling.data.TodayPlan
 import io.github.dontpanic345.tortoisespelling.data.testCard
 import io.github.dontpanic345.tortoisespelling.data.testWord
@@ -13,6 +14,7 @@ import io.github.dontpanic345.tortoisespelling.ui.add.AddWordUiState
 import io.github.dontpanic345.tortoisespelling.ui.add.PasteDraft
 import io.github.dontpanic345.tortoisespelling.ui.home.HomeUiState
 import io.github.dontpanic345.tortoisespelling.ui.review.ReviewPhase
+import io.github.dontpanic345.tortoisespelling.ui.settings.SettingsUiState
 import io.github.dontpanic345.tortoisespelling.ui.review.ReviewUiState
 import io.github.dontpanic345.tortoisespelling.ui.words.WordListUiState
 import io.github.dontpanic345.tortoisespelling.ui.words.WordRow
@@ -124,4 +126,9 @@ object Fixtures {
     fun addRunWithExampleMissingTheForm() = addRun().let {
         it.copy(content = it.content.apply(ContentEdit.ExampleText(0, 1, 0, "He sprinted the whole way home.")))
     }
+
+    fun settings(reminderEnabled: Boolean = true, busy: Boolean = false) = SettingsUiState(
+        settings = Settings(reminderEnabled = reminderEnabled),
+        busy = busy,
+    )
 }

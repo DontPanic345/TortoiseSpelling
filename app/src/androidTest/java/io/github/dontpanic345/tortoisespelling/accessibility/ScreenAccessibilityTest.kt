@@ -1,6 +1,7 @@
 package io.github.dontpanic345.tortoisespelling.accessibility
 
 import androidx.activity.ComponentActivity
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.accessibility.enableAccessibilityChecks
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -13,6 +14,7 @@ import io.github.dontpanic345.tortoisespelling.ui.complete.CompletionPanel
 import io.github.dontpanic345.tortoisespelling.ui.home.HomeContent
 import io.github.dontpanic345.tortoisespelling.ui.review.ReviewContent
 import io.github.dontpanic345.tortoisespelling.ui.review.ReviewPhase
+import io.github.dontpanic345.tortoisespelling.ui.settings.SettingsContent
 import io.github.dontpanic345.tortoisespelling.ui.theme.TortoiseSpellingTheme
 import io.github.dontpanic345.tortoisespelling.ui.words.WordListContent
 import com.google.android.apps.common.testing.accessibility.framework.AccessibilityViewCheckResult
@@ -111,6 +113,22 @@ class ScreenAccessibilityTest(private val dark: Boolean) {
         )
     }
 
+    private fun settings(state: io.github.dontpanic345.tortoisespelling.ui.settings.SettingsUiState) = check {
+        SettingsContent(
+            state = state,
+            remindersOn = state.settings.reminderEnabled,
+            snackbarHost = SnackbarHostState(),
+            onBack = {},
+            onReminderToggle = {},
+            onPickTime = { _, _ -> },
+            onSendTest = {},
+            onNewWordsPerDayChange = {},
+            onExport = {},
+            onImport = {},
+            onCloudBackupChange = {},
+        )
+    }
+
     @Test fun reviewPrompting() = review(Fixtures.review(input = "rhy"))
 
     @Test fun reviewMissedHidden() = review(Fixtures.review(Fixtures.missed(revealed = false)))
@@ -136,6 +154,10 @@ class ScreenAccessibilityTest(private val dark: Boolean) {
     @Test fun addWordPasteThatRenames() = addWord(Fixtures.addPasteValid(typed = "recieve", answer = "receive"))
 
     @Test fun addWordWithTwoDefinitionsAndAForm() = addWord(Fixtures.addRunWithTwoDefinitions())
+
+    @Test fun settingsDefaults() = settings(Fixtures.settings())
+
+    @Test fun settingsRemindersOff() = settings(Fixtures.settings(reminderEnabled = false))
 
     @Test
     fun completionPanel() = check {

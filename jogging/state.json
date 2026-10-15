@@ -374,7 +374,7 @@
           "title": "Split Settings into SettingsScreen and SettingsContent; component, accessibility and screenshot coverage",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-3",

@@ -124,6 +124,42 @@ fun SettingsScreen(onBack: () -> Unit) {
         uri?.let(viewModel::importFrom)
     }
 
+    SettingsContent(
+        state = state,
+        remindersOn = remindersOn,
+        snackbarHost = snackbarHost,
+        onBack = onBack,
+        onReminderToggle = { wantOn ->
+            if (wantOn && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                viewModel.setReminderEnabled(wantOn)
+            }
+        },
+        onPickTime = viewModel::setReminderTime,
+        onSendTest = viewModel::sendTestNotification,
+        onNewWordsPerDayChange = viewModel::setNewWordsPerDay,
+        onExport = { exportLauncher.launch("tortoisespelling-backup.json") },
+        onImport = { importLauncher.launch(arrayOf("application/json", "text/plain")) },
+        onCloudBackupChange = viewModel::setCloudBackupEnabled,
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsContent(
+    state: SettingsUiState,
+    remindersOn: Boolean,
+    snackbarHost: SnackbarHostState,
+    onBack: () -> Unit,
+    onReminderToggle: (Boolean) -> Unit,
+    onPickTime: (Int, Int) -> Unit,
+    onSendTest: () -> Unit,
+    onNewWordsPerDayChange: (Int) -> Unit,
+    onExport: () -> Unit,
+    onImport: () -> Unit,
+    onCloudBackupChange: (Boolean) -> Unit,
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -147,30 +183,24 @@ fun SettingsScreen(onBack: () -> Unit) {
                 enabled = remindersOn,
                 hour = state.settings.reminderHour,
                 minute = state.settings.reminderMinute,
-                onToggle = { wantOn ->
-                    if (wantOn && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-                    } else {
-                        viewModel.setReminderEnabled(wantOn)
-                    }
-                },
-                onPickTime = viewModel::setReminderTime,
-                onSendTest = viewModel::sendTestNotification,
+                onToggle = onReminderToggle,
+                onPickTime = onPickTime,
+                onSendTest = onSendTest,
             )
 
             SectionDivider()
             PracticeSection(
                 newWordsPerDay = state.settings.newWordsPerDay,
-                onChange = viewModel::setNewWordsPerDay,
+                onChange = onNewWordsPerDayChange,
             )
 
             SectionDivider()
             BackupSection(
                 busy = state.busy,
                 cloudBackupEnabled = state.settings.cloudBackupEnabled,
-                onExport = { exportLauncher.launch("tortoisespelling-backup.json") },
-                onImport = { importLauncher.launch(arrayOf("application/json", "text/plain")) },
-                onCloudBackupChange = viewModel::setCloudBackupEnabled,
+                onExport = onExport,
+                onImport = onImport,
+                onCloudBackupChange = onCloudBackupChange,
             )
 
             SectionDivider()
