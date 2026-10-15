@@ -21,7 +21,10 @@ object TestTags {
     const val ADD_WORD_EXAMPLE = "add_word_example"
     const val ADD_WORD_PART_OF_SPEECH = "add_word_part_of_speech"
     const val ADD_WORD_SAVE = "add_word_save"
-    const val ADD_WORD_LOOK_UP = "add_word_look_up"
+    const val ADD_WORD_COPY_PROMPT = "add_word_copy_prompt"
+    const val ADD_WORD_PASTE = "add_word_paste"
+    const val ADD_WORD_PASTE_TEXT = "add_word_paste_text"
+    const val ADD_WORD_PASTE_USE = "add_word_paste_use"
     const val ADD_WORD_ADD_DEFINITION = "add_word_add_definition"
 
     /**

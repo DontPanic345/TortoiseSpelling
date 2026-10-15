@@ -8,6 +8,7 @@ import io.github.dontpanic345.tortoisespelling.data.ExampleSentence
 import io.github.dontpanic345.tortoisespelling.data.TodayPlan
 import io.github.dontpanic345.tortoisespelling.data.Word
 import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
+import io.github.dontpanic345.tortoisespelling.domain.PastedLookup
 import io.github.dontpanic345.tortoisespelling.domain.ReviewCard
 import io.github.dontpanic345.tortoisespelling.domain.WordContent
 import io.github.dontpanic345.tortoisespelling.domain.apply
@@ -15,6 +16,7 @@ import io.github.dontpanic345.tortoisespelling.domain.WordFilter
 import io.github.dontpanic345.tortoisespelling.domain.spellingDiff
 import io.github.dontpanic345.tortoisespelling.ui.add.AddWordContent
 import io.github.dontpanic345.tortoisespelling.ui.add.AddWordUiState
+import io.github.dontpanic345.tortoisespelling.ui.add.PasteDraft
 import io.github.dontpanic345.tortoisespelling.ui.complete.CompletionPanel
 import io.github.dontpanic345.tortoisespelling.ui.home.HomeContent
 import io.github.dontpanic345.tortoisespelling.ui.home.HomeUiState
@@ -258,7 +260,11 @@ private fun AddWordShot(dark: Boolean, state: AddWordUiState) = Themed(dark) {
         onBack = {},
         onDelete = {},
         onTextChange = {},
-        onLookUp = {},
+        onCopyPrompt = {},
+        onOpenPaste = {},
+        onPasteTextChange = {},
+        onUsePaste = {},
+        onDismissPaste = {},
         onEdit = {},
         onAutoRefreshChange = {},
         onSave = {},
@@ -299,3 +305,45 @@ fun AddWordTwoDefinitionsLight() = AddWordShot(dark = false, state = runWithTwoD
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun AddWordTwoDefinitionsDark() = AddWordShot(dark = true, state = runWithTwoDefinitions)
+
+private val pasteWithError = AddWordUiState(
+    text = "run",
+    paste = PasteDraft(
+        text = "Sure! Here you go",
+        result = PastedLookup.Invalid(
+            "That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again.",
+        ),
+    ),
+)
+
+private val pasteThatRenames = AddWordUiState(
+    text = "recieve",
+    paste = PasteDraft(
+        text = "{\"word\": \"receive\"}",
+        result = PastedLookup.Valid(
+            word = "receive",
+            content = runWithTwoDefinitions.content,
+            renames = true,
+        ),
+    ),
+)
+
+@PreviewTest
+@Preview(showBackground = true)
+@Composable
+fun AddWordPasteErrorLight() = AddWordShot(dark = false, state = pasteWithError)
+
+@PreviewTest
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
+fun AddWordPasteErrorDark() = AddWordShot(dark = true, state = pasteWithError)
+
+@PreviewTest
+@Preview(showBackground = true)
+@Composable
+fun AddWordPasteRenamesLight() = AddWordShot(dark = false, state = pasteThatRenames)
+
+@PreviewTest
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
+fun AddWordPasteRenamesDark() = AddWordShot(dark = true, state = pasteThatRenames)

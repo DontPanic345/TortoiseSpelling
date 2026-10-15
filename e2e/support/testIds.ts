@@ -16,7 +16,10 @@ export const testIds = {
     addWordExample: 'add_word_example',
     addWordPartOfSpeech: 'add_word_part_of_speech',
     addWordSave: 'add_word_save',
-    addWordLookUp: 'add_word_look_up',
+    addWordCopyPrompt: 'add_word_copy_prompt',
+    addWordPaste: 'add_word_paste',
+    addWordPasteText: 'add_word_paste_text',
+    addWordPasteUse: 'add_word_paste_use',
     /** The tree editor's fields by position (definition, form, example). */
     addWordAddForm: (d: number): string => `add_word_add_form_${d}`,
     addWordFormText: (d: number, f: number): string => `add_word_form_text_${d}_${f}`,

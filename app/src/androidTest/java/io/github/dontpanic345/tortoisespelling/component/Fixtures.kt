@@ -4,11 +4,13 @@ import io.github.dontpanic345.tortoisespelling.data.TodayPlan
 import io.github.dontpanic345.tortoisespelling.data.testCard
 import io.github.dontpanic345.tortoisespelling.data.testWord
 import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
+import io.github.dontpanic345.tortoisespelling.domain.PastedLookup
 import io.github.dontpanic345.tortoisespelling.domain.WordContent
 import io.github.dontpanic345.tortoisespelling.domain.WordFilter
 import io.github.dontpanic345.tortoisespelling.domain.apply
 import io.github.dontpanic345.tortoisespelling.domain.spellingDiff
 import io.github.dontpanic345.tortoisespelling.ui.add.AddWordUiState
+import io.github.dontpanic345.tortoisespelling.ui.add.PasteDraft
 import io.github.dontpanic345.tortoisespelling.ui.home.HomeUiState
 import io.github.dontpanic345.tortoisespelling.ui.review.ReviewPhase
 import io.github.dontpanic345.tortoisespelling.ui.review.ReviewUiState
@@ -95,6 +97,27 @@ object Fixtures {
                 .apply(ContentEdit.AddDefinition)
                 .apply(ContentEdit.DefinitionText(1, "A stretch of success or a sequence."))
                 .apply(ContentEdit.PartOfSpeech(1, "noun")),
+        )
+    }
+
+    /** The paste dialog open on an answer that failed validation. */
+    fun addPasteInvalid() = addNew().copy(
+        text = "run",
+        paste = PasteDraft(
+            text = "Sure! Here you go",
+            result = PastedLookup.Invalid("That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again."),
+        ),
+    )
+
+    /** The paste dialog open on a valid answer for [answer], typed as [typed]. */
+    fun addPasteValid(typed: String = "run", answer: String = "run"): AddWordUiState {
+        val content = addRun().content
+        return addNew().copy(
+            text = typed,
+            paste = PasteDraft(
+                text = "{\"word\": \"$answer\"}",
+                result = PastedLookup.Valid(answer, content, renames = !typed.equals(answer, ignoreCase = true)),
+            ),
         )
     }
 

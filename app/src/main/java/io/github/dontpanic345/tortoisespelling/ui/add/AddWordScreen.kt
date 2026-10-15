@@ -2,6 +2,8 @@ package io.github.dontpanic345.tortoisespelling.ui.add
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -10,17 +12,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,22 +40,34 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
+import android.content.ClipData
+import android.os.Build
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
 import io.github.dontpanic345.tortoisespelling.domain.DefinitionDraft
 import io.github.dontpanic345.tortoisespelling.domain.FormDraft
+import io.github.dontpanic345.tortoisespelling.domain.PastedLookup
 import io.github.dontpanic345.tortoisespelling.domain.exampleMissesForm
+import io.github.dontpanic345.tortoisespelling.domain.isBlank
+import io.github.dontpanic345.tortoisespelling.domain.lookupPrompt
+import io.github.dontpanic345.tortoisespelling.domain.summary
 import io.github.dontpanic345.tortoisespelling.ui.BackButton
 import io.github.dontpanic345.tortoisespelling.ui.TestTags
 import io.github.dontpanic345.tortoisespelling.ui.rememberAppContainer
@@ -70,6 +85,8 @@ fun AddWordScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHost = remember { SnackbarHostState() }
     val wordFocus = remember { FocusRequester() }
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(state.dismissed) {
         if (state.dismissed) {
@@ -97,7 +114,21 @@ fun AddWordScreen(
         onBack = onDone,
         onDelete = viewModel::delete,
         onTextChange = viewModel::onTextChange,
-        onLookUp = viewModel::lookUp,
+        onCopyPrompt = {
+            scope.launch {
+                clipboard.setClipEntry(
+                    ClipEntry(ClipData.newPlainText("Lookup prompt", lookupPrompt(state.text))),
+                )
+                // Android 13 and later confirm a copy themselves.
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                    snackbarHost.showSnackbar("Prompt copied.")
+                }
+            }
+        },
+        onOpenPaste = viewModel::openPaste,
+        onPasteTextChange = viewModel::onPasteTextChange,
+        onUsePaste = viewModel::usePaste,
+        onDismissPaste = viewModel::dismissPaste,
         onEdit = viewModel::onEdit,
         onAutoRefreshChange = viewModel::onAutoRefreshChange,
         onSave = viewModel::save,
@@ -111,7 +142,11 @@ fun AddWordContent(
     onBack: () -> Unit,
     onDelete: () -> Unit,
     onTextChange: (String) -> Unit,
-    onLookUp: () -> Unit,
+    onCopyPrompt: () -> Unit,
+    onOpenPaste: () -> Unit,
+    onPasteTextChange: (String) -> Unit,
+    onUsePaste: () -> Unit,
+    onDismissPaste: () -> Unit,
     onEdit: (ContentEdit) -> Unit,
     onAutoRefreshChange: (Boolean) -> Unit,
     onSave: () -> Unit,
@@ -164,14 +199,13 @@ fun AddWordContent(
             )
 
             LookupRow(
-                enabled = state.canLookUp,
-                loading = state.lookingUp,
-                hasApiKey = state.hasApiKey,
-                onLookUp = onLookUp,
+                canCopyPrompt = state.canCopyPrompt,
+                onCopyPrompt = onCopyPrompt,
+                onOpenPaste = onOpenPaste,
             )
 
-            // Every field stays editable whether or not Claude filled it: the app has to
-            // be fully usable offline and with no API key at all.
+            // Every field stays editable whether or not a pasted answer filled it: the app
+            // has to be fully usable offline and with no chat AI at all.
             state.content.definitions.forEachIndexed { d, definition ->
                 DefinitionEditor(d, definition, word = state.text.trim(), onEdit = onEdit)
             }
@@ -209,6 +243,90 @@ fun AddWordContent(
             Spacer(Modifier.height(24.dp))
         }
     }
+
+    state.paste?.let { paste ->
+        PasteDialog(
+            paste = paste,
+            replacesContent = state.isEditing || !state.content.isBlank(),
+            typedWord = state.text.trim(),
+            onTextChange = onPasteTextChange,
+            onUse = onUsePaste,
+            onDismiss = onDismissPaste,
+        )
+    }
+}
+
+@Composable
+private fun PasteDialog(
+    paste: PasteDraft,
+    replacesContent: Boolean,
+    typedWord: String,
+    onTextChange: (String) -> Unit,
+    onUse: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val result = paste.result
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        runCatching { focus.requestFocus() }
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Paste the answer") },
+        text = {
+            // A dialog is its own window, so it needs its own testTagsAsResourceId.
+            Column(
+                modifier = Modifier.semantics { testTagsAsResourceId = true },
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                OutlinedTextField(
+                    value = paste.text,
+                    onValueChange = onTextChange,
+                    label = { Text("The chat's answer") },
+                    isError = result is PastedLookup.Invalid,
+                    supportingText = {
+                        Text(
+                            when (result) {
+                                null -> "Paste the chat's whole reply."
+                                is PastedLookup.Invalid -> result.message
+                                is PastedLookup.Valid -> result.content.summary()
+                            },
+                        )
+                    },
+                    minLines = 4,
+                    maxLines = 8,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focus)
+                        .testTag(TestTags.ADD_WORD_PASTE_TEXT),
+                )
+                if (result is PastedLookup.Valid) {
+                    if (result.renames) {
+                        Text(
+                            "This answer is for “${result.word}”. Using it changes the word from “$typedWord”.",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                    if (replacesContent) {
+                        Text(
+                            "Using it replaces the definitions, forms and examples on this screen.",
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onUse,
+                enabled = result is PastedLookup.Valid,
+                modifier = Modifier.testTag(TestTags.ADD_WORD_PASTE_USE),
+            ) {
+                Text("Use this")
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
 }
 
 @Composable
@@ -407,41 +525,41 @@ private fun AutoRefreshToggle(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun LookupRow(
-    enabled: Boolean,
-    loading: Boolean,
-    hasApiKey: Boolean,
-    onLookUp: () -> Unit,
+    canCopyPrompt: Boolean,
+    onCopyPrompt: () -> Unit,
+    onOpenPaste: () -> Unit,
 ) {
     Column {
-        Row(
-            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+        FlowRow(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             OutlinedButton(
-                onClick = onLookUp,
-                enabled = enabled,
-                modifier = Modifier.testTag(TestTags.ADD_WORD_LOOK_UP),
+                onClick = onCopyPrompt,
+                enabled = canCopyPrompt,
+                modifier = Modifier.testTag(TestTags.ADD_WORD_COPY_PROMPT),
             ) {
-                if (loading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
-                    )
-                } else {
-                    Icon(Icons.Default.AutoAwesome, contentDescription = null)
-                }
-                Spacer(Modifier.size(8.dp))
-                Text(if (loading) "Looking up…" else "Look up with Claude")
+                Icon(Icons.Default.ContentCopy, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Copy prompt")
+            }
+            OutlinedButton(
+                onClick = onOpenPaste,
+                modifier = Modifier.testTag(TestTags.ADD_WORD_PASTE),
+            ) {
+                Icon(Icons.Default.ContentPaste, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text("Paste answer")
             }
         }
-        if (!hasApiKey) {
-            Text(
-                text = "Add an API key in Settings to use lookup, or write the fields yourself.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
+        Text(
+            text = "Copy the prompt into any chat AI, such as Claude or ChatGPT. " +
+                "Then copy its whole reply and tap Paste answer.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }

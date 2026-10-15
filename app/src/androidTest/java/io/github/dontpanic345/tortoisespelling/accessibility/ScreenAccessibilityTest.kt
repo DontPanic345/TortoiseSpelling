@@ -4,7 +4,7 @@ import androidx.activity.ComponentActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.accessibility.enableAccessibilityChecks
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.performTouchInput
 import io.github.dontpanic345.tortoisespelling.component.Fixtures
 import io.github.dontpanic345.tortoisespelling.ui.add.AddWordContent
@@ -63,7 +63,9 @@ class ScreenAccessibilityTest(private val dark: Boolean) {
     private fun check(content: @Composable () -> Unit) {
         compose.setContent { TortoiseSpellingTheme(darkTheme = dark) { content() } }
         // Enabled checks run on every action; an empty touch input is the action that runs them.
-        compose.onRoot().performTouchInput { }
+        // A dialog is a second root, so touch each one.
+        val roots = compose.onAllNodes(isRoot())
+        repeat(roots.fetchSemanticsNodes().size) { roots[it].performTouchInput { } }
     }
 
     private fun review(state: io.github.dontpanic345.tortoisespelling.ui.review.ReviewUiState) = check {
@@ -99,7 +101,11 @@ class ScreenAccessibilityTest(private val dark: Boolean) {
             onBack = {},
             onDelete = {},
             onTextChange = {},
-            onLookUp = {},
+            onCopyPrompt = {},
+            onOpenPaste = {},
+            onPasteTextChange = {},
+            onUsePaste = {},
+            onDismissPaste = {},
             onEdit = {},
             onAutoRefreshChange = {},
             onSave = {},
@@ -125,6 +131,10 @@ class ScreenAccessibilityTest(private val dark: Boolean) {
     @Test fun wordListEmpty() = wordList(Fixtures.wordListEmpty())
 
     @Test fun addWordNew() = addWord(Fixtures.addNew())
+
+    @Test fun addWordPasteWithAnError() = addWord(Fixtures.addPasteInvalid())
+
+    @Test fun addWordPasteThatRenames() = addWord(Fixtures.addPasteValid(typed = "recieve", answer = "receive"))
 
     @Test fun addWordWithTwoDefinitionsAndAForm() = addWord(Fixtures.addRunWithTwoDefinitions())
 

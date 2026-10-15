@@ -9,30 +9,32 @@ import io.github.dontpanic345.tortoisespelling.data.AddResult
 import io.github.dontpanic345.tortoisespelling.data.SettingsStore
 import io.github.dontpanic345.tortoisespelling.data.UpdateResult
 import io.github.dontpanic345.tortoisespelling.data.WordRepository
-import io.github.dontpanic345.tortoisespelling.data.remote.ClaudeClient
-import io.github.dontpanic345.tortoisespelling.data.remote.LookupResult
 import io.github.dontpanic345.tortoisespelling.data.toContent
 import io.github.dontpanic345.tortoisespelling.di.AppContainer
 import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
 import io.github.dontpanic345.tortoisespelling.domain.ExampleDraft
+import io.github.dontpanic345.tortoisespelling.domain.PastedLookup
 import io.github.dontpanic345.tortoisespelling.domain.WordContent
 import io.github.dontpanic345.tortoisespelling.domain.apply
 import io.github.dontpanic345.tortoisespelling.domain.isComplete
+import io.github.dontpanic345.tortoisespelling.domain.parsePastedLookup
 import io.github.dontpanic345.tortoisespelling.domain.preparedFor
-import io.github.dontpanic345.tortoisespelling.domain.simpleContent
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/** The paste dialog's text and what [parsePastedLookup] made of it; [result] is null while the text is blank. */
+data class PasteDraft(val text: String = "", val result: PastedLookup? = null)
+
 data class AddWordUiState(
     val editingId: Long? = null,
     val text: String = "",
     val content: WordContent = WordContent.blank(),
     val autoRefresh: Boolean = false,
-    val lookingUp: Boolean = false,
     val hasApiKey: Boolean = false,
+    val paste: PasteDraft? = null,
     val message: String? = null,
     val addedThisSession: Int = 0,
     val totalWords: Int = 0,
@@ -41,7 +43,15 @@ data class AddWordUiState(
     val isEditing: Boolean get() = editingId != null
     val canSave: Boolean get() = text.isNotBlank() && content.isComplete()
 
-    val canLookUp: Boolean get() = text.isNotBlank() && hasApiKey && !lookingUp
+    val canCopyPrompt: Boolean get() = text.isNotBlank()
+
+    /** The state after the user accepts a pasted answer: its spelling and content replace the editor's. */
+    fun applying(answer: PastedLookup.Valid): AddWordUiState = copy(
+        text = answer.word,
+        content = answer.content,
+        paste = null,
+        message = if (answer.renames) "Corrected spelling to “${answer.word}”." else message,
+    )
 }
 
 /**
@@ -65,7 +75,6 @@ private fun WordContent.editable(word: String): WordContent {
 class AddWordViewModel(
     private val repository: WordRepository,
     private val settings: SettingsStore,
-    private val claude: ClaudeClient,
     editingId: Long?,
 ) : ViewModel() {
 
@@ -116,69 +125,30 @@ class AddWordViewModel(
         _state.update { it.copy(message = null) }
     }
 
-    fun lookUp() {
-        val snapshot = _state.value
-        val word = snapshot.text.trim()
-        if (word.isEmpty()) {
-            return
+    fun openPaste() {
+        _state.update { it.copy(paste = PasteDraft()) }
+    }
+
+    fun onPasteTextChange(value: String) {
+        _state.update {
+            it.copy(
+                paste = PasteDraft(
+                    text = value,
+                    result = if (value.isBlank()) null else parsePastedLookup(value, it.text),
+                ),
+            )
         }
-        val config = settings.current()
-        if (!config.hasApiKey) {
-            _state.value = snapshot.copy(message = "Add your API key in Settings first.")
-            return
+    }
+
+    fun usePaste() {
+        _state.update {
+            val result = it.paste?.result
+            if (result is PastedLookup.Valid) it.applying(result) else it
         }
+    }
 
-        _state.value = snapshot.copy(lookingUp = true)
-        viewModelScope.launch {
-            when (val result = claude.lookup(word, config.apiKey)) {
-                is LookupResult.Success -> {
-                    // Claude returns the corrected spelling; adopt it so the card teaches
-                    // the right word, not the typo. The user can still edit it back.
-                    val corrected = !result.word.equals(word, ignoreCase = true)
-                    _state.update {
-                        it.copy(
-                            lookingUp = false,
-                            text = result.word,
-                            content = simpleContent(
-                                word = result.word,
-                                definition = result.definition,
-                                partOfSpeech = result.partOfSpeech,
-                                example = result.example,
-                            ).editable(result.word),
-                            message = if (corrected) {
-                                "Corrected spelling to “${result.word}”."
-                            } else {
-                                null
-                            },
-                        )
-                    }
-                }
-
-                // Lenient by design: hand back whatever came back rather than discarding
-                // it, so the user can salvage it instead of retyping from scratch.
-                is LookupResult.Unparsed -> _state.update {
-                    it.copy(
-                        lookingUp = false,
-                        content = it.content.apply(ContentEdit.DefinitionText(0, result.rawText)),
-                        message = "Claude didn't return the expected format — edit as needed.",
-                    )
-                }
-
-                is LookupResult.Refused -> _state.update {
-                    it.copy(
-                        lookingUp = false,
-                        message = result.message,
-                    )
-                }
-
-                is LookupResult.Failure -> _state.update {
-                    it.copy(
-                        lookingUp = false,
-                        message = result.message,
-                    )
-                }
-            }
-        }
+    fun dismissPaste() {
+        _state.update { it.copy(paste = null) }
     }
 
     fun save() {
@@ -249,7 +219,6 @@ class AddWordViewModel(
                     AddWordViewModel(
                         container.repository,
                         container.settings,
-                        container.claude,
                         editingId,
                     )
                 }

@@ -1,9 +1,12 @@
 package io.github.dontpanic345.tortoisespelling.ui.add
 
 import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
+import io.github.dontpanic345.tortoisespelling.domain.PastedLookup
 import io.github.dontpanic345.tortoisespelling.domain.WordContent
 import io.github.dontpanic345.tortoisespelling.domain.apply
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -54,5 +57,60 @@ class AddWordUiStateTest {
             .apply(ContentEdit.ExampleText(0, 1, 0, "He ran home."))
         assertFalse(AddWordUiState(text = "run", content = withBlankForm).canSave)
         assertTrue(AddWordUiState(text = "run", content = withBlankForm.apply(ContentEdit.FormText(0, 1, "ran"))).canSave)
+    }
+
+    @Test
+    fun `copy prompt follows the word`() {
+        assertFalse(AddWordUiState().canCopyPrompt)
+        assertFalse(AddWordUiState(text = "  ").canCopyPrompt)
+        assertTrue(AddWordUiState(text = "rhythm").canCopyPrompt)
+    }
+
+    private val answerContent = WordContent.blank().apply(ContentEdit.DefinitionText(0, "to move fast on foot"))
+
+    private fun answer(word: String, renames: Boolean) = PastedLookup.Valid(word, answerContent, renames)
+
+    @Test
+    fun `applying an answer replaces the text and content and closes the dialog`() {
+        val before = AddWordUiState(
+            text = "run",
+            content = WordContent.blank().apply(ContentEdit.DefinitionText(0, "old")),
+            paste = PasteDraft(text = "{}", result = answer("run", renames = false)),
+        )
+
+        val after = before.applying(answer("run", renames = false))
+
+        assertEquals("run", after.text)
+        assertEquals(answerContent, after.content)
+        assertNull(after.paste)
+        assertNull(after.message)
+    }
+
+    @Test
+    fun `applying an answer that renames the word says so`() {
+        val after = AddWordUiState(text = "recieve").applying(answer("receive", renames = true))
+
+        assertEquals("receive", after.text)
+        assertEquals("Corrected spelling to “receive”.", after.message)
+    }
+
+    @Test
+    fun `applying keeps what the answer does not touch`() {
+        val before = AddWordUiState(
+            editingId = 7,
+            text = "run",
+            autoRefresh = true,
+            message = "Added ✓ (3 total)",
+            addedThisSession = 2,
+            totalWords = 3,
+        )
+
+        val after = before.applying(answer("run", renames = false))
+
+        assertEquals(7L, after.editingId)
+        assertTrue(after.autoRefresh)
+        assertEquals("Added ✓ (3 total)", after.message)
+        assertEquals(2, after.addedThisSession)
+        assertEquals(3, after.totalWords)
     }
 }

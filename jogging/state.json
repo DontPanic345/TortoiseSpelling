@@ -313,7 +313,7 @@
           "title": "The add/edit screen: Copy prompt, Paste answer dialog, Look up removed",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-3",

@@ -269,10 +269,11 @@ private fun ClaudeLookupSection(
 ) {
     var keyVisible by remember { mutableStateOf(false) }
 
-    SectionTitle("Claude lookup")
+    SectionTitle("Keep cards fresh")
     HelpText(
-        "Optional. With a key, “Look up with Claude” fills in the definition and " +
-            "example when you add a word. Without one, you type those yourself.",
+        "Optional. Only “Keep this card fresh” uses a key: Claude adds a new example " +
+            "sentence when the word comes up. Lookup works without one: use Copy prompt " +
+            "when you add a word.",
     )
 
     OutlinedTextField(
@@ -390,7 +391,7 @@ private fun ApiKeyHelp() {
     Column {
         HelpText(
             "No key yet? Sign in at console.anthropic.com, open Settings → API keys → " +
-                "Create key, then add a little credit under Billing. Lookups use the " +
+                "Create key, then add a little credit under Billing. Requests use the " +
                 "cheapest model and cost well under a cent each.",
         )
         TextButton(

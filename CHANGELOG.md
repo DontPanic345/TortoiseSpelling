@@ -9,6 +9,14 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+### Added
+
+- **Copy prompt** and **Paste answer** when adding or editing a word: copy a ready-made prompt into any chat AI you already use, such as Claude or ChatGPT, paste its answer back, and the word's definitions, forms and example sentences fill in. No API key needed.
+
+### Removed
+
+- **Look up with Claude** on the add and edit screen, which Copy prompt replaces. An API key is now only used to keep cards fresh.
+
 ## [0.5.0] - 2026-10-14
 
 ### Added
