@@ -126,50 +126,18 @@ export const parseUsage = (raw) => {
     throw new Error("no session/weekly windows in the usage payload");
 };
 
-const LOG_ENTRIES = 5;
-
-// The last `n` `## ` entries of LOG.md.
-export const logTail = (log, n = LOG_ENTRIES) => {
-    const entries = log.split(/^(?=## )/m).filter((e) => e.startsWith("## "));
-    return entries.slice(-n).join("").trimEnd();
-};
-
-// The spec's `### <stepId>:` (or `### <stepId> (…)`) section, up to the next heading of level 3 or above.
-export const specSection = (spec, stepId) => {
-    const lines = spec.split("\n");
-    const start = lines.findIndex((l) => new RegExp(`^### ${stepId}(?=[: (]|$)`).test(l));
-    if (start < 0) return null;
-    const end = lines.findIndex((l, i) => i > start && /^#{1,3} /.test(l));
-    return lines.slice(start, end < 0 ? undefined : end).join("\n").trimEnd();
-};
-
-const fileBlock = (filePath, text, note) =>
-    `<file path="${filePath}"${note ? ` note="${note}"` : ""}>\n${text.trimEnd()}\n</file>`;
-
-// `material` is what the session would otherwise open first: { protocol, goals, log, spec?, docs: [{ path, text }] }.
-// Reference material first and the task last, so the session starts on its plan.
-export const stepPrompt = (piece, step, cloud, material) => {
-    const { steps, userReply, ...pieceFields } = piece;
-    const section = material.spec && specSection(material.spec, step.id);
-    return [
-        `The crew has loaded what PROTOCOL.md says to read; CLAUDE.md is in your context already. These are the files as they are on main now, so don't open them again before you start.`,
-        fileBlock("jogging/PROTOCOL.md", material.protocol),
-        fileBlock("jogging/GOALS.md", material.goals),
-        fileBlock("jogging/state.json", JSON.stringify({ ...pieceFields, steps }, null, 2), `piece "${piece.id}" only`),
-        fileBlock("jogging/LOG.md", logTail(material.log), `the last ${LOG_ENTRIES} entries`),
-        ...material.docs.map((d) => fileBlock(d.path, d.text)),
-        material.spec ? fileBlock(piece.spec, material.spec) : "",
+export const stepPrompt = (piece, step, cloud) =>
+    [
         `You are a Jogging session for Tortoise Spelling, with no other context.`,
         cloud ? `You are running in a Cloud Routine session: follow PROTOCOL.md's "In the cloud" rules.` : "",
+        `Read CLAUDE.md, jogging/PROTOCOL.md, jogging/GOALS.md, piece "${piece.id}" in jogging/state.json, and the end of jogging/LOG.md.`,
         `Do step "${step.id}" of piece "${piece.id}" (${piece.title}) exactly as PROTOCOL.md describes, and nothing else.`,
-        step.title ? `The step: ${step.title}.` : "",
-        section ? `Its section of ${piece.spec}:\n\n${section}` : "",
-        userReply ? `Alan replied to this piece's blocker: """${userReply}"""` : "",
+        step.title ? `The step: ${step.title}. Its details are in ${piece.spec}.` : "",
+        piece.userReply ? `Alan replied to this piece's blocker: """${piece.userReply}"""` : "",
         `Finish by updating jogging/state.json and jogging/LOG.md, then commit and push.`,
     ]
         .filter(Boolean)
-        .join("\n\n");
-};
+        .join("\n");
 
 // ---- Side effects ----
 
@@ -181,25 +149,6 @@ const log = (msg) => {
 };
 
 const readState = () => JSON.parse(fs.readFileSync(STATE, "utf8"));
-
-const readRepoFile = (rel) => {
-    try {
-        return fs.readFileSync(path.join(REPO, rel), "utf8");
-    } catch {
-        return null;
-    }
-};
-
-// A spec step writes the spec from the piece's docs; the review of it checks it against them.
-const stepMaterial = (piece, step) => ({
-    protocol: readRepoFile("jogging/PROTOCOL.md"),
-    goals: readRepoFile("jogging/GOALS.md"),
-    log: readRepoFile("jogging/LOG.md") ?? "",
-    spec: piece.spec ? readRepoFile(piece.spec) : null,
-    docs: step.phase === 1
-        ? (piece.docs ?? []).map((p) => ({ path: p, text: readRepoFile(p) })).filter((d) => d.text !== null)
-        : [],
-});
 const writeState = (s) => fs.writeFileSync(STATE, JSON.stringify(s, null, 2) + "\n");
 
 const sh = (cmd, args, opts = {}) =>
@@ -338,22 +287,18 @@ const runSession = (piece, step) =>
         fs.mkdirSync(RUNS, { recursive: true });
         const stamp = new Date().toISOString().replace(/[:.]/g, "-");
         const out = fs.createWriteStream(path.join(RUNS, `${stamp}-${piece.id}-${step.id}.jsonl`));
-        const prompt = stepPrompt(piece, step, CLOUD, stepMaterial(piece, step));
-        fs.writeFileSync(path.join(RUNS, `${stamp}-${piece.id}-${step.id}.prompt.md`), prompt);
-        // On stdin: with the files inlined, the prompt is too long for a Windows command line.
         const child = spawn(
             "claude",
             [
-                "-p",
+                "-p", stepPrompt(piece, step, CLOUD),
                 "--model", step.model,
                 "--effort", step.effort,
                 "--permission-mode", "auto",
                 "--output-format", "stream-json",
                 "--verbose",
             ],
-            { cwd: REPO, shell: false, stdio: ["pipe", "pipe", "pipe"] },
+            { cwd: REPO, shell: false, stdio: ["ignore", "pipe", "pipe"] },
         );
-        child.stdin.end(prompt);
         let model = null;
         let buf = "";
         child.stdout.on("data", (chunk) => {

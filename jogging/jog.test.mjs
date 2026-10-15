@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import os from "node:os";
 import path from "node:path";
-import { accountProblem, logTail, nextStep, pace, parseUsage, specSection, stepPrompt, tokenProblem } from "./jog.mjs";
+import { accountProblem, nextStep, pace, parseUsage, tokenProblem } from "./jog.mjs";
 
 const resets = new Date("2026-10-17T09:00:00Z");
 const day = (n) => new Date(resets.getTime() - 7 * 86400_000 + (n - 1) * 86400_000 + 3600_000);
@@ -102,35 +102,4 @@ test("a missing or rejected token is reported", async () => {
     const reject = async () => ({ ok: false, status: 401 });
     assert.match(await tokenProblem("ghp_stale", reject), /HTTP 401/);
     assert.match(await tokenProblem(undefined, reject), /not set/);
-});
-
-test("logTail keeps the last entries and drops the preamble", () => {
-    const log = "# Log\n\nintro\n\n## a\none\n\n## b\ntwo\n\n## c\nthree\n";
-    assert.equal(logTail(log, 2), "## b\ntwo\n\n## c\nthree");
-    assert.equal(logTail("# Log\n", 2), "");
-});
-
-test("specSection takes the step's section up to the next heading", () => {
-    const spec = "## Build steps\n\nintro\n\n### build-1: first (Sonnet)\n\ndo one\n\n#### detail\n\nmore\n\n### build-10: tenth\n\nten\n\n### review (Opus)\n\ncheck\n\n## Later\n\nx\n";
-    assert.equal(specSection(spec, "build-1"), "### build-1: first (Sonnet)\n\ndo one\n\n#### detail\n\nmore");
-    assert.equal(specSection(spec, "review"), "### review (Opus)\n\ncheck");
-    assert.equal(specSection(spec, "build-2"), null);
-});
-
-test("stepPrompt inlines the material and ends with the task", () => {
-    const piece = {
-        id: "p", title: "Piece", spec: "jogging/specs/p.md", docs: ["docs/p.md"], userReply: "go ahead",
-        steps: [{ id: "build-1", phase: 2, title: "First", status: "pending" }],
-    };
-    const material = {
-        protocol: "PROTOCOL TEXT", goals: "GOALS TEXT", log: "## old\nx\n",
-        spec: "# Spec\n\n### build-1: first\n\nSTEP DETAIL\n\n### review\n\nr\n", docs: [{ path: "docs/p.md", text: "DOC TEXT" }],
-    };
-    const prompt = stepPrompt(piece, piece.steps[0], true, material);
-    for (const s of ["PROTOCOL TEXT", "GOALS TEXT", "## old", "DOC TEXT", '"status": "pending"', '"In the cloud"', '"""go ahead"""']) {
-        assert.ok(prompt.includes(s), s);
-    }
-    assert.ok(!prompt.includes('"userReply"'));
-    assert.ok(prompt.lastIndexOf("STEP DETAIL") > prompt.indexOf("</file>", prompt.indexOf("# Spec")));
-    assert.ok(prompt.trimEnd().endsWith("then commit and push."));
 });
