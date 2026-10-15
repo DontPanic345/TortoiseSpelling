@@ -9,3 +9,4 @@
 {"issue":11,"body":"✅ test-ui-layers is done: Injectable clock and fuzz, component and integration test layers, the specialised layer (screenshots, accessibility, R8 smoke)"}
 {"issue":11,"body":"⚠️ Cloud setup failed with exit 42: FAILED: phone not answering (adb: 127.0.0.1:15555 offline, device offline)"}
 {"issue":11,"body":"✅ word-forms is done: Definitions, word forms and example sentences: schema v3 and migration, review picking and rotation, editing, search, backup format"}
+{"issue":11,"body":"✅ copy-prompt is done: Copy prompt and paste-back JSON lookup on the add/edit screen, replacing Look up with Claude"}
