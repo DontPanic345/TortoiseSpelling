@@ -10,6 +10,11 @@ import androidx.test.platform.app.InstrumentationRegistry
 import io.github.dontpanic345.tortoisespelling.data.TortoiseSpellingDatabase.Companion.ALL_MIGRATIONS
 import io.github.dontpanic345.tortoisespelling.data.TortoiseSpellingDatabase.Companion.MIGRATION_1_2
 import io.github.dontpanic345.tortoisespelling.data.TortoiseSpellingDatabase.Companion.MIGRATION_2_3
+import io.github.dontpanic345.tortoisespelling.data.TortoiseSpellingDatabase.Companion.MIGRATION_3_4
+import io.github.dontpanic345.tortoisespelling.domain.DefinitionDraft
+import io.github.dontpanic345.tortoisespelling.domain.ExampleDraft
+import io.github.dontpanic345.tortoisespelling.domain.FormDraft
+import io.github.dontpanic345.tortoisespelling.domain.WordContent
 import io.github.dontpanic345.tortoisespelling.domain.simpleContent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
@@ -184,7 +189,6 @@ class MigrationTest {
                     createdAt = 1_000, repetitions = 3, easeFactor = 2.36,
                     intervalDays = 6, dueOn = 20_000, lapses = 1, lastReviewedAt = 5_000,
                     firstReviewedOn = 19_990, isNew = false, suspended = false,
-                    autoRefresh = false, refreshedOn = null,
                 ),
                 Word(
                     id = 2, text = "shell", normalizedText = "shell",
@@ -393,6 +397,176 @@ class MigrationTest {
             for ((id, content) in expected) {
                 assertEquals(content, dao.contentById(id)!!.toContent())
             }
+        } finally {
+            room.close()
+        }
+    }
+
+    private fun createVersion3(): SupportSQLiteDatabase =
+        helper.createDatabase(dbName, 3).also { seedVersion3(it) }
+
+    private fun seedVersion3(db: SupportSQLiteDatabase) {
+        fun insert(table: String, vararg columns: Pair<String, Any?>) {
+            val values = ContentValues().apply {
+                for ((name, value) in columns) {
+                    when (value) {
+                        null -> putNull(name)
+                        is Int -> put(name, value)
+                        is Long -> put(name, value)
+                        is Double -> put(name, value)
+                        else -> put(name, value as String)
+                    }
+                }
+            }
+            db.insert(table, android.database.sqlite.SQLiteDatabase.CONFLICT_NONE, values)
+        }
+
+        fun word(
+            id: Long, text: String, createdAt: Long, repetitions: Int, easeFactor: Double, intervalDays: Int,
+            dueOn: Long, lapses: Int, lastReviewedAt: Long?, firstReviewedOn: Long?, isNew: Int, suspended: Int,
+            autoRefresh: Int, refreshedOn: Long?,
+        ) = insert(
+            "words",
+            "id" to id, "text" to text, "normalizedText" to text.trim().lowercase(), "createdAt" to createdAt,
+            "repetitions" to repetitions, "easeFactor" to easeFactor, "intervalDays" to intervalDays,
+            "dueOn" to dueOn, "lapses" to lapses, "lastReviewedAt" to lastReviewedAt,
+            "firstReviewedOn" to firstReviewedOn, "isNew" to isNew, "suspended" to suspended,
+            "autoRefresh" to autoRefresh, "refreshedOn" to refreshedOn,
+        )
+
+        fun definition(id: Long, wordId: Long, text: String, partOfSpeech: String?, orderIndex: Int) = insert(
+            "definitions",
+            "id" to id, "wordId" to wordId, "text" to text, "partOfSpeech" to partOfSpeech,
+            "orderIndex" to orderIndex,
+        )
+
+        fun form(id: Long, definitionId: Long, text: String, label: String?, orderIndex: Int) = insert(
+            "word_forms",
+            "id" to id, "definitionId" to definitionId, "text" to text, "label" to label,
+            "orderIndex" to orderIndex,
+        )
+
+        fun example(id: Long, wordFormId: Long, text: String, orderIndex: Int, shownAt: Long?) = insert(
+            "example_sentences",
+            "id" to id, "wordFormId" to wordFormId, "text" to text, "orderIndex" to orderIndex,
+            "shownAt" to shownAt,
+        )
+
+        fun log(id: Long, wordId: Long, reviewedAt: Long, reviewedOn: Long, grade: Int, correct: Int, typed: String) =
+            insert(
+                "review_log",
+                "id" to id, "wordId" to wordId, "reviewedAt" to reviewedAt, "reviewedOn" to reviewedOn,
+                "grade" to grade, "correct" to correct, "typedAnswer" to typed,
+            )
+
+        word(1, "tortoise", 1_000, 3, 2.36, 6, 20_000, 1, 5_000, 19_990, 0, 0, 1, 19_999)
+        word(2, "shell", 2_000, 0, 2.5, 0, 20_001, 0, null, null, 1, 0, 0, null)
+        word(3, "Café", 3_000, 0, 2.5, 0, 20_002, 0, null, null, 1, 1, 0, null)
+
+        definition(1, 1, "Definition of tortoise", "noun", 0)
+        definition(2, 2, "Definition of shell", null, 0)
+        definition(3, 3, "Definition of Café", "noun", 0)
+        definition(4, 1, "To move slowly", "verb", 1)
+
+        form(1, 1, "tortoise", null, 0)
+        form(2, 2, "shell", null, 0)
+        form(3, 3, "Café", null, 0)
+        form(4, 4, "tortoises", "plural", 0)
+
+        example(1, 1, "Example of tortoise", 0, 123_456)
+        example(2, 3, "Example of Café", 0, null)
+
+        log(1, 1, 5_000, 19_990, 5, 1, "tortoise")
+        log(2, 1, 6_000, 19_996, 2, 0, "tortoize")
+        log(3, 3, 7_000, 19_996, 5, 1, "Café")
+    }
+
+    private val keptWordColumns =
+        "id, text, normalizedText, createdAt, repetitions, easeFactor, intervalDays, dueOn, lapses, " +
+            "lastReviewedAt, firstReviewedOn, isNew, suspended"
+
+    @Test
+    fun migration3To4DropsTheRefreshColumnsAndKeepsEverythingElse() {
+        val before = createVersion3()
+        val words = before.rows("SELECT $keptWordColumns FROM words ORDER BY id")
+        val definitions = before.rows("SELECT * FROM definitions ORDER BY id")
+        val forms = before.rows("SELECT * FROM word_forms ORDER BY id")
+        val examples = before.rows("SELECT * FROM example_sentences ORDER BY id")
+        val logs = before.rows("SELECT * FROM review_log ORDER BY id")
+        before.close()
+
+        val db = helper.runMigrationsAndValidate(dbName, 4, true, MIGRATION_3_4)
+
+        assertEquals(
+            listOf(
+                listOf(1L, "tortoise", "tortoise", 1_000L, 3L, 2.36, 6L, 20_000L, 1L, 5_000L, 19_990L, 0L, 0L),
+                listOf(2L, "shell", "shell", 2_000L, 0L, 2.5, 0L, 20_001L, 0L, null, null, 1L, 0L),
+                listOf(3L, "Café", "café", 3_000L, 0L, 2.5, 0L, 20_002L, 0L, null, null, 1L, 1L),
+            ),
+            words,
+        )
+        assertEquals(words, db.rows("SELECT $keptWordColumns FROM words ORDER BY id"))
+        val columns = db.rows("PRAGMA table_info(words)").map { it[1] }
+        assertEquals(false, "autoRefresh" in columns)
+        assertEquals(false, "refreshedOn" in columns)
+        assertEquals(13, columns.size)
+        assertEquals(definitions, db.rows("SELECT * FROM definitions ORDER BY id"))
+        assertEquals(forms, db.rows("SELECT * FROM word_forms ORDER BY id"))
+        assertEquals(examples, db.rows("SELECT * FROM example_sentences ORDER BY id"))
+        assertEquals(logs, db.rows("SELECT * FROM review_log ORDER BY id"))
+        assertEquals(3, logs.size)
+        assertEquals(4, definitions.size)
+        assertEquals(emptyList<List<Any?>>(), db.rows("PRAGMA foreign_key_check"))
+        db.close()
+    }
+
+    @Test
+    fun roomMigratesAVersion3DatabaseWithoutLosingAReviewOrASentence() = runTest {
+        createVersion3().close()
+
+        val room = Room.databaseBuilder(
+            ApplicationProvider.getApplicationContext(),
+            TortoiseSpellingDatabase::class.java,
+            dbName,
+        ).addMigrations(*ALL_MIGRATIONS).build()
+        try {
+            val dao = room.dao()
+            assertEquals(3, dao.wordCount())
+            val sqlite = room.openHelper.readableDatabase
+            fun count(table: String) = sqlite.query("SELECT COUNT(*) FROM $table").use {
+                it.moveToFirst()
+                it.getInt(0)
+            }
+            assertEquals(3, count("review_log"))
+            assertEquals(4, count("definitions"))
+            assertEquals(4, count("word_forms"))
+            assertEquals(2, count("example_sentences"))
+            assertEquals(1, dao.reviewedCountOn(19_990))
+
+            val tortoise = WordContent(
+                listOf(
+                    DefinitionDraft(
+                        "Definition of tortoise", "noun",
+                        listOf(FormDraft("tortoise", "", listOf(ExampleDraft("Example of tortoise", 123_456)))),
+                    ),
+                    DefinitionDraft("To move slowly", "verb", listOf(FormDraft("tortoises", "plural"))),
+                ),
+            )
+            assertEquals(tortoise, dao.contentById(1)!!.toContent())
+            assertEquals(simpleContent("shell", "Definition of shell", null, ""), dao.contentById(2)!!.toContent())
+            assertEquals(
+                simpleContent("Café", "Definition of Café", "noun", "Example of Café"),
+                dao.contentById(3)!!.toContent(),
+            )
+            assertEquals(
+                Word(
+                    id = 1, text = "tortoise", normalizedText = "tortoise",
+                    createdAt = 1_000, repetitions = 3, easeFactor = 2.36,
+                    intervalDays = 6, dueOn = 20_000, lapses = 1, lastReviewedAt = 5_000,
+                    firstReviewedOn = 19_990, isNew = false, suspended = false,
+                ),
+                dao.wordById(1),
+            )
         } finally {
             room.close()
         }

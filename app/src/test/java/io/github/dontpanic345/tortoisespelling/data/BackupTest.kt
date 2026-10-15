@@ -22,8 +22,6 @@ class BackupTest {
         lapses = 1,
         firstReviewedOn = 20_380,
         isNew = false,
-        autoRefresh = true,
-        refreshedOn = 20_399,
     )
 
     private val content = WordWithContent(
@@ -62,23 +60,32 @@ class BackupTest {
         assertEquals(word.lapses, restored.lapses)
         assertEquals(word.firstReviewedOn, restored.firstReviewedOn)
         assertEquals(word.isNew, restored.isNew)
-        assertEquals(word.autoRefresh, restored.autoRefresh)
-        assertEquals(word.refreshedOn, restored.refreshedOn)
     }
 
     @Test
-    fun `a backup taken before cards could be kept fresh still reads`() {
-        // No autoRefresh or refreshedOn keys at all, as a 0_2_0 export would have it.
-        val restored = parseBackup(
+    fun `a backup from when cards could be kept fresh still imports, the two keys ignored`() {
+        val imported = parseBackup(
             """
             {"version":1,"exportedAt":1,"words":[
-              {"text":"rhythm","definition":"A pattern of sound.","dueOn":20400}
+              {"text":"rhythm","definition":"A pattern of sound.","dueOn":20400,
+               "autoRefresh":true,"refreshedOn":20000}
             ]}
             """.trimIndent(),
-        ).words.single().toImport().word
+        ).words.single().toImport()
 
-        assertFalse(restored.autoRefresh)
-        assertNull(restored.refreshedOn)
+        assertEquals("rhythm", imported.word.text)
+        assertEquals(20_400L, imported.word.dueOn)
+        assertEquals(simpleContent("rhythm", "A pattern of sound.", null, ""), imported.content)
+    }
+
+    @Test
+    fun `an export has no autoRefresh or refreshedOn key`() {
+        val json = BackupJson.encodeToString(
+            BackupFile.serializer(),
+            BackupFile(words = listOf(content.toBackup())),
+        )
+        assertFalse(json.contains("autoRefresh"))
+        assertFalse(json.contains("refreshedOn"))
     }
 
     @Test
@@ -200,6 +207,8 @@ class BackupTest {
         val example: String = "",
         val partOfSpeech: String? = null,
         val dueOn: Long,
+        val autoRefresh: Boolean = false,
+        val refreshedOn: Long? = null,
     )
 
     @Serializable
@@ -212,5 +221,13 @@ class BackupTest {
         assertEquals("To move fast.", older.definition)
         assertEquals("I run daily.", older.example)
         assertEquals("verb", older.partOfSpeech)
+    }
+
+    @Test
+    fun `a file written now reads in a build that still had the refresh fields as their defaults`() {
+        val json = BackupJson.encodeToString(BackupFile.serializer(), BackupFile(words = listOf(tree.toBackup())))
+        val older = BackupJson.decodeFromString(OlderBackupFile.serializer(), json).words.single()
+        assertFalse(older.autoRefresh)
+        assertNull(older.refreshedOn)
     }
 }

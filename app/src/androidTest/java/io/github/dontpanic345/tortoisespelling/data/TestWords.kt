@@ -16,8 +16,6 @@ fun testWord(
     firstReviewedOn: Long? = null,
     isNew: Boolean = true,
     suspended: Boolean = false,
-    autoRefresh: Boolean = false,
-    refreshedOn: Long? = null,
 ): Word = Word(
     text = text,
     normalizedText = normalizeWord(text),
@@ -31,8 +29,6 @@ fun testWord(
     firstReviewedOn = firstReviewedOn,
     isNew = isNew,
     suspended = suspended,
-    autoRefresh = autoRefresh,
-    refreshedOn = refreshedOn,
 )
 
 /** Give a word seeded straight through the DAO one definition, its base form and one example. */

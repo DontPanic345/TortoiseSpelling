@@ -382,7 +382,7 @@
           "title": "Schema v4: MIGRATION_3_4 drops autoRefresh and refreshedOn, migration tests; backup stops writing the two fields",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-4",

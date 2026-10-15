@@ -14,6 +14,9 @@ import kotlinx.serialization.json.Json
  *
  * [version] exists so a future schema change does not make today's backups
  * unreadable — the one file the user cannot regenerate deserves a version tag.
+ *
+ * Fields are added with defaults and removed outright, and `ignoreUnknownKeys` lets every
+ * build read every other build's files, so the version stays at 1.
  */
 @Serializable
 data class BackupFile(
@@ -42,12 +45,6 @@ data class BackupWord(
     val firstReviewedOn: Long? = null,
     val isNew: Boolean = true,
     val suspended: Boolean = false,
-    // Defaulted, so a backup taken before these existed still reads. The file format
-    // version stays at 1: an older build ignores unknown keys, so a file written here
-    // is still readable there, and bumping it would make this app refuse its own
-    // backups on a downgrade.
-    val autoRefresh: Boolean = false,
-    val refreshedOn: Long? = null,
     // The whole teaching tree. The flat fields above mirror its root card, so an older
     // build reads this file as it always did and the format version stays 1.
     val definitions: List<BackupDefinition> = emptyList(),
@@ -95,8 +92,6 @@ fun WordWithContent.toBackup(): BackupWord {
         firstReviewedOn = word.firstReviewedOn,
         isNew = word.isNew,
         suspended = word.suspended,
-        autoRefresh = word.autoRefresh,
-        refreshedOn = word.refreshedOn,
         definitions = tree,
     )
 }
@@ -139,8 +134,6 @@ fun BackupWord.toImport() = ImportedWord(
         firstReviewedOn = firstReviewedOn,
         isNew = isNew,
         suspended = suspended,
-        autoRefresh = autoRefresh,
-        refreshedOn = refreshedOn,
     ),
     content = if (definitions.isEmpty()) {
         simpleContent(text, definition, partOfSpeech, example)

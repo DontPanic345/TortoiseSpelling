@@ -240,7 +240,6 @@ class TortoiseSpellingDaoTest {
                 "plural",
                 repetitions = 3, easeFactor = 2.36, intervalDays = 6, dueOn = 40, lapses = 1,
                 lastReviewedAt = 99, firstReviewedOn = 30, isNew = false, suspended = true,
-                autoRefresh = true, refreshedOn = 8,
             ),
             simpleContent("plural", "Old.", "noun", "An old plural."),
         )

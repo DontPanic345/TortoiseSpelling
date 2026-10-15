@@ -8,7 +8,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 /** The schema version the app ships; the migration tests walk up to it. */
-internal const val DATABASE_VERSION = 3
+internal const val DATABASE_VERSION = 4
 
 @Database(
     entities = [
@@ -118,8 +118,37 @@ abstract class TortoiseSpellingDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * Drops `autoRefresh` and `refreshedOn` with the card refresh. Rebuilds `words` as
+         * [MIGRATION_2_3] does.
+         */
+        internal val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `_new_words` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`text` TEXT NOT NULL, `normalizedText` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, " +
+                        "`repetitions` INTEGER NOT NULL, `easeFactor` REAL NOT NULL, `intervalDays` INTEGER NOT NULL, " +
+                        "`dueOn` INTEGER NOT NULL, `lapses` INTEGER NOT NULL, `lastReviewedAt` INTEGER, " +
+                        "`firstReviewedOn` INTEGER, `isNew` INTEGER NOT NULL, `suspended` INTEGER NOT NULL)",
+                )
+                db.execSQL(
+                    "INSERT INTO `_new_words` (`id`, `text`, `normalizedText`, `createdAt`, `repetitions`, " +
+                        "`easeFactor`, `intervalDays`, `dueOn`, `lapses`, `lastReviewedAt`, `firstReviewedOn`, " +
+                        "`isNew`, `suspended`) " +
+                        "SELECT `id`, `text`, `normalizedText`, `createdAt`, `repetitions`, " +
+                        "`easeFactor`, `intervalDays`, `dueOn`, `lapses`, `lastReviewedAt`, `firstReviewedOn`, " +
+                        "`isNew`, `suspended` FROM `words`",
+                )
+                db.execSQL("DROP TABLE `words`")
+                db.execSQL("ALTER TABLE `_new_words` RENAME TO `words`")
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS `index_words_normalizedText` ON `words` (`normalizedText`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_words_dueOn` ON `words` (`dueOn`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_words_firstReviewedOn` ON `words` (`firstReviewedOn`)")
+            }
+        }
+
         /** Every migration the builder installs, so the chain test covers each one. */
-        internal val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3)
+        internal val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
 
         fun build(context: Context): TortoiseSpellingDatabase =
             Room.databaseBuilder(
