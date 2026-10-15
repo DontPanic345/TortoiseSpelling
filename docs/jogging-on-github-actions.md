@@ -164,11 +164,41 @@ a setup token. It needs to try `CLAUDE_CODE_OAUTH_TOKEN` first. Whether the usag
 accepts a setup token is **(unverified)**; if it doesn't, the probe route (a minimal model
 call that reads the rate-limit headers) is the fallback.
 
+### The step prompt (phase 2)
+
+Today a session gets a short prompt telling it which files to read, and spends its first
+turns working out where to look. A phase 2 session should instead start with its goal and
+what serves it, and nothing else. Curated, not whole files: anything irrelevant costs
+reasoning, and other steps' instructions invite work outside the step.
+
+| Step | Goal, first | Material | Rules from `PROTOCOL.md` |
+|---|---|---|---|
+| build | its spec section | the Design subsections its `Reads:` line names; this piece's log entries | build step, the environment's paragraph, finishing, blockers |
+| review | its spec section | the whole spec, `GOALS.md`, this piece's log entries | review step, the environment's paragraph, finishing, blockers |
+
+- Not included: `GOALS.md` for a build step (the spec has already applied it), other
+  pieces' log entries, the `state.json` dump, and the spec's other build steps and "What
+  later pieces rely on".
+- `CLAUDE.md` is loaded by `claude -p` already.
+- The prompt goes on stdin; a whole spec doesn't fit on a Windows command line. Save it
+  beside the transcript in `jogging/runs/`.
+- Phase 1 keeps today's prompt: those steps run on Opus, which reads everything anyway.
+- The prompt builder stays pure (it takes the file contents) and is unit-tested: section
+  extraction, a missing `Reads:` section failing loudly, and the goal coming first.
+
+**Specs.** Each build step gets a `Reads:` line naming the Design subsections it needs, e.g.
+`Reads: Design › App code, Design › Settings`. The spec step's rules ask for it from now
+on, and the pending pieces' specs (web-core, web-ui, shared-specs, web-push; 20 build
+steps) get it in a one-off edit before the first CI run.
+
 ## Changes to `PROTOCOL.md`
 
-Add an "In CI" paragraph beside "In the cloud": the emulator is already running, so don't
-start or kill one; e2e runs at emulator speed. The rule that build steps run only the e2e
-features their spec names stays, because it's about what's worth testing, not speed.
+- One heading per step type, plus shared "Finishing" and "Blockers" sections, so the crew
+  can pick the ones a step needs by heading.
+- Add an "In CI" paragraph beside "In the cloud": the emulator is already running, so don't
+  start or kill one; e2e runs at emulator speed. The rule that build steps run only the e2e
+  features their spec names stays, because it's about what's worth testing, not speed.
+- The spec step writes a `Reads:` line for each build step.
 
 ## Rollout
 
@@ -176,6 +206,8 @@ features their spec names stays, because it's about what's worth testing, not sp
 2. Confirm `usage.py` can read the windows with the setup token, from a one-off
    `workflow_dispatch` run that runs `node jogging/jog.mjs status --ci`.
 3. Do the `jog.mjs` refactor with tests, then add the `ci` mode and `jogging.yml`.
+   Restructure `PROTOCOL.md`, add the `Reads:` lines to the pending specs, and switch
+   phase 2 to the curated prompt.
 4. Dispatch one run by hand and let it finish a step.
 5. Disable the "Jogging" Cloud Routine. `cloud-setup.sh` and the cloud mode can go once CI
    has run for a week without trouble.
