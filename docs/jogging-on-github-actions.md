@@ -140,6 +140,23 @@ The `ci` entry:
 - **Deadline:** the job is killed at 6 hours. `runSteps` should stop starting new steps
   after about 4.5 hours, since a step can take an hour.
 
+### Pausing and restarting
+
+Alan must be able to pause Jogging and restart it gracefully, without losing work or leaving
+main in a state the next run trips over:
+
+- **Pause after the current step.** Pushing `"enabled": false` in `state.json` lets the
+  running step finish and commit, then stops the crew before the next one. Today a push
+  that lands between the crew's pull and its push makes the push fail and the run crash;
+  the crew should rebase its state commit and carry on to the stop.
+- **Stop now.** Cancelling the run from the Actions tab kills the step mid-way. The step
+  must stay `pending` (not counted as an attempt), and the next run starts it again from
+  whatever the session had pushed.
+- **Restart.** Setting `enabled` back to true, then dispatching the workflow or waiting for
+  the schedule, picks up from `state.json` with nothing else to undo.
+- Disabling the workflow (`gh workflow disable jogging.yml`) stops the schedule but not a
+  run in progress; the docs should say which control does what.
+
 ### Usage pacing
 
 `usage.py` reads the OAuth access token from `.credentials.json`, which doesn't exist with
