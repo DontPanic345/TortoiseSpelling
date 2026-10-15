@@ -5,9 +5,11 @@ Jogging works through The Work one step at a time, in cold sessions. `jogging/jo
 session per step with the model and effort the step names. That session is you. The
 crew runs from a Cloud Routine four times a day.
 
-You have no context beyond the repo. Read `CLAUDE.md`, `jogging/GOALS.md`, your piece in
-`jogging/state.json`, and the end of `jogging/LOG.md`. Then do **only the step you were
-given** and finish by updating the state.
+You have no context beyond the repo. The crew puts this file, `jogging/GOALS.md`, your
+piece in `jogging/state.json`, the end of `jogging/LOG.md`, the piece's spec (with your
+step's section repeated last) and, for a phase 1 step, the piece's `docs` in your prompt;
+`CLAUDE.md` is loaded already. Do **only the step you were given** and finish by updating
+the state.
 
 ## Files
 
