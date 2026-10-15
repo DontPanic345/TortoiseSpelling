@@ -1,7 +1,7 @@
 Feature: Looking a word up with a chat AI
   As a learner who doesn't want to write definitions
   I want to paste a chat AI's answer into a word
-  So that it gets its definitions, forms and examples in one go, with no API key
+  So that it gets its definitions, forms and examples in one go, with no account
 
   Scenario: A pasted answer fills in the word, ready to save
     Given I have no words yet

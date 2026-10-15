@@ -5,7 +5,7 @@ Small items that don't have their own design doc yet. Larger ideas live in `docs
 - [x] Copy-prompt lookup, built as its own stage: replace the "Look up with Claude"
       button with Copy prompt, then paste-back JSON parsing and validation. See
       [copy-prompt-lookup.md](copy-prompt-lookup.md).
-- [ ] Drop the API key feature, as a separate stage after copy-prompt lookup is in place.
+- [x] Drop the API key feature, as a separate stage after copy-prompt lookup is in place.
       Covers the Claude client, auto-refresh (`CardRefresher`), the API key setting, the
       `autoRefresh`/`refreshedOn` columns (version 3 migration), backup format, e2e
       `@live-api` scenarios, and the docs (`CLAUDE.md`, `PRIVACY.md`, `README.md`).

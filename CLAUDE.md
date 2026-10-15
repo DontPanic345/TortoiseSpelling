@@ -4,8 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Tortoise Spelling is a single-module native Android app (Kotlin, Jetpack Compose, min SDK 26,
 target 36) for learning to spell your own word list with SM-2 spaced repetition, a daily
-reminder, and word lookup by copying a prompt into any chat AI and pasting its answer back
-(an optional Anthropic key only keeps cards fresh). User-facing overview: `README.md`.
+reminder, and word lookup by copying a prompt into any chat AI and pasting its answer back.
+User-facing overview: `README.md`.
 
 ## Commands
 
@@ -41,7 +41,6 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk       # install the deb
 | Layer | Where | Runs on |
 |---|---|---|
 | Unit tests | `app/src/test/` | JVM, no device |
-| Live-API integration test | `ClaudeIntegrationTest` | JVM, real Anthropic API |
 | Data tests | `app/src/androidTest/.../data/` | Emulator, real SQLite |
 | Component tests | `app/src/androidTest/.../component/` | Emulator, one screen's `XContent` with fake state |
 | Integration tests | `app/src/androidTest/.../integration/` | Emulator, the real nav graph over an in-memory DB and a `TestClock` |
@@ -63,9 +62,6 @@ Each instrumented layer has its own package under `androidTest`, selected with t
   deletes its data. Set `ANDROID_SERIAL` to the emulator, and never run them on a phone
   with real data.
 
-- **Live API tests.** `ClaudeIntegrationTest` is skipped unless `TORTOISESPELLING_ANTHROPIC_KEY`
-  is set. Gradle doesn't treat env vars as task inputs, so add `--rerun`; otherwise the task
-  can be UP-TO-DATE and the 7 tests silently stay skipped.
 - **Release build.** Unsigned unless `RELEASE_KEYSTORE_PATH`, `RELEASE_KEYSTORE_PASSWORD`,
   `RELEASE_KEY_ALIAS` and `RELEASE_KEY_PASSWORD` are set. For a local installable release,
   point them at the debug keystore (`~/.android/debug.keystore`, password and key password
@@ -88,7 +84,7 @@ Each instrumented layer has its own package under `androidTest`, selected with t
 ## Architecture
 
 **Wiring.** There's no DI framework. `TortoiseSpellingApp` builds an `AppContainer` (the Room
-database, `SettingsStore`, `ClaudeClient`, `WordRepository`). Composables reach it via
+database, `SettingsStore`, `WordRepository`, and the clock and fuzz the tests set). Composables reach it via
 `rememberAppContainer()` (tests supply one through `LocalAppContainer`), and each ViewModel
 has a companion `factory(container, ...)`.
 Navigation is string routes in `ui/Nav.kt`, and the `NavHost` is in `MainActivity.kt`.
@@ -101,7 +97,7 @@ Navigation is string routes in `ui/Nav.kt`, and the `NavHost` is in `MainActivit
   scheduling, session building, streaks, spelling diffs, word blanking, the content model
   (`WordContent`), card picking (`CardPick.kt`), and the lookup prompt and paste parsing.
 - `ui/<screen>/`: one Screen + ViewModel pair per screen, holding a `MutableStateFlow` of UI state.
-  Screens with component tests (Review, Home, word list) split into a stateful `XScreen` and an
+  Screens with component tests (Review, Home, word list, Settings) split into a stateful `XScreen` and an
   `XContent` that takes state and callbacks and touches no ViewModel.
 - `notify/`: the reminder scheduler and worker.
 
@@ -154,8 +150,7 @@ It's honoured only on a fresh launch: not when `savedInstanceState` is non-null,
 when the activity was launched from Recents. Otherwise a rotation or process restore
 re-opens Review.
 
-**Lookup** (`domain/LookupPrompt.kt`, `domain/PastedLookup.kt`). Nothing in the app calls an
-API for lookup.
+**Lookup** (`domain/LookupPrompt.kt`, `domain/PastedLookup.kt`).
 - Copy prompt puts `lookupPrompt(word)` on the clipboard; the user takes it to any chat AI
   and pastes the reply into the "Paste the answer" dialog.
 - `parsePastedLookup` validates the reply: it locates the JSON between the outer braces
@@ -164,48 +159,24 @@ API for lookup.
   the word's scheduling.
 - The prompt asks for an example sentence that contains the exact word form so the review
   screen can blank it out, and the parser checks that.
+- Nothing in the app calls an AI API, and the manifest has no Internet permission.
 
-**Keeping cards fresh** (`data/CardRefresher.kt`, `data/remote/ClaudeClient.kt`). A word's `autoRefresh` flag, set from
-the add/edit screen, has Claude add a new example to the base form (it doesn't rewrite the card).
-- The trigger is a review session starting; `domain/CardRefresh.kt` decides which words
-  are due, capped at one rewrite per word per day. Practice mode never triggers it.
-- The rewrite is deliberately *not* raced against the session that started it. It lands
-  while the user reviews the old card and shows up next time the word comes round —
-  blocking session start on a dozen API calls would be worse than one more stale
-  sentence.
-- It runs on an application-scoped coroutine in `AppContainer`, not `viewModelScope`, so
-  quitting the session doesn't cancel it. It is not WorkManager: if the process dies the
-  rest of the words keep their old cards and the next session picks them up.
-- `ClaudeClient` is raw OkHttp to the Messages API, on purpose; no Anthropic SDK. The model
-  isn't configurable: it's discovered at runtime from `GET /v1/models` (the newest model
-  whose id contains "haiku"), with `LookupModel.FALLBACK` as the fallback, and a 404
-  clears the cached choice.
-- `lookupRequest` builds the user turn and is pure, so it is unit-tested. A refresh passes
-  a `StaleCard`, which sends the card being replaced back to the model; without it,
-  "write something different" has nothing to be different from and the same stock
-  sentence comes back.
-- `refreshedOn` is stamped *before* the call, so a rejected key isn't retried all day.
-- The write is a targeted `markRefreshed` query plus an appended example, and `recordReview` re-reads the row
-  before writing. Both are needed: the refresh runs while the user is reviewing, and a
-  whole-row `@Update` from the session's opening snapshot would otherwise roll back
-  whichever of the two wrote first.
-
-**Secrets and data safety.**
-- The API key is the only encrypted setting: AES-GCM with an Android Keystore key
-  (`SecretCipher`), no security-crypto library. If the key can't be decrypted (e.g. after
-  a device restore), it's treated as absent.
+**Data safety.**
+- No setting is a secret. `SettingsStore` deletes the encrypted API key and Keystore entry an
+  earlier version left.
 - Room has **no** `fallbackToDestructiveMigration`. Schemas are exported to `app/schemas/`,
   so any entity change needs a version bump and a real `Migration`. Version 2 added
-  `autoRefresh` and `refreshedOn` to `words`. Version 3 moved `definition`, `example` and
-  `partOfSpeech` into `definitions`, `word_forms` and `example_sentences`, rebuilding
-  `words` (the pattern a later column drop copies). A schema change also appends its `Migration`
+  `autoRefresh` and `refreshedOn` to `words`, and version 4 dropped them with the same
+  rebuild as version 3. Version 3 moved `definition`, `example` and `partOfSpeech` into `definitions`, `word_forms` and `example_sentences`, rebuilding
+  `words` (the pattern a column drop copies). A schema change also appends its `Migration`
   to `ALL_MIGRATIONS`, bumps `DATABASE_VERSION`, and adds a test to `MigrationTest` that
   seeds the previous version and checks every column comes through.
 - Backups are versioned JSON (`data/Backup.kt`); import merges and never overwrites
   existing words' progress. Each word carries a `definitions` tree beside flat
   `definition`, `example` and `partOfSpeech` fields from its root card, so older builds
   still read the file and the format version stays 1; a file with no tree imports as
-  one definition, one form and one example.
+  one definition, one form and one example. Files from versions that had `autoRefresh` and
+  `refreshedOn` still import; the keys are ignored.
 - Android Auto Backup is gated behind `Settings.cloudBackupEnabled` (off by default) via
   `TortoiseSpellingBackupAgent` (`android:backupAgent`, `android:fullBackupOnly="true"`),
   which calls `super.onFullBackup` only when the switch is on, or the pass is a

@@ -7,7 +7,7 @@ name: CI
 # The screenshot tests validate on the JVM. The data, component, integration and
 # accessibility layers run as instrumented tests on an emulator, one job each. The Appium
 # e2e suite isn't run here: run it locally (see e2e/README.md); its release smoke runs from
-# release.yml. ClaudeIntegrationTest is skipped because there's no API key here.
+# release.yml.
 
 on:
   push:

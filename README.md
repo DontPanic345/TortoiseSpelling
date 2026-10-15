@@ -69,9 +69,6 @@ use (Claude, ChatGPT, …), then tap **Paste answer** and paste its reply back. 
 checks it and fills in the word's definitions, forms and example sentences, which you can
 still edit before saving. The app never contacts the chat AI itself.
 
-An Anthropic API key in ⚙️ **Settings** is now only used by **Keep this card fresh**,
-which has Claude add new example sentences as a word comes round.
-
 ### 🔒 Data safety
 
 - Backup export carries a version; importing a newer-format backup is refused

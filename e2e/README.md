@@ -35,7 +35,7 @@ Start an emulator (Android Studio's Device Manager, or `emulator -avd <name>`) s
 
 | Command | What it does |
 |---|---|
-| `npm run e2e` | Every scenario not tagged `@todo`, `@live-api`, `@slow` or `@release-smoke` |
+| `npm run e2e` | Every scenario not tagged `@todo`, `@slow` or `@release-smoke` |
 | `npm run e2e -- --spec features/add_word.feature` | One feature file |
 | `npm run e2e -- --cucumberOpts.tags="@network"` | Scenarios matching a tag expression |
 | `npm run e2e:slow` | The multi-minute `@slow` scenarios |
@@ -67,7 +67,6 @@ before publishing.
 | Tag | Meaning |
 |---|---|
 | `@todo` | Steps not implemented yet; excluded until they are |
-| `@live-api` | Types a real Anthropic key into the app's Settings and runs the key test. For a human to run, with `TORTOISESPELLING_ANTHROPIC_KEY` set |
 | `@slow` | Waits minutes for something real, e.g. a scheduled reminder |
 | `@network` | Needs internet (uses only a deliberately fake key) |
 | `@release-smoke` | The release-build journey; seeds nothing, so it runs only through `npm run e2e:release` |
@@ -119,8 +118,7 @@ and are mirrored in `support/testIds.ts`; change both together.
   state derives from the field (e.g. Save) immediately after `setValue()` can click while it
   is still disabled from the pre-edit state. `support/actions.ts`'s `typeInto()` waits for
   the field to read back empty, then waits for it to read back the typed length, closing both
-  races. Length, not exact text: a masked field (`PasswordVisualTransformation`, e.g. the
-  Settings API key) reports a run of bullet characters, never the literal string.
+  races.
 - **Click the row, not the word.** A small text node's tap bounds can be stale for a moment
   after a list appears; the whole row (tagged, e.g. `TestTags.wordRow(normalizedText)`) is a
   much safer target, and lets per-row icons be scoped independently of it
@@ -145,12 +143,7 @@ and are mirrored in `support/testIds.ts`; change both together.
   opening it directly — the row turns "selected" and an action bar with a `Select` button
   appears instead of the picker closing. Tapping `Select` completes the same pick; check for
   it after the tap rather than assuming the picker always closes on the first click.
-- **Typed text is logged unless redacted.** The Appium server log records every
-  `setValue`, once as text and again split into single characters.
-  [`appium-log-filters.json`](appium-log-filters.json) (wired in via `logFilters` in
-  `wdio.conf.ts`) redacts Anthropic keys and every per-character copy; the `@live-api` step
-  also passes `{ mask: true }` to keep the key out of WebdriverIO's own logs. Keep both if
-  you touch that step, and never put a real secret in a step's text: step text is printed.
+- **Typed text is logged.** The Appium log records every typed value, so never type or put a real secret in a step.
 - **Never press Back while a system dialog is in front.** UiAutomator only sees the front
   window, so the notification-permission prompt (which opens over Home) makes Home's title
   look absent, and a "Back until Home" loop dismisses the prompt, which Android records as

@@ -9,6 +9,7 @@ As built:
   `parsePastedLookup`, which finds the JSON between the outer braces, so fences and
   surrounding prose are tolerated. Limits are in `PasteLimits`. Pasting the prompt itself
   back is refused: its shape line parses, with "..." as the word.
+- `drop-api-key` then removed the API key, auto refresh and the Internet permission.
 - Use this replaces the editor's word and content; saving keeps the word's scheduling.
 - Nothing in the add/edit path calls an API. The key in Settings is only for
   "Keep this card fresh".

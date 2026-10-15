@@ -8,8 +8,7 @@ implement against. Items marked **(unverified)** are things I believe but haven'
 ## Where things stand
 
 - **Unit tests:** 19 JVM test files in `app/src/test/` (mostly `domain/` and parsing, plus
-  a few UI-state helpers). One of them, `ClaudeIntegrationTest`, calls the live API and is
-  skipped without a key. There are no ViewModel tests by name.
+  a few UI-state helpers). There are no ViewModel tests by name.
 - **End-to-end:** `e2e/` has 10 Gherkin feature files, run by WebdriverIO + Cucumber through
   Appium's UiAutomator2 driver against the real APK. CI runs only `check-steps` and
   `typecheck` for it, because the scenarios need an emulator. The `@release-smoke` journey
@@ -47,7 +46,7 @@ implement against. Items marked **(unverified)** are things I believe but haven'
 | 3 | Component | `@component` | One screen alone with fake data: feedback on a wrong answer, buttons enabling, empty states | Emulator or device | Compose UI test APIs |
 | 4 | Integration | `@integration` | UI + ViewModel + real repository together, with a fake clock: "answer correctly, and the word is due again in 6 days" | Emulator or device | Compose UI test APIs, injectable clock |
 | 5 | End-to-end | `@e2e` | Whole-app journeys and device-only behaviour (permission prompt, notifications, document picker, process death) | Emulator, real APK | Appium (existing) |
-| 6 | Specialised | by kind | Screenshot tests, accessibility checks, a release-build (R8) smoke run, the `@live-api` scenarios | Varies | Paparazzi or Roborazzi, accessibility checks |
+| 6 | Specialised | by kind | Screenshot tests, accessibility checks, a release-build (R8) smoke run | Varies | Paparazzi or Roborazzi, accessibility checks |
 
 Notes on the layers:
 
@@ -88,8 +87,6 @@ the point is a plain web app.
 | ViewModel + `StateFlow` | Plain stores or framework state |
 | Room | IndexedDB (through a small wrapper such as Dexie or idb) |
 | `Sm2Scheduler`, `SessionBuilder`, `SpellingDiff`, `WordBlank` | Ported to TypeScript; the Kotlin unit tests become golden test cases |
-| OkHttp to the Messages API | `fetch`, still no SDK |
-| `SecretCipher` (Keystore) | Web Crypto (AES-GCM), which protects the key less well than Keystore |
 | WorkManager daily reminder | Web Push from a small server (see below) |
 | Versioned JSON backup (`data/Backup.kt`) | Same JSON format, so a backup can move between Android and web (needs checking against `Backup.kt`) |
 | `TestTags.kt` | `data-testid`, mirrored the same way |
@@ -126,8 +123,6 @@ checked by hand on a real iPhone.
 - **Storage is less durable** than a native database. I believe Home Screen web apps are
   exempt from Safari's 7-day cleanup of site storage **(unverified)**, but the backup export
   should be prominent.
-- **Claude lookup from a browser** puts the API key in the browser and needs the API to
-  allow direct browser calls **(unverified)**.
 - **Fuzz.** Make the interval fuzz injectable so ported tests are deterministic.
 
 ## Cost and distribution

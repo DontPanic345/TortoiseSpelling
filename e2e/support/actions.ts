@@ -14,10 +14,7 @@ type Element = ReturnType<typeof $>;
  * setValue() itself returns before recomposition catches up too: a step that saves right
  * after typing (clicking a Save button whose enabled state is derived from this field)
  * can click while the button is still disabled from the pre-edit state. Waiting for the
- * field to reflect the typed text closes that race the same way. Checking length rather
- * than an exact match also covers a masked field (the Settings API key uses
- * PasswordVisualTransformation): its reported text is a run of bullet characters, one
- * per typed character, never the literal string.
+ * field to reflect the typed text closes that race the same way.
  *
  * Both waits look the field up again on every poll. On a Galaxy S23 the element handle
  * keeps returning the text it had when it was found, so a handle found before typing

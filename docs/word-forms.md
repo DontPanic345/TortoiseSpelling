@@ -6,7 +6,7 @@ SRS items.
 
 What differs from the sketch below: part of speech lives on the definition; the base
 form is positional (the first form of the first definition, always the word's own
-spelling); and "Keep this card fresh" appends an example until the API key goes. See
+spelling); and "Keep this card fresh" appends an example until the API key goes (since removed). See
 `jogging/specs/word-forms.md` for the built design.
 
 ## Problem
