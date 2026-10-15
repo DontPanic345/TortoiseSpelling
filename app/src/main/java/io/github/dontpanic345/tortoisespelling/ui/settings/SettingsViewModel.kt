@@ -15,8 +15,6 @@ import io.github.dontpanic345.tortoisespelling.data.Settings
 import io.github.dontpanic345.tortoisespelling.data.SettingsStore
 import io.github.dontpanic345.tortoisespelling.data.WordRepository
 import io.github.dontpanic345.tortoisespelling.data.parseBackup
-import io.github.dontpanic345.tortoisespelling.data.remote.ClaudeClient
-import io.github.dontpanic345.tortoisespelling.data.remote.KeyTestResult
 import io.github.dontpanic345.tortoisespelling.data.toBackup
 import io.github.dontpanic345.tortoisespelling.data.toImport
 import io.github.dontpanic345.tortoisespelling.di.AppContainer
@@ -32,7 +30,6 @@ import java.io.IOException
 
 data class SettingsUiState(
     val settings: Settings = Settings(),
-    val testingKey: Boolean = false,
     val busy: Boolean = false,
     val message: String? = null,
 )
@@ -41,7 +38,6 @@ class SettingsViewModel(
     private val context: Context,
     private val store: SettingsStore,
     private val repository: WordRepository,
-    private val claude: ClaudeClient,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsUiState(store.current()))
@@ -57,11 +53,6 @@ class SettingsViewModel(
 
     private fun say(message: String) {
         _state.update { it.copy(message = message) }
-    }
-
-    fun setApiKey(value: String) {
-        store.setApiKey(value)
-        publish()
     }
 
     fun setNewWordsPerDay(value: Int) {
@@ -91,28 +82,6 @@ class SettingsViewModel(
         // Tells the system there is new data to back up, so the next scheduled Auto
         // Backup pass picks up the change instead of waiting for one to happen anyway.
         BackupManager(context).dataChanged()
-    }
-
-    fun testKey() {
-        val settings = store.current()
-        if (!settings.hasApiKey) {
-            say("Enter a key first.")
-            return
-        }
-        _state.update { it.copy(testingKey = true) }
-        viewModelScope.launch {
-            val result = claude.testKey(settings.apiKey)
-            _state.update {
-                it.copy(
-                    testingKey = false,
-                    message = when (result) {
-                        KeyTestResult.Ok -> "Key works."
-                        KeyTestResult.Rejected -> "Key rejected (401). Check it and try again."
-                        is KeyTestResult.Failure -> result.message
-                    },
-                )
-            }
-        }
     }
 
     fun sendTestNotification() {
@@ -187,8 +156,7 @@ class SettingsViewModel(
                         context.applicationContext,
                         container.settings,
                         container.repository,
-                        container.claude,
-                    )
+                                    )
                 }
             }
     }

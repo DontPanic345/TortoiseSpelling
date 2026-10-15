@@ -36,7 +36,6 @@ export const testIds = {
     /** The status chip's label, tagged because two rows can share the same status text. */
     wordRowStatus: (normalizedText: string): string => `word_row_status_${normalizedText}`,
 
-    settingsApiKey: 'settings_api_key',
     settingsNewWordsValue: 'settings_new_words_value',
     settingsNewWordsDecrease: 'settings_new_words_decrease',
     settingsNewWordsIncrease: 'settings_new_words_increase',

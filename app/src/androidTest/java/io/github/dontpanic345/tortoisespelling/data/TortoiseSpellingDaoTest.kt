@@ -298,29 +298,6 @@ class TortoiseSpellingDaoTest {
     }
 
     @Test
-    fun nextExampleIndexAppendsToAForm() = runTest {
-        val id = dao.insertWordWithContent(testWord("run"), tree)
-        val form = dao.contentById(id)!!.sorted().definitions[0].forms[0].form.id
-        val ran = dao.contentById(id)!!.sorted().definitions[0].forms[1].form.id
-
-        assertEquals(2, dao.nextExampleIndex(form))
-        assertEquals(1, dao.nextExampleIndex(ran))
-        assertEquals(0, dao.nextExampleIndex(-1))
-    }
-
-    @Test
-    fun markRefreshedChangesOnlyRefreshedOn() = runTest {
-        val id = dao.insertWord(
-            testWord("plural", repetitions = 3, dueOn = 40, isNew = false, autoRefresh = true),
-        )
-        val before = dao.wordById(id)!!
-
-        dao.markRefreshed(id, 55)
-
-        assertEquals(before.copy(refreshedOn = 55), dao.wordById(id))
-    }
-
-    @Test
     fun reviewedCountOnCountsDistinctWords() = runTest {
         val a = dao.insertWord(testWord("a"))
         val b = dao.insertWord(testWord("b"))

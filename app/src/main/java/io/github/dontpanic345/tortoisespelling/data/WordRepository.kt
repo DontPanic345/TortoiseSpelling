@@ -56,7 +56,7 @@ class WordRepository(
 
     suspend fun contentById(id: Long): WordWithContent? = dao.contentById(id)?.sorted()
 
-    suspend fun addWord(text: String, content: WordContent, autoRefresh: Boolean = false): AddResult {
+    suspend fun addWord(text: String, content: WordContent): AddResult {
         val trimmed = text.trim()
         if (trimmed.isEmpty()) {
             return AddResult.Blank
@@ -69,7 +69,6 @@ class WordRepository(
                 text = trimmed,
                 normalizedText = normalized,
                 dueOn = Days.today(clock),
-                autoRefresh = autoRefresh,
             ),
             content.preparedFor(trimmed),
         )
@@ -81,8 +80,7 @@ class WordRepository(
         definition: String,
         example: String,
         partOfSpeech: String?,
-        autoRefresh: Boolean = false,
-    ): AddResult = addWord(text, simpleContent(text.trim(), definition, partOfSpeech, example), autoRefresh)
+    ): AddResult = addWord(text, simpleContent(text.trim(), definition, partOfSpeech, example))
 
     /** Save an edit: the word row, with [content] replacing its tree. Scheduling is kept. */
     suspend fun updateWord(word: Word, content: WordContent): UpdateResult {
@@ -100,30 +98,6 @@ class WordRepository(
             content.preparedFor(trimmed),
         )
         return UpdateResult.Updated
-    }
-
-    // --- card refresh ---
-
-    /** Spend this word's one refresh for [day], whether or not the call then works. */
-    suspend fun markRefreshAttempted(word: Word, day: Long) = dao.markRefreshed(word.id, day)
-
-    /**
-     * Append [text] to the base form's examples, unless it is already there. A new
-     * example has never been shown, so review picks it next.
-     */
-    suspend fun addExample(word: Word, text: String) {
-        val trimmed = text.trim()
-        val form = contentById(word.id)?.definitions?.firstOrNull()?.forms?.firstOrNull() ?: return
-        if (trimmed.isEmpty() || form.examples.any { normalizeWord(it.text) == normalizeWord(trimmed) }) {
-            return
-        }
-        dao.insertExample(
-            ExampleSentence(
-                wordFormId = form.form.id,
-                text = trimmed,
-                orderIndex = dao.nextExampleIndex(form.form.id),
-            ),
-        )
     }
 
     suspend fun deleteWord(word: Word) = dao.deleteWord(word)
@@ -178,9 +152,8 @@ class WordRepository(
      */
     suspend fun recordReview(word: Word, correctFirstTry: Boolean, typedAnswer: String) {
         val today = Days.today(clock)
-        // Re-read rather than trusting the session's snapshot: a background card
-        // refresh may have stamped markRefreshed since the session opened, and @Update
-        // writes every column, so the snapshot would undo it.
+        // Re-read rather than trusting the session's snapshot, which was taken when the
+        // session opened: @Update writes every column.
         val current = dao.wordById(word.id) ?: word
         val now = clock.millis()
         val quality = if (correctFirstTry) Grade.FIRST_TRY else Grade.AFTER_RETYPE

@@ -26,10 +26,6 @@ interface TortoiseSpellingDao {
     @Query("SELECT * FROM words WHERE id = :id")
     suspend fun wordById(id: Long): Word?
 
-    /** Claim today's one refresh for a word, before making the call that may fail. */
-    @Query("UPDATE words SET refreshedOn = :day WHERE id = :id")
-    suspend fun markRefreshed(id: Long, day: Long)
-
     @Query("SELECT * FROM words WHERE normalizedText = :normalized LIMIT 1")
     suspend fun wordByNormalizedText(normalized: String): Word?
 
@@ -175,10 +171,6 @@ interface TortoiseSpellingDao {
 
     @Query("UPDATE example_sentences SET shownAt = :at WHERE id = :id")
     suspend fun markShown(id: Long, at: Long)
-
-    /** The `orderIndex` that appends to a form's examples. */
-    @Query("SELECT COALESCE(MAX(orderIndex) + 1, 0) FROM example_sentences WHERE wordFormId = :formId")
-    suspend fun nextExampleIndex(formId: Long): Int
 
     // --- review log ---
 

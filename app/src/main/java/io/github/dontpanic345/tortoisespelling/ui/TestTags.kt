@@ -53,7 +53,6 @@ object TestTags {
     /** The status chip's label, tagged because two rows can share the same status text. */
     fun wordRowStatus(normalizedText: String) = "word_row_status_$normalizedText"
 
-    const val SETTINGS_API_KEY = "settings_api_key"
     const val SETTINGS_NEW_WORDS_VALUE = "settings_new_words_value"
     const val SETTINGS_NEW_WORDS_DECREASE = "settings_new_words_decrease"
     const val SETTINGS_NEW_WORDS_INCREASE = "settings_new_words_increase"

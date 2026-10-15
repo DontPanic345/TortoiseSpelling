@@ -144,34 +144,20 @@ class WordRepositoryTest {
     }
 
     @Test
-    fun recordReviewWithAStaleSnapshotKeepsTheRefreshStamp() = runTest {
-        repo.addWord("rhythm", "A definition.", "An example.", null, autoRefresh = true)
+    fun recordReviewWithAStaleSnapshotKeepsALaterWrite() = runTest {
+        repo.addWord("rhythm", "A definition.", "An example.", null)
         val stale = dao.wordByNormalizedText("rhythm")!!
 
-        repo.markRefreshAttempted(stale, 20_000)
+        repo.setSuspended(dao.wordById(stale.id)!!, true)
         repo.recordReview(stale, correctFirstTry = true, typedAnswer = "rhythm")
 
         val saved = dao.wordById(stale.id)!!
-        assertEquals(20_000L, saved.refreshedOn)
+        assertEquals(true, saved.suspended)
         assertEquals(1, saved.repetitions)
         assertEquals(false, saved.isNew)
         assertEquals(Days.today(DeviceClock), saved.firstReviewedOn)
         assertNotNull(saved.lastReviewedAt)
         assertEquals(1, dao.reviewedCountOn(Days.today(DeviceClock)))
-    }
-
-    @Test
-    fun addExampleAppendsToTheBaseFormAndSkipsRepeats() = runTest {
-        repo.addWord("rhythm", "A pattern.", "The rhythm held.", null)
-        val word = dao.wordByNormalizedText("rhythm")!!
-
-        repo.addExample(word, "  A new rhythm. ")
-        repo.addExample(word, "a new RHYTHM.")
-        repo.addExample(word, "   ")
-
-        val examples = dao.contentById(word.id)!!.toContent().definitions[0].forms[0].examples
-        assertEquals(listOf("The rhythm held.", "A new rhythm."), examples.map { it.text })
-        assertEquals(listOf(null, null), examples.map { it.shownAt })
     }
 
     @Test

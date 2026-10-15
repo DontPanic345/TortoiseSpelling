@@ -366,7 +366,7 @@
           "title": "Remove ClaudeClient, CardRefresher, the toggle, the key setting and SecretCipher; legacy key cleanup; OkHttp and the Internet permission; claude_lookup e2e",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-2",

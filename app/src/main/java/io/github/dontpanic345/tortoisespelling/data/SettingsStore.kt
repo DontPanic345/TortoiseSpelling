@@ -6,34 +6,25 @@ import androidx.core.content.edit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.security.KeyStore
 
 data class Settings(
-    val apiKey: String = "",
     val newWordsPerDay: Int = 10,
     val reminderEnabled: Boolean = true,
     val reminderHour: Int = 8,
     val reminderMinute: Int = 0,
     val cloudBackupEnabled: Boolean = false,
-) {
-    val hasApiKey: Boolean get() = apiKey.isNotBlank()
-}
+)
 
-/**
- * Preferences, including the Anthropic API key.
- *
- * Only the key is encrypted (via [SecretCipher], keyed from the device keystore);
- * reminder times and word counts are not secrets and are stored plainly, which keeps
- * the whole store readable in a bug report without leaking anything.
- *
- * The tradeoff worth stating: a key on the device is right for a personal single-user
- * app, but this APK must not be shared with a key in it, and a rooted or fully
- * compromised phone could still expose it. The remedy then is to rotate the key in
- * the Anthropic console. No backend, no proxy, by choice.
- */
+/** Preferences, stored plainly: none of them is a secret. */
 class SettingsStore(context: Context, fileName: String = FILE) {
 
     private val prefs: SharedPreferences =
         context.applicationContext.getSharedPreferences(fileName, Context.MODE_PRIVATE)
+
+    init {
+        forgetLegacyApiKey()
+    }
 
     private val _settings = MutableStateFlow(read())
     val settings: StateFlow<Settings> = _settings.asStateFlow()
@@ -41,7 +32,6 @@ class SettingsStore(context: Context, fileName: String = FILE) {
     fun current(): Settings = _settings.value
 
     private fun read() = Settings(
-        apiKey = prefs.getString(KEY_API, null)?.let(SecretCipher::decrypt).orEmpty(),
         newWordsPerDay = prefs.getInt(KEY_NEW_PER_DAY, 10),
         reminderEnabled = prefs.getBoolean(KEY_REMINDER_ON, true),
         reminderHour = prefs.getInt(KEY_REMINDER_HOUR, 8),
@@ -54,15 +44,6 @@ class SettingsStore(context: Context, fileName: String = FILE) {
         _settings.value = read()
     }
 
-    fun setApiKey(value: String) = update {
-        val trimmed = value.trim()
-        if (trimmed.isEmpty()) {
-            remove(KEY_API)
-        } else {
-            putString(KEY_API, SecretCipher.encrypt(trimmed))
-        }
-    }
-
     fun setNewWordsPerDay(value: Int) = update { putInt(KEY_NEW_PER_DAY, value.coerceIn(1, 100)) }
 
     fun setReminderEnabled(value: Boolean) = update { putBoolean(KEY_REMINDER_ON, value) }
@@ -73,6 +54,15 @@ class SettingsStore(context: Context, fileName: String = FILE) {
     }
 
     fun setCloudBackupEnabled(value: Boolean) = update { putBoolean(KEY_CLOUD_BACKUP_ENABLED, value) }
+
+    /** Earlier versions stored an encrypted Anthropic API key. Remove it and its Keystore key. */
+    private fun forgetLegacyApiKey() {
+        if (!prefs.contains(LEGACY_KEY_API)) return
+        prefs.edit { remove(LEGACY_KEY_API) }
+        runCatching {
+            KeyStore.getInstance("AndroidKeyStore").apply { load(null) }.deleteEntry(LEGACY_KEYSTORE_ALIAS)
+        }
+    }
 
     // --- streak bookkeeping ---
 
@@ -101,7 +91,6 @@ class SettingsStore(context: Context, fileName: String = FILE) {
     // process is restricted and this class cannot be reached through AppContainer.
     internal companion object {
         const val FILE = "tortoisespelling-settings"
-        const val KEY_API = "apiKey"
         const val KEY_NEW_PER_DAY = "newWordsPerDay"
         const val KEY_REMINDER_ON = "reminderEnabled"
         const val KEY_REMINDER_HOUR = "reminderHour"
@@ -109,5 +98,7 @@ class SettingsStore(context: Context, fileName: String = FILE) {
         const val KEY_SATISFIED_DAYS = "satisfiedDays"
         const val KEY_CLOUD_BACKUP_ENABLED = "cloudBackupEnabled"
         const val SATISFIED_WINDOW_DAYS = 400L
+        const val LEGACY_KEY_API = "apiKey"
+        const val LEGACY_KEYSTORE_ALIAS = "tortoisespelling.settings.v1"
     }
 }

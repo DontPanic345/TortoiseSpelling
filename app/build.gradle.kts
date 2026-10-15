@@ -43,7 +43,7 @@ android {
         release {
             // R8 strips the unused bulk of material-icons-extended and the other
             // libraries. Every dependency here ships its own keep rules (Room, WorkManager,
-            // kotlinx-serialization, OkHttp), so proguard-rules.pro starts empty.
+            // kotlinx-serialization), so proguard-rules.pro starts empty.
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
@@ -109,7 +109,6 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.androidx.work.runtime.ktx)
-    implementation(libs.okhttp)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.kotlinx.coroutines.android)
 
@@ -118,9 +117,6 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
-    // Android bundles org.json but stubs it in local unit tests; the real jar lets the
-    // response-parsing logic be tested off-device.
-    testImplementation(libs.json)
 
     screenshotTestImplementation(libs.screenshot.validation.api)
     screenshotTestImplementation(libs.androidx.compose.ui.tooling)

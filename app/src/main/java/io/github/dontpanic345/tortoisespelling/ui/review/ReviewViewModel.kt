@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import io.github.dontpanic345.tortoisespelling.data.CardRefresher
 import io.github.dontpanic345.tortoisespelling.data.Word
 import io.github.dontpanic345.tortoisespelling.data.WordRepository
 import io.github.dontpanic345.tortoisespelling.data.normalizeWord
@@ -72,7 +71,6 @@ data class ReviewUiState(
 
 class ReviewViewModel(
     private val repository: WordRepository,
-    private val cardRefresher: CardRefresher,
     private val practiceMode: Boolean,
 ) : ViewModel() {
 
@@ -90,13 +88,6 @@ class ReviewViewModel(
                     queue = queue,
                     finished = queue.isEmpty(),
                 )
-            }
-            // Rewrite the flagged cards for next time. Not in practice mode: practice
-            // is an ad-hoc dip into random words, and it already leaves the rest of a
-            // word's state alone. Fire and forget — this session shows today's cards
-            // either way, and the work outlives the ViewModel.
-            if (!practiceMode) {
-                cardRefresher.refreshInBackground(queue.map { it.word })
             }
             queue.firstOrNull()?.let(::markShown)
         }
@@ -240,7 +231,7 @@ class ReviewViewModel(
         fun factory(container: AppContainer, practiceMode: Boolean): ViewModelProvider.Factory =
             viewModelFactory {
                 initializer {
-                    ReviewViewModel(container.repository, container.cardRefresher, practiceMode)
+                    ReviewViewModel(container.repository, practiceMode)
                 }
             }
     }

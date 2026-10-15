@@ -18,19 +18,11 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -52,9 +44,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -176,14 +165,6 @@ fun SettingsScreen(onBack: () -> Unit) {
             )
 
             SectionDivider()
-            ClaudeLookupSection(
-                apiKey = state.settings.apiKey,
-                onApiKeyChange = viewModel::setApiKey,
-                testing = state.testingKey,
-                onTestKey = viewModel::testKey,
-            )
-
-            SectionDivider()
             BackupSection(
                 busy = state.busy,
                 cloudBackupEnabled = state.settings.cloudBackupEnabled,
@@ -261,65 +242,6 @@ private fun PracticeSection(newWordsPerDay: Int, onChange: (Int) -> Unit) {
 }
 
 @Composable
-private fun ClaudeLookupSection(
-    apiKey: String,
-    onApiKeyChange: (String) -> Unit,
-    testing: Boolean,
-    onTestKey: () -> Unit,
-) {
-    var keyVisible by remember { mutableStateOf(false) }
-
-    SectionTitle("Keep cards fresh")
-    HelpText(
-        "Optional. Only “Keep this card fresh” uses a key: Claude adds a new example " +
-            "sentence when the word comes up. Lookup works without one: use Copy prompt " +
-            "when you add a word.",
-    )
-
-    OutlinedTextField(
-        value = apiKey,
-        onValueChange = onApiKeyChange,
-        label = { Text("Anthropic API key") },
-        singleLine = true,
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag(TestTags.SETTINGS_API_KEY),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        visualTransformation = if (keyVisible) {
-            VisualTransformation.None
-        } else {
-            PasswordVisualTransformation()
-        },
-        trailingIcon = {
-            IconButton(onClick = { keyVisible = !keyVisible }) {
-                Icon(
-                    imageVector = if (keyVisible) {
-                        Icons.Default.VisibilityOff
-                    } else {
-                        Icons.Default.Visibility
-                    },
-                    contentDescription = if (keyVisible) "Hide key" else "Show key",
-                )
-            }
-        },
-    )
-    HelpText(
-        "Anyone with this key can spend your Anthropic credit. If it leaks, delete it " +
-            "in the Anthropic console.",
-    )
-
-    OutlinedButton(onClick = onTestKey, enabled = !testing) {
-        if (testing) {
-            CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
-            Spacer(Modifier.size(8.dp))
-        }
-        Text("Test key")
-    }
-
-    ApiKeyHelp()
-}
-
-@Composable
 private fun BackupSection(
     busy: Boolean,
     cloudBackupEnabled: Boolean,
@@ -349,8 +271,7 @@ private fun BackupSection(
     )
     HelpText(
         "Includes your words and settings in your phone's Google backup, so they come " +
-            "back after a reset or on a new phone. This is separate from Export. Your " +
-            "Anthropic API key is never restored this way, because it's locked to this phone.",
+            "back after a reset or on a new phone. This is separate from Export.",
     )
 }
 
@@ -381,24 +302,6 @@ private fun AboutSection() {
             ) {
                 Text("Source code")
             }
-        }
-    }
-}
-
-@Composable
-private fun ApiKeyHelp() {
-    val uriHandler = LocalUriHandler.current
-    Column {
-        HelpText(
-            "No key yet? Sign in at console.anthropic.com, open Settings → API keys → " +
-                "Create key, then add a little credit under Billing. Requests use the " +
-                "cheapest model and cost well under a cent each.",
-        )
-        TextButton(
-            onClick = { uriHandler.openUri("https://console.anthropic.com/settings/keys") },
-            contentPadding = PaddingValues(vertical = 4.dp),
-        ) {
-            Text("Open the Anthropic console")
         }
     }
 }

@@ -48,7 +48,6 @@ class AddWordContentTest {
                     onUsePaste = { used++ },
                     onDismissPaste = { dismissed++ },
                     onEdit = { edits += it },
-                    onAutoRefreshChange = {},
                     onSave = { saved++ },
                 )
             }

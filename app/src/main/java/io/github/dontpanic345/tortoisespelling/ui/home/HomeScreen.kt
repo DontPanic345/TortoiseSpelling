@@ -487,8 +487,9 @@ private fun FirstRunPanel(onAddWord: () -> Unit) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = "Add a word you keep misspelling. Claude can write the definition and " +
-                "an example sentence for you, or you can type them yourself.",
+            text = "Add a word you keep misspelling. Any chat AI, such as Claude or " +
+                "ChatGPT, can write its definitions and example sentences for you, or you can " +
+                "type them yourself.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,

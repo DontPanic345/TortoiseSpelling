@@ -99,7 +99,6 @@ class AddWordUiStateTest {
         val before = AddWordUiState(
             editingId = 7,
             text = "run",
-            autoRefresh = true,
             message = "Added ✓ (3 total)",
             addedThisSession = 2,
             totalWords = 3,
@@ -108,7 +107,6 @@ class AddWordUiStateTest {
         val after = before.applying(answer("run", renames = false))
 
         assertEquals(7L, after.editingId)
-        assertTrue(after.autoRefresh)
         assertEquals("Added ✓ (3 total)", after.message)
         assertEquals(2, after.addedThisSession)
         assertEquals(3, after.totalWords)

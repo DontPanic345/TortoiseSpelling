@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -23,7 +22,6 @@ import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -51,7 +49,6 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -130,7 +127,6 @@ fun AddWordScreen(
         onUsePaste = viewModel::usePaste,
         onDismissPaste = viewModel::dismissPaste,
         onEdit = viewModel::onEdit,
-        onAutoRefreshChange = viewModel::onAutoRefreshChange,
         onSave = viewModel::save,
     )
 }
@@ -148,7 +144,6 @@ fun AddWordContent(
     onUsePaste: () -> Unit,
     onDismissPaste: () -> Unit,
     onEdit: (ContentEdit) -> Unit,
-    onAutoRefreshChange: (Boolean) -> Unit,
     onSave: () -> Unit,
     modifier: Modifier = Modifier,
     snackbarHost: SnackbarHostState = remember { SnackbarHostState() },
@@ -215,12 +210,6 @@ fun AddWordContent(
             ) {
                 Text("Add definition")
             }
-
-            AutoRefreshToggle(
-                checked = state.autoRefresh,
-                hasApiKey = state.hasApiKey,
-                onCheckedChange = onAutoRefreshChange,
-            )
 
             Spacer(Modifier.height(4.dp))
             Button(
@@ -478,49 +467,6 @@ private fun FormEditor(
             modifier = Modifier.testTag(TestTags.addWordAddExample(d, f)),
         ) {
             Text("Add example")
-        }
-    }
-}
-
-/**
- * Opts a word into getting a fresh example sentence from Claude.
- *
- * Off by default: it spends on the API every day the word is reviewed, which is not
- * something to switch on for someone. Worth it for a word that has climbed to a long
- * interval, where the same sentence has been read a dozen times and stopped teaching
- * anything.
- *
- * The whole row is the hit target rather than the checkbox alone, and it is labelled
- * as one control for screen readers, which is what `toggleable` with a null indication
- * on the Row plus a null onCheckedChange on the Checkbox buys.
- */
-@Composable
-private fun AutoRefreshToggle(
-    checked: Boolean,
-    hasApiKey: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .toggleable(value = checked, role = Role.Checkbox, onValueChange = onCheckedChange),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Checkbox(checked = checked, onCheckedChange = null)
-        Column(Modifier.padding(vertical = 8.dp)) {
-            Text("Keep this card fresh", style = MaterialTheme.typography.bodyLarge)
-            Text(
-                text = if (hasApiKey) {
-                    "Claude adds a fresh example sentence once a day when this " +
-                        "word comes up, ready for the time after."
-                } else {
-                    "Needs an API key in Settings. Claude would add a fresh example " +
-                        "sentence once a day when this word comes up."
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
         }
     }
 }

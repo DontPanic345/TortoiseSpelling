@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.dontpanic345.tortoisespelling.data.AddResult
-import io.github.dontpanic345.tortoisespelling.data.SettingsStore
 import io.github.dontpanic345.tortoisespelling.data.UpdateResult
 import io.github.dontpanic345.tortoisespelling.data.WordRepository
 import io.github.dontpanic345.tortoisespelling.data.toContent
@@ -32,8 +31,6 @@ data class AddWordUiState(
     val editingId: Long? = null,
     val text: String = "",
     val content: WordContent = WordContent.blank(),
-    val autoRefresh: Boolean = false,
-    val hasApiKey: Boolean = false,
     val paste: PasteDraft? = null,
     val message: String? = null,
     val addedThisSession: Int = 0,
@@ -74,16 +71,10 @@ private fun WordContent.editable(word: String): WordContent {
 
 class AddWordViewModel(
     private val repository: WordRepository,
-    private val settings: SettingsStore,
     editingId: Long?,
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(
-        AddWordUiState(
-            editingId = editingId,
-            hasApiKey = settings.current().hasApiKey,
-        ),
-    )
+    private val _state = MutableStateFlow(AddWordUiState(editingId = editingId))
     val state: StateFlow<AddWordUiState> = _state.asStateFlow()
 
     init {
@@ -101,7 +92,6 @@ class AddWordViewModel(
                         it.copy(
                             text = loaded.word.text,
                             content = loaded.toContent().editable(loaded.word.text),
-                            autoRefresh = loaded.word.autoRefresh,
                         )
                     }
                 }
@@ -115,10 +105,6 @@ class AddWordViewModel(
 
     fun onEdit(edit: ContentEdit) {
         _state.update { it.copy(content = it.content.apply(edit)) }
-    }
-
-    fun onAutoRefreshChange(value: Boolean) {
-        _state.update { it.copy(autoRefresh = value) }
     }
 
     fun consumeMessage() {
@@ -161,7 +147,7 @@ class AddWordViewModel(
             if (editingId != null) {
                 val existing = repository.wordById(editingId) ?: return@launch
                 val result = repository.updateWord(
-                    existing.copy(text = snapshot.text, autoRefresh = snapshot.autoRefresh),
+                    existing.copy(text = snapshot.text),
                     snapshot.content,
                 )
                 _state.value = when (result) {
@@ -173,16 +159,12 @@ class AddWordViewModel(
                 return@launch
             }
 
-            when (val result = repository.addWord(snapshot.text, snapshot.content, snapshot.autoRefresh)) {
+            when (val result = repository.addWord(snapshot.text, snapshot.content)) {
                 is AddResult.Added -> {
                     val total = repository.wordCount()
                     // Stay on the screen with the fields cleared: adding words happens in
                     // bursts, and bouncing back home after each one is friction.
                     _state.value = AddWordUiState(
-                        hasApiKey = snapshot.hasApiKey,
-                        // Carried over, not reset: words are added in bursts, and the
-                        // whole burst usually wants the same answer.
-                        autoRefresh = snapshot.autoRefresh,
                         addedThisSession = snapshot.addedThisSession + 1,
                         totalWords = total,
                         message = "Added ✓ ($total total)",
@@ -218,7 +200,6 @@ class AddWordViewModel(
                 initializer {
                     AddWordViewModel(
                         container.repository,
-                        container.settings,
                         editingId,
                     )
                 }

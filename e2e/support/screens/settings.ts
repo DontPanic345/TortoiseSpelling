@@ -3,7 +3,6 @@ import { testIds } from '../testIds.ts';
 import { home } from './home.ts';
 
 export const settings = {
-    apiKeyField: () => byTestId(testIds.settingsApiKey),
     newWordsValue: () => byTestId(testIds.settingsNewWordsValue),
     newWordsDecrease: () => byTestId(testIds.settingsNewWordsDecrease),
     newWordsIncrease: () => byTestId(testIds.settingsNewWordsIncrease),
@@ -13,8 +12,8 @@ export const settings = {
 
     /**
      * Opens Settings from any screen, or stays put if it is already open. Checked via
-     * the reminder switch rather than the API key field: Daily reminder is the first
-     * section, so it's on screen without scrolling regardless of screen height.
+     * the reminder switch because Daily reminder is the first section, so it's on screen
+     * without scrolling regardless of screen height.
      */
     open: async (): Promise<void> => {
         if (await settings.reminderSwitch().isDisplayed()) {

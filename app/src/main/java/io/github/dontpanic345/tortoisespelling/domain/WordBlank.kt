@@ -27,8 +27,8 @@ private fun wholeWordRegex(word: String): Regex =
 /**
  * Replace every whole-word occurrence of [word] in [sentence] with blanks.
  *
- * [BlankedText.didBlank] is false when the word does not appear — Claude is asked
- * for a sentence containing the exact form, but it sometimes returns an inflection.
+ * [BlankedText.didBlank] is false when the word does not appear — the lookup prompt
+ * asks for a sentence containing the exact form, but a reply sometimes has an inflection.
  * The caller falls back to showing standalone blanks in that case.
  */
 fun blankWordIn(sentence: String, word: String): BlankedText {
@@ -44,7 +44,7 @@ fun blankWordIn(sentence: String, word: String): BlankedText {
 }
 
 /**
- * Defensive scrub of the definition. Claude is instructed not to include the target
+ * Defensive scrub of the definition. The lookup prompt tells the chat AI not to include the target
  * word in its gloss, but a definition that gives the answer away silently breaks the
  * whole exercise, so it is cheap to enforce here too.
  */

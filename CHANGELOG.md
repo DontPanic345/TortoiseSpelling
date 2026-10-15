@@ -9,6 +9,11 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+### Removed
+
+- **Keep this card fresh** and the Anthropic API key in Settings. Words that had it on keep everything else. Copy prompt and the rotating example sentences cover what it did, with no key.
+- The Internet permission. The app no longer connects to anything, and an API key saved by an earlier version is deleted the first time the app runs after the update.
+
 ## [0.6.0] - 2026-10-15
 
 ### Added

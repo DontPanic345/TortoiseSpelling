@@ -107,7 +107,6 @@ class ScreenAccessibilityTest(private val dark: Boolean) {
             onUsePaste = {},
             onDismissPaste = {},
             onEdit = {},
-            onAutoRefreshChange = {},
             onSave = {},
         )
     }
