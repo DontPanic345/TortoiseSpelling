@@ -28,6 +28,7 @@ object PasteLimits {
 
 private const val TOO_LONG = "That's too long to be one word's answer."
 private const val NOT_JSON = "That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again."
+private const val PROMPT_PASTED = "That's the prompt, not the chat's answer. Paste the chat's reply instead."
 private const val OVER_LIMIT = "That answer is longer than a word needs. Ask the chat for a shorter one."
 
 private class Rejected(override val message: String) : Exception(message)
@@ -63,6 +64,7 @@ private fun parseOrReject(text: String, typedWord: String): PastedLookup.Valid {
 
     val word = root["word"].string()
     if (word.isEmpty()) reject("The answer has no \"word\".")
+    if (word.all { it == '.' || it == '…' }) reject(PROMPT_PASTED)
     val rawDefinitions = (root["definitions"] as? JsonArray)?.takeIf { it.isNotEmpty() }
         ?: reject("The answer has no definitions.")
 

@@ -137,6 +137,7 @@ Definitions are numbered from 1 in messages.
 | `text.length > TEXT` | That's too long to be one word's answer. |
 | No `{` … `}`, it doesn't parse, or it isn't an object | That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again. |
 | `word` missing or blank | The answer has no "word". |
+| `word` is only dots or `…` (the prompt's placeholder, so the prompt itself was pasted back) | That's the prompt, not the chat's answer. Paste the chat's reply instead. |
 | `definitions` missing, not an array, or empty | The answer has no definitions. |
 | Definition *n* has blank `text` | Definition *n* has no text. |
 | Definition *n* has no `forms` (missing, not an array, empty) | Definition *n* has no forms. |

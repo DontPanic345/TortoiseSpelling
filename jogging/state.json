@@ -282,7 +282,7 @@
       "dependsOn": [
         "word-forms"
       ],
-      "status": "active",
+      "status": "done",
       "spec": "jogging/specs/copy-prompt.md",
       "steps": [
         {
@@ -329,7 +329,7 @@
           "title": "Review the piece, full checks, minor release",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },

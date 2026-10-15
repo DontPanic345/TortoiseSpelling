@@ -9,6 +9,8 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-15
+
 ### Added
 
 - **Copy prompt** and **Paste answer** when adding or editing a word: copy a ready-made prompt into any chat AI you already use, such as Claude or ChatGPT, paste its answer back, and the word's definitions, forms and example sentences fill in. No API key needed.
@@ -152,7 +154,8 @@ The first release.
 - Backup export and import as JSON. Importing adds new words and never overwrites the
   progress of words you already have.
 
-[unreleased]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.5.0...HEAD
+[unreleased]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.3.0...v0.4.0

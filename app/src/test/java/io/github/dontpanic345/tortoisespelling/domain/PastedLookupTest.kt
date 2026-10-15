@@ -84,6 +84,13 @@ class PastedLookupTest {
     }
 
     @Test
+    fun `the prompt pasted back is refused`() {
+        val message = "That's the prompt, not the chat's answer. Paste the chat's reply instead."
+        assertEquals(message, invalid(lookupPrompt("practice")))
+        assertEquals(message, invalid("""{"word": "…", "definitions": []}"""))
+    }
+
+    @Test
     fun `missing definitions are refused`() {
         val message = "The answer has no definitions."
         assertEquals(message, invalid("""{"word": "a"}"""))
