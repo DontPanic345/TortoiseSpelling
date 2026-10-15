@@ -6,8 +6,9 @@ reminder so the habit sticks. Slow and steady wins the race 🐢.
 
 ## 🐇 How it works
 
-- 📝 **Your words, not a canned list.** Add the words you want to learn; Claude can
-  fill in the definition and example, or you type them yourself. A word can have several
+- 📝 **Your words, not a canned list.** Add the words you want to learn; a ready-made prompt
+  goes into any chat AI you already use and its answer is pasted back, or you type them
+  yourself. A word can have several
   definitions, other forms ("ran", "practise") and several example sentences.
 - ✍️ **You spell it from memory.** Each review shows the definition and an example
   sentence with the word blanked out — no multiple choice. Sentences rotate, so a word
@@ -22,7 +23,7 @@ reminder so the habit sticks. Slow and steady wins the race 🐢.
 - 🔔 **Daily reminder.** One local notification, only when words are due. On Android
   13+ the app asks for notification permission once you've added your first word.
 
-Everything except word lookup works fully offline with no account and no API key.
+Everything works offline with no account and no API key.
 There are no ads, no analytics and no tracking: see the [privacy policy](PRIVACY.md).
 
 ### 🔓 Password managers
@@ -61,15 +62,15 @@ Anki 🃏 — reviewing a word right as you're about to forget it.
 |---|---|---|---|
 | <img src="docs/screenshots/home.png" alt="Home: six words to practise today, the week so far, and word progress" width="200"> | <img src="docs/screenshots/review.png" alt="Review: a missed spelling compared with the correct one" width="200"> | <img src="docs/screenshots/finished.png" alt="The finish line: all done, with a streak and the next review date" width="200"> | <img src="docs/screenshots/word-list.png" alt="Word list with search and status filters" width="200"> |
 
-## 🤖 Word lookup with Claude
+## 🤖 Word lookup with any chat AI
 
-Adding a word can call the Anthropic Messages API to generate a definition, example
-sentence, and part of speech, and to correct the spelling of what you typed.
+When you add or edit a word, tap **Copy prompt**, paste it into any chat AI you already
+use (Claude, ChatGPT, …), then tap **Paste answer** and paste its reply back. The app
+checks it and fills in the word's definitions, forms and example sentences, which you can
+still edit before saving. The app never contacts the chat AI itself.
 
-- Lookups always run on the cheapest model, chosen automatically.
-- The API key is stored on-device, encrypted with an Android keystore key.
-
-To enable it: open ⚙️ **Settings**, paste an Anthropic API key, and press **Test key**.
+An Anthropic API key in ⚙️ **Settings** is now only used by **Keep this card fresh**,
+which has Claude add new example sentences as a word comes round.
 
 ### 🔒 Data safety
 

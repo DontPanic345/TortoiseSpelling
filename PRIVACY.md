@@ -1,8 +1,8 @@
 # Privacy policy
 
 Tortoise Spelling has no accounts, no ads, no analytics and no tracking. Your word list
-stays on your phone. The only time anything leaves it is when you ask Claude to look up
-a word, using your own Anthropic API key.
+stays on your phone. Nothing leaves it except what you choose to paste into a chat app,
+and "Keep this card fresh" if you add your own Anthropic API key.
 
 ## What the app keeps, and where
 
@@ -20,10 +20,15 @@ The developer has no server and never receives any of it.
 
 ## What leaves your device
 
-**Word lookup, only if you use it.** When you tap **Look up with Claude**, the app sends
-the word you typed to Anthropic's API (`api.anthropic.com`), with your API key. **Test
-key** sends the word "Hi". The app also asks the API which models are available, so
-it can pick the cheapest one. Nothing else from your word list is sent.
+**Word lookup.** **Copy prompt** only copies text to your clipboard. What you paste into
+a chat app is between you and that service; the app never sees it or the answer until you
+paste the answer back into the app.
+
+**Keep this card fresh, only if you use it.** With your own Anthropic API key and the
+option switched on for a word, the app sends the word with its current definition and
+example to Anthropic's API (`api.anthropic.com`), with your API key. **Test key** sends
+the word "Hi". The app also asks the API which models are available, so it can pick the
+cheapest one. Nothing else from your word list is sent.
 These requests go straight from your phone to Anthropic under your own account, so
 [Anthropic's privacy policy](https://www.anthropic.com/legal/privacy) covers them. The
 developer can't see them.
@@ -49,7 +54,7 @@ push service or server involved.
 
 | Permission | Why |
 |---|---|
-| Internet | Word lookup with Claude. The rest of the app works offline. |
+| Internet | Keep this card fresh, with your own Anthropic key. |
 | Notifications | The daily reminder. You can turn it off in Settings. |
 
 ## Children

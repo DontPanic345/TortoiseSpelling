@@ -16,6 +16,27 @@ export const addWord = {
     exampleField: () => byTestId(testIds.addWordExample),
     partOfSpeechField: () => byTestId(testIds.addWordPartOfSpeech),
     saveButton: () => byTestId(testIds.addWordSave),
+    copyPromptButton: () => byTestId(testIds.addWordCopyPrompt),
+    pasteButton: () => byTestId(testIds.addWordPaste),
+    pasteField: () => byTestId(testIds.addWordPasteText),
+    pasteUseButton: () => byTestId(testIds.addWordPasteUse),
+
+    /** Opens the Paste answer dialog, types the answer and uses it; the dialog closes. */
+    pasteAnswer: async (answer: string): Promise<void> => {
+        await addWord.pasteButton().click();
+        await addWord.pasteField().waitForDisplayed();
+        await typeInto(addWord.pasteField(), answer);
+        await driver.waitUntil(async () => addWord.pasteUseButton().isEnabled(), {
+            timeoutMsg: 'Use this stayed disabled: the pasted answer was not accepted',
+        });
+    },
+
+    useAnswer: async (): Promise<void> => {
+        await addWord.pasteUseButton().click();
+        await driver.waitUntil(async () => !(await addWord.pasteField().isDisplayed()), {
+            timeoutMsg: 'The Paste answer dialog did not close',
+        });
+    },
 
     /** Opens the Add word screen from any screen, or stays put if it is already open. */
     open: async (): Promise<void> => {

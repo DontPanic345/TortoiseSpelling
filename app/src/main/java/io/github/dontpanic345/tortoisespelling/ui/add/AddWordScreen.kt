@@ -271,12 +271,12 @@ private fun PasteDialog(
         runCatching { focus.requestFocus() }
     }
     AlertDialog(
+        // A dialog is its own window, so it needs its own testTagsAsResourceId.
+        modifier = Modifier.semantics { testTagsAsResourceId = true },
         onDismissRequest = onDismiss,
         title = { Text("Paste the answer") },
         text = {
-            // A dialog is its own window, so it needs its own testTagsAsResourceId.
             Column(
-                modifier = Modifier.semantics { testTagsAsResourceId = true },
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 OutlinedTextField(

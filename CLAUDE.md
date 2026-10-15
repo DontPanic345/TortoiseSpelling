@@ -4,7 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Tortoise Spelling is a single-module native Android app (Kotlin, Jetpack Compose, min SDK 26,
 target 36) for learning to spell your own word list with SM-2 spaced repetition, a daily
-reminder, and optional word lookup through the Anthropic API. User-facing overview: `README.md`.
+reminder, and word lookup by copying a prompt into any chat AI and pasting its answer back
+(an optional Anthropic key only keeps cards fresh). User-facing overview: `README.md`.
 
 ## Commands
 
@@ -98,7 +99,7 @@ Navigation is string routes in `ui/Nav.kt`, and the `NavHost` is in `MainActivit
   backup (de)serialization.
 - `domain/`: pure Kotlin, no Android, and where the unit tests concentrate. Covers
   scheduling, session building, streaks, spelling diffs, word blanking, the content model
-  (`WordContent`) and card picking (`CardPick.kt`).
+  (`WordContent`), card picking (`CardPick.kt`), and the lookup prompt and paste parsing.
 - `ui/<screen>/`: one Screen + ViewModel pair per screen, holding a `MutableStateFlow` of UI state.
   Screens with component tests (Review, Home, word list) split into a stateful `XScreen` and an
   `XContent` that takes state and callbacks and touches no ViewModel.
@@ -153,23 +154,18 @@ It's honoured only on a fresh launch: not when `savedInstanceState` is non-null,
 when the activity was launched from Recents. Otherwise a rotation or process restore
 re-opens Review.
 
-**Claude lookup** (`data/remote/ClaudeClient.kt`).
-- Raw OkHttp to the Messages API, on purpose; no Anthropic SDK.
-- The model isn't configurable. It's discovered at runtime from `GET /v1/models` (the
-  newest model whose id contains "haiku"), with `LookupModel.FALLBACK` as the fallback, and
-  a 404 clears the cached choice.
-- A lookup fills one definition, the base form and one example, and replaces the editor's
-  content.
-- The prompt asks for JSON with a corrected spelling, and an example sentence that
-  contains the exact word form so the review screen can blank it out. `parseLookup` is
-  lenient: prose around the JSON is tolerated, and unparseable output is handed to the
-  user to edit.
-- `lookupRequest` builds the user turn and is pure, so it is unit-tested. A refresh
-  passes a `StaleCard`, which sends the card being replaced back to the model; without
-  it, "write something different" has nothing to be different from and the same stock
-  sentence comes back.
+**Lookup** (`domain/LookupPrompt.kt`, `domain/PastedLookup.kt`). Nothing in the app calls an
+API for lookup.
+- Copy prompt puts `lookupPrompt(word)` on the clipboard; the user takes it to any chat AI
+  and pastes the reply into the "Paste the answer" dialog.
+- `parsePastedLookup` validates the reply: it locates the JSON between the outer braces
+  (so a code fence or prose around it is fine), reports exact messages, and enforces the
+  limits in `PasteLimits`. Use this replaces the editor's word and content; saving keeps
+  the word's scheduling.
+- The prompt asks for an example sentence that contains the exact word form so the review
+  screen can blank it out, and the parser checks that.
 
-**Keeping cards fresh** (`data/CardRefresher.kt`). A word's `autoRefresh` flag, set from
+**Keeping cards fresh** (`data/CardRefresher.kt`, `data/remote/ClaudeClient.kt`). A word's `autoRefresh` flag, set from
 the add/edit screen, has Claude add a new example to the base form (it doesn't rewrite the card).
 - The trigger is a review session starting; `domain/CardRefresh.kt` decides which words
   are due, capped at one rewrite per word per day. Practice mode never triggers it.
@@ -180,6 +176,14 @@ the add/edit screen, has Claude add a new example to the base form (it doesn't r
 - It runs on an application-scoped coroutine in `AppContainer`, not `viewModelScope`, so
   quitting the session doesn't cancel it. It is not WorkManager: if the process dies the
   rest of the words keep their old cards and the next session picks them up.
+- `ClaudeClient` is raw OkHttp to the Messages API, on purpose; no Anthropic SDK. The model
+  isn't configurable: it's discovered at runtime from `GET /v1/models` (the newest model
+  whose id contains "haiku"), with `LookupModel.FALLBACK` as the fallback, and a 404
+  clears the cached choice.
+- `lookupRequest` builds the user turn and is pure, so it is unit-tested. A refresh passes
+  a `StaleCard`, which sends the card being replaced back to the model; without it,
+  "write something different" has nothing to be different from and the same stock
+  sentence comes back.
 - `refreshedOn` is stamped *before* the call, so a rejected key isn't retried all day.
 - The write is a targeted `markRefreshed` query plus an appended example, and `recordReview` re-reads the row
   before writing. Both are needed: the refresh runs while the user is reviewing, and a

@@ -321,7 +321,7 @@
           "title": "copy_prompt e2e journey, docs and changelog",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "review",

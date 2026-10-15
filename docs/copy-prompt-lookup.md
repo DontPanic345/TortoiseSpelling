@@ -1,6 +1,18 @@
 # Copy-prompt lookup instead of the API button (idea, not yet implemented)
 
-Status: **idea**. Nothing here is built.
+Status: **implemented**. See `jogging/specs/copy-prompt.md` for the full design.
+
+As built:
+
+- Copy prompt and Paste answer sit where Look up with Claude was; Look up is gone.
+- The prompt is `lookupPrompt(word)`; the reply is pasted into a dialog and checked by
+  `parsePastedLookup`, which finds the JSON between the outer braces, so fences and
+  surrounding prose are tolerated. Limits are in `PasteLimits`.
+- Use this replaces the editor's word and content; saving keeps the word's scheduling.
+- Nothing in the add/edit path calls an API. The key in Settings is only for
+  "Keep this card fresh".
+
+The rest of this document is the original idea.
 
 ## Idea
 

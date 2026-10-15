@@ -67,7 +67,7 @@ before publishing.
 | Tag | Meaning |
 |---|---|
 | `@todo` | Steps not implemented yet; excluded until they are |
-| `@live-api` | Types a real Anthropic key into the app's Settings. For a human to run, with `TORTOISESPELLING_ANTHROPIC_KEY` set |
+| `@live-api` | Types a real Anthropic key into the app's Settings and runs the key test. For a human to run, with `TORTOISESPELLING_ANTHROPIC_KEY` set |
 | `@slow` | Waits minutes for something real, e.g. a scheduled reminder |
 | `@network` | Needs internet (uses only a deliberately fake key) |
 | `@release-smoke` | The release-build journey; seeds nothing, so it runs only through `npm run e2e:release` |
