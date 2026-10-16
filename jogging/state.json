@@ -535,7 +535,7 @@
           "title": "Home and Completion, refreshing, persistent storage request, backup nudge and lastExportedAt",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-3",
