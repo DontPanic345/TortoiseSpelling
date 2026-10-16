@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { applyReplies, applyResult, nextStep, pace, parseUsage, readResult, redact, tokenProblem } from "./jog.mjs";
+import { applyReplies, applyResult, initProblem, nextStep, pace, parseUsage, readResult, redact, tokenProblem } from "./jog.mjs";
 
 const resets = new Date("2026-10-17T09:00:00Z");
 const day = (n) => new Date(resets.getTime() - 7 * 86400_000 + (n - 1) * 86400_000 + 3600_000);
@@ -146,4 +146,12 @@ test("closing the issue without a comment unblocks too", () => {
 
 test("redact hides secrets and leaves short values alone", () => {
     assert.equal(redact("token sk-ant-oat01-abcdef here", ["sk-ant-oat01-abcdef", undefined, "ab"]), "token *** here");
+});
+
+test("a session must get its model and auto mode", () => {
+    const step = { model: "sonnet" };
+    assert.equal(initProblem({ model: "claude-sonnet-5-5", permissionMode: "auto" }, step), null);
+    assert.match(initProblem({ model: "claude-opus-5-5", permissionMode: "auto" }, step), /model mismatch/);
+    // What Haiku really reports when asked for auto mode.
+    assert.match(initProblem({ model: "claude-haiku-4-5-20251001", permissionMode: "default" }, { model: "haiku" }), /not auto/);
 });

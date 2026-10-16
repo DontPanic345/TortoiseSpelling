@@ -117,6 +117,15 @@ export const stepPrompt = (piece, step) =>
         .filter(Boolean)
         .join("\n");
 
+// The session's init frame says what it really got. A model the user's default
+// overrode, or a session without auto mode, can't do the step: Haiku has no auto mode and
+// silently falls back to default, which refuses every command and edit in `claude -p`.
+export const initProblem = (frame, step) => {
+    if (!frame.model?.includes(step.model)) return `model mismatch: wanted ${step.model}, got ${frame.model}`;
+    if (frame.permissionMode !== "auto") return `permission mode is ${frame.permissionMode}, not auto`;
+    return null;
+};
+
 // How a session ended: what it wrote to result.json, or null when it wrote nothing
 // usable. `exitOk` is false when the session crashed, was killed or got the wrong model.
 export const readResult = (text) => {
@@ -299,6 +308,7 @@ const runSession = (piece, step) =>
             { cwd: REPO, shell: false, stdio: ["ignore", "pipe", "pipe"] },
         );
         let model = null;
+        let refused = null;
         let timedOut = false;
         const timer = setTimeout(() => {
             timedOut = true;
@@ -315,11 +325,11 @@ const runSession = (piece, step) =>
                 out.write(redact(line, secrets) + "\n");
                 try {
                     const frame = JSON.parse(line);
-                    // The model the session really got, which the user's default can't override.
                     if (frame.type === "system" && frame.subtype === "init" && !model) {
                         model = frame.model;
-                        if (!model?.includes(step.model)) {
-                            log(`model mismatch: wanted ${step.model}, got ${model}; stopping the session`);
+                        refused = initProblem(frame, step);
+                        if (refused) {
+                            log(`${refused}; stopping the session`);
                             child.kill();
                         }
                     }
@@ -332,7 +342,7 @@ const runSession = (piece, step) =>
         child.on("close", (code) => {
             clearTimeout(timer);
             out.end(redact(buf, secrets));
-            resolve({ code, model, timedOut });
+            resolve({ code, model, refused, timedOut });
         });
     });
 
@@ -395,8 +405,13 @@ const runSteps = async (logIssue, ran) => {
 
         const { piece, step } = next;
         log(`start ${piece.id}/${step.id} on ${step.model}/${step.effort} (${verdict.reason})`);
-        const { code, model, timedOut } = await runSession(piece, step);
-        const exitOk = code === 0 && !timedOut && Boolean(model?.includes(step.model));
+        const { code, model, refused, timedOut } = await runSession(piece, step);
+        // Nothing the session could do about it, so it costs no attempt; the run report says why.
+        if (refused) {
+            tidyUp();
+            return `stopped ${piece.id}/${step.id} before it began: ${refused}`;
+        }
+        const exitOk = code === 0 && !timedOut && model !== null;
         const result = readResult(fs.existsSync(RESULT) ? fs.readFileSync(RESULT, "utf8") : null);
         log(`end ${piece.id}/${step.id}: exit ${code}, model ${model}, result ${JSON.stringify(result)}`);
 
