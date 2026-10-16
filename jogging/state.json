@@ -504,7 +504,7 @@
       "dependsOn": [
         "web-core"
       ],
-      "status": "active",
+      "status": "done",
       "spec": "jogging/specs/web-ui.md",
       "steps": [
         {
@@ -583,7 +583,7 @@
           "title": "Review the piece against its spec and the goals: copy and test-id parity, review state machine, CSP, offline, full checks, live smoke and CI green (no version bump)",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
