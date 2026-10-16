@@ -1,7 +1,10 @@
 import { readFileSync } from "node:fs";
 import { expect } from "vitest";
 import type { Word } from "../../src/data/model";
+import { lookupPrompt } from "../../src/domain/lookupPrompt";
 import { normalizeWord } from "../../src/domain/text";
+import type { ContentEdit, WordContent } from "../../src/domain/wordContent";
+import { blankContent } from "../../src/domain/wordContent";
 
 /** One golden case: a name plus whatever inputs and expectations its function needs. */
 export type Case = { name: string } & Record<string, any>;
@@ -70,4 +73,62 @@ export function expectSame(actual: unknown, expected: unknown): void {
   } else {
     expect(actual).toBe(expected);
   }
+}
+
+/** Content from a case: the WordContent shape with blanks left out, or "blank" for a new word's draft. */
+export function contentFrom(value: any): WordContent {
+  if (value === "blank") return blankContent();
+  return {
+    definitions: value.definitions.map((d: any) => ({
+      text: d.text,
+      partOfSpeech: d.partOfSpeech ?? "",
+      forms: d.forms.map((f: any) => ({
+        text: f.text,
+        label: f.label ?? "",
+        examples: (f.examples ?? []).map((e: any) => ({ text: e.text, shownAt: e.shownAt ?? null })),
+      })),
+    })),
+  };
+}
+
+/** The expected content of a case: its `out`, where "same" means the input unchanged. */
+export function expectedContent(out: any, input: WordContent): WordContent {
+  return out === "same" ? input : contentFrom(out);
+}
+
+/** An edit as a case writes it: { "edit": "AddForm", "d": 0 }. */
+export function editFrom(e: any): ContentEdit {
+  switch (e.edit) {
+    case "DefinitionText":
+    case "PartOfSpeech":
+      return { edit: e.edit, definition: e.d, value: e.value };
+    case "FormText":
+    case "FormLabel":
+      return { edit: e.edit, definition: e.d, form: e.f, value: e.value };
+    case "ExampleText":
+      return { edit: e.edit, definition: e.d, form: e.f, example: e.e, value: e.value };
+    case "AddDefinition":
+      return { edit: e.edit };
+    case "RemoveDefinition":
+    case "AddForm":
+      return { edit: e.edit, definition: e.d };
+    case "RemoveForm":
+    case "AddExample":
+      return { edit: e.edit, definition: e.d, form: e.f };
+    case "RemoveExample":
+      return { edit: e.edit, definition: e.d, form: e.f, example: e.e };
+    default:
+      throw new Error(`unknown edit ${e.edit}`);
+  }
+}
+
+/** Pasted text from a case: a string, or parts joined: a string, { repeat, times } or { prompt }. */
+export function textFrom(value: string | (string | { repeat: string; times: number } | { prompt: string })[]): string {
+  if (typeof value === "string") return value;
+  return value
+    .map((part) => {
+      if (typeof part === "string") return part;
+      return "prompt" in part ? lookupPrompt(part.prompt) : part.repeat.repeat(part.times);
+    })
+    .join("");
 }

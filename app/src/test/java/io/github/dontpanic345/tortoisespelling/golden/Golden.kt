@@ -2,7 +2,13 @@ package io.github.dontpanic345.tortoisespelling.golden
 
 import io.github.dontpanic345.tortoisespelling.data.Word
 import io.github.dontpanic345.tortoisespelling.data.normalizeWord
+import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
+import io.github.dontpanic345.tortoisespelling.domain.DefinitionDraft
+import io.github.dontpanic345.tortoisespelling.domain.ExampleDraft
+import io.github.dontpanic345.tortoisespelling.domain.FormDraft
 import io.github.dontpanic345.tortoisespelling.domain.SrsState
+import io.github.dontpanic345.tortoisespelling.domain.WordContent
+import io.github.dontpanic345.tortoisespelling.domain.lookupPrompt
 import java.io.File
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -70,6 +76,64 @@ object Golden {
             isNew = case.boolOrNull("isNew") ?: true,
             suspended = case.boolOrNull("suspended") ?: false,
         )
+    }
+
+    /** Content from a case: the `WordContent` shape with blanks left out, or "blank" for a new word's draft. */
+    fun contentFrom(element: JsonElement): WordContent {
+        if (element is JsonPrimitive && element.content == "blank") return WordContent.blank()
+        return WordContent(
+            element.jsonObject.array("definitions").map { definition ->
+                val d = definition.jsonObject
+                DefinitionDraft(
+                    text = d.str("text"),
+                    partOfSpeech = d.strOrNull("partOfSpeech") ?: "",
+                    forms = d.array("forms").map { form ->
+                        val f = form.jsonObject
+                        FormDraft(
+                            text = f.str("text"),
+                            label = f.strOrNull("label") ?: "",
+                            examples = (f["examples"]?.jsonArray ?: JsonArray(emptyList())).map { example ->
+                                val e = example.jsonObject
+                                ExampleDraft(e.str("text"), e.longOrNull("shownAt"))
+                            },
+                        )
+                    },
+                )
+            },
+        )
+    }
+
+    /** The expected content of a case: its `out`, where "same" means [input] unchanged. */
+    fun expectedContent(out: JsonElement, input: WordContent): WordContent =
+        if (out is JsonPrimitive && out.content == "same") input else contentFrom(out)
+
+    /** An edit as a case writes it: `{ "edit": "AddForm", "d": 0 }`. */
+    fun editFrom(edit: JsonObject): ContentEdit = when (val kind = edit.str("edit")) {
+        "DefinitionText" -> ContentEdit.DefinitionText(edit.int("d"), edit.str("value"))
+        "PartOfSpeech" -> ContentEdit.PartOfSpeech(edit.int("d"), edit.str("value"))
+        "FormText" -> ContentEdit.FormText(edit.int("d"), edit.int("f"), edit.str("value"))
+        "FormLabel" -> ContentEdit.FormLabel(edit.int("d"), edit.int("f"), edit.str("value"))
+        "ExampleText" -> ContentEdit.ExampleText(edit.int("d"), edit.int("f"), edit.int("e"), edit.str("value"))
+        "AddDefinition" -> ContentEdit.AddDefinition
+        "RemoveDefinition" -> ContentEdit.RemoveDefinition(edit.int("d"))
+        "AddForm" -> ContentEdit.AddForm(edit.int("d"))
+        "RemoveForm" -> ContentEdit.RemoveForm(edit.int("d"), edit.int("f"))
+        "AddExample" -> ContentEdit.AddExample(edit.int("d"), edit.int("f"))
+        "RemoveExample" -> ContentEdit.RemoveExample(edit.int("d"), edit.int("f"), edit.int("e"))
+        else -> error("unknown edit $kind")
+    }
+
+    /** Pasted text from a case: a string, or parts joined: a string, `{ repeat, times }` or `{ prompt }`. */
+    fun textFrom(element: JsonElement): String {
+        if (element is JsonPrimitive) return element.content
+        return element.jsonArray.joinToString("") { part ->
+            if (part is JsonPrimitive) {
+                part.content
+            } else {
+                val p = part.jsonObject
+                if ("prompt" in p) lookupPrompt(p.str("prompt")) else p.str("repeat").repeat(p.int("times"))
+            }
+        }
     }
 
     fun srsStateFrom(element: JsonElement): SrsState {

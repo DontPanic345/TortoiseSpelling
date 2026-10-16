@@ -1,0 +1,35 @@
+{
+  "about": "Card picking (CardPickTest, CardPick.kt). pickCard is random among ties, so each runner checks seeds 0..49: every result matches one of `oneOf` on the keys that member lists, and with `all` every member comes up. Content is given as in content.json; the word lists only the fields it needs. `example` is { text, shownAt, d, f, e }, the position of the sentence in the content; a blank part of speech or label is none (null).",
+  "pickCard": [
+    {"name":"never shown beats shown","word":{"text":"run"},"content":{"definitions":[{"text":"d","partOfSpeech":"verb","forms":[{"text":"run","examples":[{"text":"run 0","shownAt":5},{"text":"run 1","shownAt":null}]}]}]},"oneOf":[{"form":"run","definition":"d","partOfSpeech":"verb","label":null,"example":{"text":"run 1","shownAt":null,"d":0,"f":0,"e":1}}]},
+    {"name":"the oldest shownAt wins across forms and definitions","word":{"text":"run"},"content":{"definitions":[{"text":"first","partOfSpeech":"verb","forms":[{"text":"run","examples":[{"text":"run 0","shownAt":30}]},{"text":"ran","label":"past","examples":[{"text":"ran 0","shownAt":20}]}]},{"text":"second","partOfSpeech":"verb","forms":[{"text":"running","examples":[{"text":"running 0","shownAt":10}]}]}]},"oneOf":[{"form":"running","definition":"second","partOfSpeech":"verb","label":null,"example":{"text":"running 0","shownAt":10,"d":1,"f":0,"e":0}}]},
+    {"name":"ties go to random and both tied candidates come up","word":{"text":"run"},"content":{"definitions":[{"text":"d","partOfSpeech":"verb","forms":[{"text":"run","examples":[{"text":"run 0","shownAt":1}]},{"text":"ran","label":"past","examples":[{"text":"ran 0","shownAt":1}]}]}]},"all":true,"oneOf":[{"form":"run","label":null,"example":{"text":"run 0","shownAt":1,"d":0,"f":0,"e":0}},{"form":"ran","label":"past","example":{"text":"ran 0","shownAt":1,"d":0,"f":1,"e":0}}]},
+    {"name":"ties across definitions and three candidates all come up","word":{"text":"run"},"content":{"definitions":[{"text":"one","partOfSpeech":"verb","forms":[{"text":"run","examples":[{"text":"run 0","shownAt":7},{"text":"run 1","shownAt":7}]}]},{"text":"two","partOfSpeech":"verb","forms":[{"text":"running","examples":[{"text":"running 0","shownAt":7}]}]}]},"all":true,"oneOf":[{"form":"run","definition":"one","example":{"text":"run 0","shownAt":7,"d":0,"f":0,"e":0}},{"form":"run","definition":"one","example":{"text":"run 1","shownAt":7,"d":0,"f":0,"e":1}},{"form":"running","definition":"two","example":{"text":"running 0","shownAt":7,"d":1,"f":0,"e":0}}]},
+    {"name":"a never-shown example beats one shown at time zero","word":{"text":"run"},"content":{"definitions":[{"text":"d","partOfSpeech":"verb","forms":[{"text":"run","examples":[{"text":"run 0","shownAt":0},{"text":"run 1","shownAt":null}]}]}]},"oneOf":[{"form":"run","example":{"text":"run 1","shownAt":null,"d":0,"f":0,"e":1}}]},
+    {"name":"a never-shown example beats one shown before time zero","word":{"text":"run"},"content":{"definitions":[{"text":"d","partOfSpeech":"verb","forms":[{"text":"run","examples":[{"text":"run 0","shownAt":-5}]},{"text":"ran","label":"past","examples":[{"text":"ran 0","shownAt":null}]}]}]},"oneOf":[{"form":"ran","example":{"text":"ran 0","shownAt":null,"d":0,"f":1,"e":0}}]},
+    {"name":"several never-shown examples are all candidates","word":{"text":"run"},"content":{"definitions":[{"text":"d","partOfSpeech":"verb","forms":[{"text":"run","examples":[{"text":"run 0","shownAt":null},{"text":"run 1","shownAt":3}]},{"text":"ran","label":"past","examples":[{"text":"ran 0","shownAt":null}]}]}]},"all":true,"oneOf":[{"form":"run","example":{"text":"run 0","shownAt":null,"d":0,"f":0,"e":0}},{"form":"ran","example":{"text":"ran 0","shownAt":null,"d":0,"f":1,"e":0}}]},
+    {"name":"a form without examples is never picked while another has one","word":{"text":"run"},"content":{"definitions":[{"text":"d","partOfSpeech":"verb","forms":[{"text":"run","examples":[]},{"text":"ran","label":"past","examples":[{"text":"ran 0","shownAt":5}]}]}]},"oneOf":[{"form":"ran","label":"past","example":{"text":"ran 0","shownAt":5,"d":0,"f":1,"e":0}}]},
+    {"name":"no examples asks for the base form with no sentence","word":{"text":"run"},"content":{"definitions":[{"text":"d","partOfSpeech":"verb","forms":[{"text":"run","examples":[]},{"text":"ran","label":"past","examples":[]}]}]},"oneOf":[{"form":"run","definition":"d","partOfSpeech":"verb","label":null,"example":null}]},
+    {"name":"a first definition with no forms asks for the word text","word":{"text":"run"},"content":{"definitions":[{"text":"d","partOfSpeech":"verb","forms":[]}]},"oneOf":[{"form":"run","definition":"d","partOfSpeech":"verb","label":null,"example":null}]},
+    {"name":"no content asks for the word text","word":{"text":"run"},"content":{"definitions":[]},"oneOf":[{"form":"run","definition":"","partOfSpeech":null,"label":null,"example":null}]},
+    {"name":"answer normalizes the form","word":{"text":"run"},"content":{"definitions":[{"text":"d","partOfSpeech":"verb","forms":[{"text":" Ran ","examples":[{"text":" Ran  0","shownAt":null}]}]}]},"oneOf":[{"form":" Ran ","answer":"ran"}]},
+    {"name":"a blank part of speech and label come through as none","word":{"text":"run"},"content":{"definitions":[{"text":"d","partOfSpeech":"","forms":[{"text":"run","label":"","examples":[{"text":"I run."}]}]}]},"oneOf":[{"form":"run","partOfSpeech":null,"label":null,"hint":null}]},
+    {"name":"the hint joins part of speech and label","word":{"text":"run"},"content":{"definitions":[{"text":"d","partOfSpeech":"verb","forms":[{"text":"ran","label":"past tense","examples":[{"text":"ran 0","shownAt":null}]}]}]},"oneOf":[{"form":"ran","partOfSpeech":"verb","label":"past tense","hint":"verb · past tense"}]}
+  ],
+  "answer": [
+    {"name":"answer normalizes the form","form":" Ran ","out":"ran"},
+    {"name":"answer lowercases and collapses spaces","form":"Ice  Cream","out":"ice cream"},
+    {"name":"answer trims non-breaking spaces and U+001F but not the byte order mark","form":"\u00A0Ran\u001f","out":"ran"},
+    {"name":"answer keeps a byte order mark","form":"\uFEFFran","out":"\uFEFFran"}
+  ],
+  "hint": [
+    {"name":"hint joins part of speech and label","partOfSpeech":"verb","label":"past tense","out":"verb · past tense"},
+    {"name":"hint skips a blank label","partOfSpeech":"verb","label":"  ","out":"verb"},
+    {"name":"hint skips a blank part of speech","partOfSpeech":" ","label":"past tense","out":"past tense"},
+    {"name":"hint is none with neither","partOfSpeech":null,"label":null,"out":null},
+    {"name":"hint is none with only blanks","partOfSpeech":"","label":" ","out":null},
+    {"name":"hint with only a part of speech","partOfSpeech":"verb","label":null,"out":"verb"},
+    {"name":"hint trims each part","partOfSpeech":" verb ","label":" past tense ","out":"verb · past tense"},
+    {"name":"hint treats non-breaking spaces and U+001F as blank","partOfSpeech":"\u00A0","label":"\u001f","out":null}
+  ]
+}

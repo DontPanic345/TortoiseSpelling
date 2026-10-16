@@ -261,9 +261,12 @@ the Kotlin does.
 `wordBlank.ts` needs regex lookbehind, which Safari has had since 16.4, the same release
 that brought Web Push to Home Screen apps; `web-ui` states 16.4 as the minimum.
 
-`pastedLookup.ts` parses with `JSON.parse`, which is as strict as kotlinx's default `Json`.
-A value of the wrong JSON type counts as missing, as in the Kotlin. Lengths are UTF-16
-units on both platforms.
+`pastedLookup.ts` parses with `JSON.parse`. kotlinx's default `Json` is looser in two ways:
+it reads a raw control character (a newline) inside a string, which the port matches by
+escaping those before parsing, and it reads bare words and odd numbers (`abc`, `01`, `+1`,
+`'x'`) as values, which the port doesn't match (a "Known differences" entry in
+`golden/README.md`: it would need a hand-written parser). A value of the wrong JSON type
+counts as missing, as in the Kotlin. Lengths are UTF-16 units on both platforms.
 
 ### Data model and backup (`web/src/data/`)
 
