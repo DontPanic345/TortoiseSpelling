@@ -3,6 +3,7 @@ import { App } from "./app";
 import "./styles.css";
 import { openDatabase } from "./data/db";
 import { createRepository } from "./data/repository";
+import { installSeedHook } from "./debug/seedHook";
 import { deviceClock } from "./domain/clock";
 import { browserPlatform, registerServiceWorker } from "./ui/browserPlatform";
 import type { AppContainer } from "./ui/container";
@@ -26,6 +27,7 @@ async function start(root: HTMLElement): Promise<void> {
       "Tortoise Spelling can't store words in this browser. Check that it isn't blocking site data for this page.";
     return;
   }
+  if (import.meta.env.MODE === "e2e") installSeedHook(container);
   const draw = (updatedInAnotherTab: boolean) =>
     render(<App container={container} updatedInAnotherTab={updatedInAnotherTab} />, root);
   onVersionChange = () => draw(true);

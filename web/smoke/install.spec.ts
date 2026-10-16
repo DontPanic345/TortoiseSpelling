@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures";
+import { expect, test } from "../playwright/fixtures";
 
 interface Manifest {
   name: string;

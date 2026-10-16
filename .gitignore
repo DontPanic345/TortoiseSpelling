@@ -27,3 +27,5 @@ keystore.properties
 # Playwright output
 /web/playwright-report/
 /web/test-results/
+/web/dist-e2e/
+/web/.features-gen/

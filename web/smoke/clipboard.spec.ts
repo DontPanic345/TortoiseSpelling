@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures";
+import { expect, test } from "../playwright/fixtures";
 
 test("Copy prompt puts the lookup prompt on the clipboard", async ({ page, context, browserName }) => {
   test.skip(browserName !== "chromium", "Only Chromium lets a test grant and read clipboard permissions");

@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures";
+import { expect, test } from "../playwright/fixtures";
 import { addWordByHand } from "./helpers";
 
 test("after the first load the app opens and works with no connection", async ({ page, context }) => {

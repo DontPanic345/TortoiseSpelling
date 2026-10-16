@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { expect, test } from "./fixtures";
+import { expect, test } from "../playwright/fixtures";
 
 const androidBackup = fileURLToPath(new URL("../../golden/backup/android-tree.json", import.meta.url));
 

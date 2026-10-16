@@ -6,10 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "build:e2e": "vite build --mode e2e --outDir dist-e2e",
     "preview": "vite preview --port 4173 --strictPort",
+    "preview:e2e": "vite preview --outDir dist-e2e --port 4174 --strictPort",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "smoke": "playwright test",
+    "check-steps": "node scripts/check-steps.mjs",
+    "specs": "bddgen -c playwright.specs.config.ts && playwright test -c playwright.specs.config.ts",
     "icons": "node scripts/icons.mjs"
   },
   "dependencies": {
@@ -22,6 +26,7 @@
     "@types/node": "~22.20.5",
     "fake-indexeddb": "~6.2.5",
     "jsdom": "~30.1.3",
+    "playwright-bdd": "~9.2.1",
     "typescript": "~7.0.2",
     "vite": "~8.3.4",
     "vitest": "~5.0.5"
