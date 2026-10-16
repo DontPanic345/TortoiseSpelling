@@ -596,7 +596,7 @@
       "dependsOn": [
         "web-ui"
       ],
-      "status": "active",
+      "status": "done",
       "spec": "jogging/specs/shared-specs.md",
       "steps": [
         {
@@ -643,7 +643,7 @@
           "title": "Review the piece against its spec and the goals, run every scenario on both platforms, confirm CI green (no version bump unless a parity fix changed Android)",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
