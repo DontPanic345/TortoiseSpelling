@@ -288,3 +288,6 @@ Blocked on the CI job: the push of `.github/workflows/ci.yml` (a `web` job after
 
 ## 2026-10-16 08:28 jogging-poc/build-1 (haiku)
 Runner check passed on the GitHub Actions runner: the emulator answers as Android 14, `testDebugUnitTest --tests '*DaysTest'` took 32 s, `assembleDebug` 68 s, and `e2e` `settings.feature` (6 steps) 28 s. Times are in `jogging/poc.md`. Nothing failed, so no blocker was raised. Alan's reply on the piece ("Neato burrito") is for build-2, not this step, and I did not act on it here.
+
+## 2026-10-16 08:28 jogging-poc/build-2 (haiku)
+No blocker raised by this session. The crew's `userReply` for the piece ("Neato burrito 🌯", from issue #15, which blocked at 06:49:56Z) was recorded in `jogging/poc.md` with the raised time, the word and the read time (08:28:54Z), so the blocker round trip is covered. The reply came from the build-1 blocker's issue rather than one raised by build-2, so the raised time is that block's; the spec's first branch did not run. No code or e2e changed.
