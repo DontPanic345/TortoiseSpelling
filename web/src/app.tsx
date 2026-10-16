@@ -3,6 +3,8 @@ import { ContainerContext, type AppContainer } from "./ui/container";
 import { Snackbar, useSnackbar } from "./ui/common/Snackbar";
 import { TopBar } from "./ui/common/TopBar";
 import { BackButton } from "./ui/common/BackButton";
+import { CompletionScreen } from "./ui/complete/CompletionScreen";
+import { HomeScreen } from "./ui/home/HomeScreen";
 import { back, routeHash, useRoute, type Route } from "./ui/router";
 
 const TITLES: Record<Route["name"], string> = {
@@ -28,6 +30,17 @@ function Placeholder({ route }: { route: Route }) {
   );
 }
 
+function Screen({ route }: { route: Route }) {
+  switch (route.name) {
+    case "home":
+      return <HomeScreen />;
+    case "completion":
+      return <CompletionScreen />;
+    default:
+      return <Placeholder route={route} />;
+  }
+}
+
 interface AppProps {
   container: AppContainer;
   /** Another tab upgraded the database; this one has stepped aside. */
@@ -50,7 +63,7 @@ export function App({ container, updatedInAnotherTab = false }: AppProps) {
   return (
     <ContainerContext.Provider value={container}>
       {/* Keyed by the route's hash, so entering #/review always mounts a fresh session. */}
-      <Placeholder key={routeHash(route)} route={route} />
+      <Screen key={routeHash(route)} route={route} />
       <Snackbar message={snackbar.current} />
     </ContainerContext.Provider>
   );

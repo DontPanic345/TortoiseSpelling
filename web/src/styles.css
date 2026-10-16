@@ -293,3 +293,317 @@ button {
 .snackbar .text-button {
   color: var(--primary-container);
 }
+
+/* Home and Completion */
+.home {
+  padding-bottom: 96px;
+}
+
+.menu-anchor {
+  position: relative;
+}
+
+.menu {
+  position: absolute;
+  right: 0;
+  top: 48px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  padding: 8px 0;
+  border-radius: 8px;
+  background: var(--surface-container-high);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
+}
+
+.menu button {
+  min-height: 48px;
+  padding: 0 16px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.fab {
+  position: fixed;
+  right: max(16px, calc((100vw - 600px) / 2 + 16px));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 56px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  font-weight: 500;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
+  cursor: pointer;
+}
+
+.home-card {
+  background: var(--surface-container-low);
+}
+
+.greeting {
+  padding: 0 4px;
+}
+
+.greeting-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.greeting-date {
+  margin: 0;
+  color: var(--on-surface-variant);
+}
+
+.today-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 24px;
+  background: var(--primary-container);
+  color: var(--on-primary-container);
+  text-align: center;
+}
+
+.today-count {
+  font-size: 80px;
+  line-height: 1.1;
+  color: var(--primary);
+}
+
+.today-label {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.start-button {
+  align-self: stretch;
+  min-height: 56px;
+  margin-top: 20px;
+}
+
+.card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-heading h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.week {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+
+.day.today {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+}
+
+.dot.practiced {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.dot.nothing-due {
+  background: var(--secondary-container);
+}
+
+.dot.missed {
+  border: 1.5px solid var(--outline-variant);
+}
+
+.dot.pending {
+  border: 2px solid var(--primary);
+}
+
+.dot.before-start {
+  background: color-mix(in srgb, var(--surface-variant) 50%, transparent);
+}
+
+.dot .dash {
+  width: 12px;
+  height: 2px;
+  background: var(--on-secondary-container);
+}
+
+.progress-bar {
+  display: flex;
+  gap: 2px;
+  height: 12px;
+  margin-top: 8px;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--surface-variant);
+}
+
+.segment.known {
+  background: var(--primary);
+}
+
+.segment.learning {
+  background: color-mix(in srgb, var(--primary) 45%, transparent);
+}
+
+.segment.new {
+  background: var(--tertiary);
+}
+
+.legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.legend-entry::before {
+  content: "";
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.legend-entry.learning::before {
+  background: color-mix(in srgb, var(--primary) 45%, transparent);
+}
+
+.legend-entry.new::before {
+  background: var(--tertiary);
+}
+
+.hint {
+  display: block;
+  margin-top: 12px;
+  color: var(--on-surface-variant);
+}
+
+.backup-nudge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.backup-nudge p {
+  margin: 0;
+}
+
+.first-run {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 16px;
+  text-align: center;
+}
+
+.first-run h2 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.first-run p {
+  margin: 0 0 16px;
+  color: var(--on-surface-variant);
+}
+
+.how-it-works {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  color: var(--on-surface-variant);
+}
+
+.how-it-works h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--on-surface);
+}
+
+.step {
+  display: flex;
+}
+
+.step-emoji {
+  width: 36px;
+  flex: none;
+}
+
+.completion-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.completion-emoji {
+  font-size: 36px;
+}
+
+.completion-headline {
+  margin: 12px 0;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.completion-panel p {
+  margin: 4px 0 0;
+  color: var(--on-surface-variant);
+}
+
+.completion-panel .completion-streak {
+  color: var(--on-surface);
+}
+
+.text-button.quiet {
+  margin-top: 20px;
+  color: var(--on-surface-variant);
+  font-size: 14px;
+}
+
+.completion-screen {
+  justify-content: center;
+}
+
+.done-button {
+  align-self: stretch;
+  margin: 0 24px;
+}

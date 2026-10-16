@@ -45,6 +45,8 @@ export interface ImportSummary {
 
 export interface Settings {
   newWordsPerDay: number;
+  /** Millis of the last export from this browser, or null if there hasn't been one. */
+  lastExportedAt: number | null;
 }
 
 export interface RepositoryOptions {
@@ -344,6 +346,8 @@ export function createRepository({
       const today = todayOf(clock);
       const tx = db.transaction("settings", "readwrite");
       const days = ((await tx.store.get("satisfiedDays")) as number[] | undefined) ?? [];
+      // Home calls this on every refresh, and a write tells subscribers to refresh again.
+      if (days.includes(today)) return;
       // A rolling window; an unbounded set would grow forever for no benefit.
       const kept = [...new Set([...days, today])].filter((day) => day > today - STREAK_WINDOW_DAYS);
       await tx.store.put(kept.sort((a, b) => a - b), "satisfiedDays");
@@ -352,11 +356,19 @@ export function createRepository({
     },
 
     async settings(): Promise<Settings> {
-      return { newWordsPerDay: await newWordsPerDay() };
+      return {
+        newWordsPerDay: await newWordsPerDay(),
+        lastExportedAt: ((await db.get("settings", "lastExportedAt")) as number | undefined) ?? null,
+      };
     },
 
     async setNewWordsPerDay(value: number): Promise<void> {
       await db.put("settings", Math.min(Math.max(Math.trunc(value), 1), 100), "newWordsPerDay");
+      notify();
+    },
+
+    async setLastExportedAt(millis: number): Promise<void> {
+      await db.put("settings", millis, "lastExportedAt");
       notify();
     },
 

@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test, vi } from "vitest";
 import { BackupFormatError, exportBackup } from "../../src/data/backup";
 import type { StoredWord } from "../../src/data/model";
 import { apply, type WordContent } from "../../src/domain/wordContent";
@@ -341,13 +341,22 @@ describe("recordReview", () => {
 describe("settings", () => {
   test("default to 10 new words a day and clamp to 1..100", async () => {
     const { repo } = await openTestRepository();
-    expect(await repo.settings()).toEqual({ newWordsPerDay: 10 });
+    expect(await repo.settings()).toEqual({ newWordsPerDay: 10, lastExportedAt: null });
     await repo.setNewWordsPerDay(0);
     expect((await repo.settings()).newWordsPerDay).toBe(1);
     await repo.setNewWordsPerDay(500);
     expect((await repo.settings()).newWordsPerDay).toBe(100);
     await repo.setNewWordsPerDay(25);
     expect((await repo.settings()).newWordsPerDay).toBe(25);
+  });
+
+  test("lastExportedAt is stored and tells subscribers", async () => {
+    const { repo } = await openTestRepository();
+    const seen = vi.fn();
+    repo.subscribe(seen);
+    await repo.setLastExportedAt(1234);
+    expect((await repo.settings()).lastExportedAt).toBe(1234);
+    expect(seen).toHaveBeenCalledTimes(1);
   });
 
   test("satisfied days keep a rolling 400-day window", async () => {

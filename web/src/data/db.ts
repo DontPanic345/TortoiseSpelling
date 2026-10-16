@@ -27,7 +27,7 @@ export interface TortoiseSpellingSchema extends DBSchema {
   };
 }
 
-export type SettingName = "newWordsPerDay" | "satisfiedDays";
+export type SettingName = "newWordsPerDay" | "satisfiedDays" | "lastExportedAt";
 
 export type Db = IDBPDatabase<TortoiseSpellingSchema>;
 
