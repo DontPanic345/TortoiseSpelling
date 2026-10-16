@@ -37,11 +37,11 @@ const SECRETS = ["CLAUDE_CODE_OAUTH_TOKEN", "GH_TOKEN", "BOT_TOKEN"];
 // ---- Pure logic (covered by jog.test.mjs) ----
 
 // Continue while the 5-hour window is under 50% and the weekly window is under
-// day-of-cycle / 7 × 90%.
+// day-of-cycle / 7 × 95%.
 export const pace = ({ session, weekly, weeklyResetsAt }, now) => {
     const cycleStart = weeklyResetsAt.getTime() - 7 * 86400_000;
     const day = Math.min(7, Math.max(1, Math.floor((now.getTime() - cycleStart) / 86400_000) + 1));
-    const weeklyLimit = (day / 7) * 90;
+    const weeklyLimit = (day / 7) * 95;
     if (session >= 50) return { ok: false, reason: `5-hour usage ${session}% ≥ 50%` };
     if (weekly >= weeklyLimit) {
         return { ok: false, reason: `weekly usage ${weekly}% ≥ ${weeklyLimit.toFixed(1)}% (day ${day})` };

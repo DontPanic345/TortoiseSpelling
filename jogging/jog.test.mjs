@@ -12,9 +12,9 @@ test("pace stops at half the 5-hour window", () => {
 
 test("pace spreads the weekly budget across the cycle", () => {
     assert.equal(pace({ session: 0, weekly: 12, weeklyResetsAt: resets }, day(1)).ok, true);
-    assert.equal(pace({ session: 0, weekly: 13, weeklyResetsAt: resets }, day(1)).ok, false);
-    assert.equal(pace({ session: 0, weekly: 89, weeklyResetsAt: resets }, day(7)).ok, true);
-    assert.equal(pace({ session: 0, weekly: 90, weeklyResetsAt: resets }, day(7)).ok, false);
+    assert.equal(pace({ session: 0, weekly: 14, weeklyResetsAt: resets }, day(1)).ok, false);
+    assert.equal(pace({ session: 0, weekly: 94, weeklyResetsAt: resets }, day(7)).ok, true);
+    assert.equal(pace({ session: 0, weekly: 95, weeklyResetsAt: resets }, day(7)).ok, false);
 });
 
 test("parseUsage reads the direct route's limits rows", () => {
