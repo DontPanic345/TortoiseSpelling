@@ -1,8 +1,9 @@
 # 📋 Behaviour specs
 
 Gherkin features for Tortoise Spelling, written once for both apps. The Android app runs
-them through WebdriverIO, Cucumber and Appium (`e2e/`, see [its README](../e2e/README.md));
-a scenario with no platform tag is one both apps must pass, and passing on both is the
+them through WebdriverIO, Cucumber and Appium (`e2e/`, see [its README](../e2e/README.md)),
+and the web app runs them through Playwright and `playwright-bdd` (`web/steps/`, see
+[its README](../web/README.md#shared-specs)); a scenario with no platform tag is one both apps must pass, and passing on both is the
 evidence that they behave the same.
 
 ## Tags
@@ -24,8 +25,11 @@ checks the tags (CI's `scripts` job runs it); `scripts/check-specs.test.mjs` cov
 
 - Android: `cd e2e && npm run e2e`, or one feature with
   `npm run e2e -- --spec ../specs/<name>.feature`.
-- Both runners' `check-steps` must pass: a step is implemented in `e2e/step-definitions/`
-  (and, once the web runner exists, in `web/steps/`).
+- Web: `cd web && npm run specs`, or one feature with
+  `npm run specs -- --project=specs-chromium <name>`.
+- Both runners' `check-steps` must pass (`cd e2e && npm run check-steps -- --all`,
+  `cd web && npm run check-steps`): a step is implemented in `e2e/step-definitions/` and in
+  `web/steps/`, with the same text and the same assertion.
 
 ## Support files
 

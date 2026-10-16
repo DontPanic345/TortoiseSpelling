@@ -17,3 +17,8 @@ Then("I see {string}", async ({ page }, text: string) => {
 When("I choose {string}", async ({ page }, label: string) => {
   await choice(page, label).click();
 });
+
+/** A screen's top bar title, e.g. "All words (2)", "Edit word". */
+Then("the title reads {string}", async ({ page }, title: string) => {
+  await expect(page.getByRole("heading", { name: title, exact: true, level: 1 })).toBeVisible();
+});

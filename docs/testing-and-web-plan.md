@@ -4,14 +4,15 @@ Status: **proposal**. Drafted 08/10/2026 from a planning conversation and revise
 day: a native iOS app was considered and dropped (see [Why not native iOS](#why-not-native-ios)),
 so the second codebase is a web app. The web core (`web/`: the domain port, IndexedDB storage and the shared backup, with
 the golden cases in `golden/`) and the Preact screens are built and deployed to GitHub Pages; push is not.
+The Gherkin specs are shared: `specs/` runs against the APK and against the web app.
 The rest is the plan to implement against. Items marked **(unverified)** are things I believe but haven't confirmed.
 
 ## Where things stand
 
 - **Unit tests:** 19 JVM test files in `app/src/test/` (mostly `domain/` and parsing, plus
   a few UI-state helpers). There are no ViewModel tests by name.
-- **End-to-end:** `e2e/` has 10 Gherkin feature files, run by WebdriverIO + Cucumber through
-  Appium's UiAutomator2 driver against the real APK. CI runs only `check-steps` and
+- **End-to-end:** `specs/` has 11 Gherkin feature files, run by WebdriverIO + Cucumber (`e2e/`) through
+  Appium's UiAutomator2 driver against the real APK, and by Playwright against the web app. CI runs the web run, and for Android only `check-steps` and
   `typecheck` for it, because the scenarios need an emulator. The `@release-smoke` journey
   runs against the R8 release APK from `release-smoke.yml`, which `release.yml` waits for.
 - **Data layer:** 24 tests in `app/src/androidTest/.../data/`: the migration tests (1→2 and
@@ -69,11 +70,14 @@ Notes on the layers:
 - Use Gherkin for behaviour, written in the user's voice, as `e2e/README.md` describes.
   Keep pure algorithms (SM-2 intervals, fuzzing, diffs) as table-driven unit tests, where
   Gherkin would be ceremony.
-- Shared specs: once the web app exists, move `e2e/features/` to a root `specs/` folder and
-  tag scenarios by layer (`@component`, `@e2e`) and, where behaviour differs, by platform
-  (`@android`, `@web`). The same scenarios then run against the APK through Appium and
-  against the web app through Playwright, which shows the two apps behave identically.
-  That is the main payoff of having two codebases.
+- Shared specs: the features live in the root `specs/` folder. Every feature carries `@e2e`,
+  the only layer tag (the component layer and below are written in their own frameworks, so
+  `@component` has no runner); `@android` and `@web` mark what one platform forbids, each with a
+  comment saying why, and `scripts/check-specs.mjs` checks the tags in CI. The same scenarios
+  run against the APK through Appium (`e2e/`) and against the web app's `--mode e2e` build
+  through Playwright and `playwright-bdd` (`web/steps/`), in Chromium and WebKit, inside
+  `web.yml`. That shows the two apps behave identically, which is the main payoff of having
+  two codebases.
 
 ## Web app (PWA)
 
@@ -156,7 +160,7 @@ Considered on 08/10/2026 and dropped. From Apple's
 2. Add the layer packages, tags and per-layer Gradle tasks, and document them in `CLAUDE.md`.
 3. Web app: port `domain/` and its tests first as a plain TypeScript module (fast to verify),
    then storage, then the UI, then offline support.
-4. Move the specs to `specs/`, add the platform tags, and run them through Playwright.
+4. ~~Move the specs to `specs/`, add the platform tags, and run them through Playwright.~~ Done.
 5. Reminders last: design the push server, update `PRIVACY.md`, then build it.
 
 ## Open questions

@@ -12,6 +12,8 @@ npm run build       # typecheck, then the production build in dist/ (with the CS
 npm run preview     # serve dist/ on port 4173
 npm run smoke       # Playwright on the production build, in Chromium and WebKit
                     # (npx playwright install --with-deps chromium webkit, once)
+npm run specs       # the shared specs (../specs) on the --mode e2e build, in Chromium and WebKit
+npm run check-steps # every shared step is defined here and every definition is used
 npm run icons       # rasterise ../docs/icon.svg into public/icons/
 npm test            # Vitest: the golden runner, the unit tests and the UI tests (jsdom)
 npm run typecheck   # tsc --noEmit
@@ -29,6 +31,7 @@ build/        csp.ts: the Content Security Policy added to the production index.
 sw-template.js the service worker (cache-first, precaches every built file)
 public/       compat.js (the unsupported-browser check), manifest.webmanifest and icons
 smoke/        Playwright specs; a console or page error fails any of them
+steps/        step definitions for the shared specs in ../specs
 test/         Vitest, mirroring src/ (test/data/ runs the repository on fake-indexeddb)
 test/golden/  one runner per golden file, and load.ts
 test/ui/      router, test ids (checked against TestTags.kt) and common components; jsdom
@@ -46,6 +49,28 @@ repository write is one transaction. Kotlin's whitespace rules are in `text.ts`.
 first-run journey, offline use, the manifest and icons, backup import and export, and Copy
 prompt (Chromium only). `SMOKE_URL=https://dontpanic345.github.io/TortoiseSpelling/ npx
 playwright test --project=chromium` runs it against the live site.
+
+## Shared specs
+
+`npm run specs` runs the Gherkin features in [`../specs`](../specs/README.md) that aren't
+tagged `@android`, in Chromium and WebKit (`specs-chromium`, `specs-webkit`), at a phone's
+width. `playwright-bdd` turns them into Playwright tests (`.features-gen/`, ignored); the
+config is `playwright.specs.config.ts`. They run against `dist-e2e/`, the production build
+made with `vite build --mode e2e`: same CSP and service worker, plus `window.__tortoiseSpellingSeed`
+(`src/debug/seedHook.ts`), which the Given steps call to add words as `SeedWordsActivity` does
+on Android. The production bundle doesn't contain it. A console or page error fails a scenario.
+
+`npm run check-steps` needs no browser: it fails on a feature step with no definition here and
+on a definition no feature uses.
+
+```text
+steps/*.steps.ts   common, home, review, settings, words, backup, copy_prompt (Android's twins are in ../e2e/step-definitions/)
+steps/support/     fixtures.ts (test, Given/When/Then, scenario and downloads), selectors.ts, seed.ts, hooks.ts, screens/
+```
+
+Export is a download saved into the test's own `downloads` folder, and import picks a file
+from it. The clipboard is read in Chromium; WebKit can't read it under Playwright, so there
+the step checks the app's "Prompt copied." message.
 
 ## iPhone check by hand
 

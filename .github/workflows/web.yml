@@ -1,7 +1,8 @@
 name: Web checks
 
-# The web app's typecheck, unit and golden tests, production build, and the Playwright smoke
-# suite on that build in Chromium and WebKit. ci.yml and pages.yml call this.
+# The web app's typecheck, unit and golden tests, production build, the Playwright smoke suite
+# on that build, and the shared specs (../specs) on the test build, in Chromium and WebKit.
+# ci.yml and pages.yml call this.
 
 on:
   workflow_call:
@@ -44,11 +45,17 @@ jobs:
       - name: Smoke tests
         run: npm run smoke
 
-      - name: Upload smoke reports
+      - name: Shared spec steps are defined and used
+        run: npm run check-steps
+
+      - name: Shared specs
+        run: npm run specs
+
+      - name: Upload Playwright reports
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: web-smoke-reports
+          name: web-playwright-reports
           path: |
             web/playwright-report/
             web/test-results/

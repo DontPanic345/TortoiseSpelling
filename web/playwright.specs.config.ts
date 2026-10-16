@@ -9,7 +9,7 @@ const viewport = { width: 412, height: 915 };
 // would send export down the share-sheet path, which Playwright can't complete.
 const testDir = defineBddConfig({
   featuresRoot: "../specs",
-  features: ["../specs/add_word.feature", "../specs/review.feature", "../specs/completion.feature", "../specs/daily_allowance.feature"],
+  features: "../specs/*.feature",
   steps: "steps/**/*.ts",
   tags: "@e2e and not @android and not @todo",
 });

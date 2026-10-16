@@ -41,6 +41,8 @@ node scripts/check-specs.mjs                  # the tags on specs/*.feature
 (cd web && npm run dev)                       # Vite dev server
 (cd web && npm run build)                     # production build in web/dist/
 (cd web && npm run smoke)                     # Playwright on the build; SMOKE_URL=<url> npm run smoke tests a deployed site
+(cd web && npm run specs)                     # the shared specs on the web app's --mode e2e build, Chromium and WebKit
+(cd web && npm run check-steps)               # every shared step has a web definition and every web step is used
 (cd web && npm run icons)                     # rasterise docs/icon.svg into web/public/icons/
 node scripts/icon.mjs                         # regenerate the app and notification icons
 adb install -r app/build/outputs/apk/debug/app-debug.apk       # install the debug APK
@@ -54,7 +56,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk       # install the deb
 | Integration tests | `app/src/androidTest/.../integration/` | Emulator, the real nav graph over an in-memory DB and a `TestClock` |
 | Accessibility tests | `app/src/androidTest/.../accessibility/` | Emulator, the same `XContent` states as the component tests (`component/Fixtures.kt`), both themes |
 | Screenshot tests | `app/src/screenshotTest/` | JVM (Layoutlib), no device; references committed; CI's `screenshots` job validates them. After a deliberate UI change, run `update`, look at the images and commit them |
-| Shared BDD specs | [`specs/`](specs/README.md), run on Android by [`e2e/`](e2e/README.md) | The real APK on an emulator |
+| Shared BDD specs | [`specs/`](specs/README.md), run by [`e2e/`](e2e/README.md) and [`web/steps/`](web/steps) | The real APK on an emulator; the web app's test build in Chromium and WebKit |
 | Script tests | `scripts/*.test.mjs` | Node, no device |
 | Web unit tests | `web/test/` | Node, no browser; storage on `fake-indexeddb` |
 | Web state, component and journey tests | `web/test/ui/` | Node + jsdom |
@@ -65,8 +67,8 @@ Each instrumented layer has its own package under `androidTest`, selected with t
 `package` argument.
 
 - **CI** (`.github/workflows/ci.yml`) runs the unit tests, `lintDebug`, the script tests, the
-  `web` job (`web.yml`: typecheck, Vitest and the golden cases, build and the Playwright smoke
-  suite; `release.yml` calls `ci.yml`, so a release waits for it) and the spec tag check (`scripts/check-specs.mjs`) and the e2e `check-steps`/`typecheck` on pushes to main and on PRs. It also validates the
+  `web` job (`web.yml`: typecheck, Vitest and the golden cases, build, the Playwright smoke
+  suite and the shared specs; `release.yml` calls `ci.yml`, so a release waits for it) and the spec tag check (`scripts/check-specs.mjs`) and the e2e `check-steps`/`typecheck` on pushes to main and on PRs. It also validates the
   screenshots and runs the data, component, integration and accessibility layers, one
   `instrumented` matrix job each (API 26 emulators; API 34 for accessibility). It doesn't
   run the Appium scenarios; their release smoke runs from `release.yml`.
@@ -92,9 +94,15 @@ Each instrumented layer has its own package under `androidTest`, selected with t
     in about a second.
   - `npm run typecheck`
 
+  A change to a shared feature must pass on both platforms; its steps are implemented in
+  `e2e/step-definitions/` and `web/steps/`, and both `check-steps` must pass. The web run is
+  `cd web && npm run specs` (add `-- --project=specs-chromium` for one browser, or a feature
+  name to filter): it builds `--mode e2e` into `web/dist-e2e/`, which is the production build plus
+  `window.__tortoiseSpellingSeed`, the web's `SeedWordsActivity`.
+
   Keep the suite minimal (testing pyramid): journeys and device-only behaviour; logic goes
   in unit tests. Given steps seed words through the debug-only `SeedWordsActivity`
-  (`app/src/debug`). See `e2e/README.md` for the setup and the Appium gotchas.
+  (`app/src/debug`) on Android and the seed hook on the web. See `e2e/README.md` for the setup and the Appium gotchas.
 
 ## Architecture
 
