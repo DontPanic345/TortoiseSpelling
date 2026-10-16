@@ -18,3 +18,11 @@ Small items that don't have their own design doc yet. Larger ideas live in `docs
       `node scripts/bump-version.mjs patch` twice in `test-ui-layers/review` as a production
       deploy (see `jogging/LOG.md`, 14/10/2026).
 - [ ] Opus review of the proposal, protocol and Phase 0: the step missing from Start Jogging.
+- [ ] Auto-merge Dependabot's minor and patch PRs. On GitHub (owner): a ruleset on
+      `main` requiring the CI checks, with Repository admin on the bypass list so direct
+      pushes still work, and "Allow auto-merge" ticked; without required checks,
+      auto-merge merges before CI finishes. In the repo: a `dependabot-automerge.yml`
+      workflow that runs `dependabot/fetch-metadata` and `gh pr merge --auto --squash`
+      unless the update is a semver major. Merges made with `GITHUB_TOKEN` don't trigger
+      the `push` workflows on `main`, and CI doesn't run the Appium suite, so consider
+      leaving `e2e/` npm updates manual.
