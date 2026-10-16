@@ -69,9 +69,15 @@ export const backup = {
 
     /** Opens the Export picker and saves under the given filename, in Downloads. */
     export: async (filename: string): Promise<void> => {
-        await scrollToText('Export').click();
-        await backup.goToDownloads();
         const nameField = byClassName('android.widget.EditText');
+        // A tap on Export sometimes opens no picker; tap once more if none shows.
+        for (let attempt = 0; attempt < 2; attempt++) {
+            await scrollToText('Export').click();
+            if (await nameField.waitForDisplayed({ timeout: 5000 }).catch(() => false)) {
+                break;
+            }
+        }
+        await backup.goToDownloads();
         await nameField.waitForDisplayed();
         await nameField.setValue(filename);
         await byTextContaining('SAVE').click();

@@ -48,6 +48,13 @@ export const scrollToTestId = (testId: string) =>
             `.scrollIntoView(new UiSelector().resourceId(${quoted(testId)}))`,
     );
 
+/** Scrolls the screen's scrollable container until the element with the description is on screen. */
+export const scrollToDescription = (description: string) =>
+    $(
+        'android=new UiScrollable(new UiSelector().scrollable(true))' +
+            `.scrollIntoView(new UiSelector().description(${quoted(description)}))`,
+    );
+
 /**
  * Scrolls a horizontally-scrolling row (its own resource-id, e.g. a filter chip row)
  * until the tagged element inside it is on screen. `UiScrollable.scrollable(true)` alone

@@ -1,7 +1,7 @@
 import { Then, When } from '@wdio/cucumber-framework';
 import { expect } from '@wdio/globals';
 import { home } from '../support/screens/home.ts';
-import { byTestIdWithDescendantDescription, byText, scrollToTestId } from '../support/selectors.ts';
+import { byTestIdWithDescendantDescription, byText, scrollToDescription, scrollToTestId } from '../support/selectors.ts';
 import { testIds } from '../support/testIds.ts';
 
 When('I go back to Home', async () => {
@@ -31,6 +31,6 @@ Then('the week shows {string}', async (description: string) => {
 
 /** The words card's progress bar, by its description, e.g. "0 known, 1 learning, 0 new". */
 Then('my words read {string}', async (description: string) => {
-    await scrollToTestId(testIds.homeProgress);
+    await scrollToDescription(description);
     await expect(byTestIdWithDescendantDescription(testIds.homeProgress, description)).toBeDisplayed();
 });
