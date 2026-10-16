@@ -559,7 +559,7 @@
           "title": "Word list and Settings: search, filters, suspend, delete; Install, Practice, Backup (export and import) and About",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-6",
