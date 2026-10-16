@@ -1,11 +1,15 @@
 # Tortoise Spelling web
 
 A TypeScript port of the Android app's word logic, proved equal to the Kotlin by the golden
-cases in [`../golden`](../golden/README.md). There are no screens yet. Requires Node 22.
+cases in [`../golden`](../golden/README.md), with the screens being built on top of it in
+Preact. Requires Node 22.
 
 ```bash
 npm ci
-npm test            # Vitest: the golden runner and the unit tests
+npm run dev         # Vite dev server
+npm run build       # typecheck, then the production build in dist/ (with the CSP)
+npm run preview     # serve dist/ on port 4173
+npm test            # Vitest: the golden runner, the unit tests and the UI tests (jsdom)
 npm run typecheck   # tsc --noEmit
 ```
 
@@ -14,8 +18,13 @@ npm run typecheck   # tsc --noEmit
 ```text
 src/domain/   the port, pure TypeScript: no browser API but Intl
 src/data/     model types, backup, IndexedDB (db.ts) and the repository
+src/ui/       Preact: router, container, platform (the only `navigator` code is
+              browserPlatform.ts), test ids, common components, and a `<name>State.ts` per screen
+build/        csp.ts: the Content Security Policy added to the production index.html
+public/       compat.js (the unsupported-browser check) and icons
 test/         Vitest, mirroring src/ (test/data/ runs the repository on fake-indexeddb)
 test/golden/  one runner per golden file, and load.ts
+test/ui/      router, test ids (checked against TestTags.kt) and common components; jsdom
 test/support/ testClock.ts, seeded.ts
 ```
 

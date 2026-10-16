@@ -1,6 +1,12 @@
 package io.github.dontpanic345.tortoisespelling.golden
 
+import io.github.dontpanic345.tortoisespelling.data.Definition
+import io.github.dontpanic345.tortoisespelling.data.DefinitionWithForms
+import io.github.dontpanic345.tortoisespelling.data.ExampleSentence
+import io.github.dontpanic345.tortoisespelling.data.FormWithExamples
 import io.github.dontpanic345.tortoisespelling.data.Word
+import io.github.dontpanic345.tortoisespelling.data.WordForm
+import io.github.dontpanic345.tortoisespelling.data.WordWithContent
 import io.github.dontpanic345.tortoisespelling.data.normalizeWord
 import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
 import io.github.dontpanic345.tortoisespelling.domain.DefinitionDraft
@@ -79,6 +85,37 @@ object Golden {
             isNew = case.boolOrNull("isNew") ?: true,
             suspended = case.boolOrNull("suspended") ?: false,
         )
+    }
+
+    /** A word as Room loads it: the Word fields of a case, and its `content` split into rows. */
+    fun wordWithContentFrom(case: JsonObject): WordWithContent {
+        val word = wordFrom(case)
+        var nextId = 1L
+        val definitions = contentFrom(case.getValue("content")).definitions.mapIndexed { d, definition ->
+            val definitionId = nextId++
+            DefinitionWithForms(
+                Definition(
+                    id = definitionId, wordId = word.id, text = definition.text,
+                    partOfSpeech = definition.partOfSpeech.ifEmpty { null }, orderIndex = d,
+                ),
+                definition.forms.mapIndexed { f, form ->
+                    val formId = nextId++
+                    FormWithExamples(
+                        WordForm(
+                            id = formId, definitionId = definitionId, text = form.text,
+                            label = form.label.ifEmpty { null }, orderIndex = f,
+                        ),
+                        form.examples.mapIndexed { e, example ->
+                            ExampleSentence(
+                                id = nextId++, wordFormId = formId, text = example.text, orderIndex = e,
+                                shownAt = example.shownAt,
+                            )
+                        },
+                    )
+                },
+            )
+        }
+        return WordWithContent(word, definitions)
     }
 
     /** Content from a case: the `WordContent` shape with blanks left out, or "blank" for a new word's draft. */

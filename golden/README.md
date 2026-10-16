@@ -56,6 +56,7 @@ output, and a `name` saying what it checks (the Kotlin test it came from, in wor
 | `prompt.json` | `lookupPrompt`, the whole text |
 | `paste.json` | `parsePastedLookup` (every message, the order of the checks, each limit at and one over), `summary`, `isBlank` |
 | `backup.json` | `parseBackup`, `toImport`, `toBackup`: whole files in `backup/` (`files`: what each imports as, and what exporting those words writes back), refusals with their messages, `quirks`, and the `envelope` (the version a file reads as, and the exact text an export writes) |
+| `ui.json` | The UI helpers both apps share: `statusLabel`, `noMatchesBody`, `filterRows`, `completionHeadline`, `importMessage`, `blankedExample`, `canSave`, `applying` (Kotlin: the ViewModels and `CompletionPanel`; TypeScript: `web/src/ui/<screen>/*State.ts`) |
 
 Not golden: the DAO's SQL queries and the repositories. They have no pure Kotlin twin, so the
 web's queries (`domain/queries.ts`) and repository (`data/repository.ts`) are tested in

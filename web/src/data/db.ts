@@ -31,7 +31,8 @@ export type SettingName = "newWordsPerDay" | "satisfiedDays";
 
 export type Db = IDBPDatabase<TortoiseSpellingSchema>;
 
-export async function openDatabase(name: string = DEFAULT_DB_NAME): Promise<Db> {
+/** [onVersionChange] runs after the connection steps aside for another tab's upgrade. */
+export async function openDatabase(name: string = DEFAULT_DB_NAME, onVersionChange?: () => void): Promise<Db> {
   const db = await openDB<TortoiseSpellingSchema>(name, DB_VERSION, {
     upgrade(upgrading, oldVersion) {
       switch (oldVersion) {
@@ -46,6 +47,9 @@ export async function openDatabase(name: string = DEFAULT_DB_NAME): Promise<Db> 
     },
   });
   // Another tab is upgrading the database: step aside so it can.
-  db.addEventListener("versionchange", () => db.close());
+  db.addEventListener("versionchange", () => {
+    db.close();
+    onVersionChange?.();
+  });
   return db;
 }

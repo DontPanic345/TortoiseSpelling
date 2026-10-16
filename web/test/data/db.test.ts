@@ -1,3 +1,4 @@
+import { openDB } from "idb";
 import { describe, expect, test } from "vitest";
 import { DB_VERSION, openDatabase } from "../../src/data/db";
 import { content, openTestRepository } from "../support/repo";
@@ -22,6 +23,15 @@ describe("the database", () => {
     first.close();
     const second = await openDatabase(name);
     expect(await second.get("settings", "newWordsPerDay")).toBe(7);
+  });
+
+  test("steps aside for another connection's upgrade and says so", async () => {
+    const name = "stepped-aside";
+    let told = 0;
+    await openDatabase(name, () => told++);
+    const upgraded = await openDB(name, DB_VERSION + 1);
+    expect(told).toBe(1);
+    upgraded.close();
   });
 
   test("a word differing only in case and spacing is a duplicate", async () => {

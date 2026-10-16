@@ -3,12 +3,15 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "target": "ES2022",
-    "lib": ["ES2022", "DOM"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
     "types": ["node"],
+    "allowImportingTsExtensions": true,
     "noEmit": true,
     "skipLibCheck": true
   },
-  "include": ["src", "test", "vitest.config.ts"]
+  "include": ["src", "test", "build", "vite.config.ts", "vitest.config.ts"]
 }

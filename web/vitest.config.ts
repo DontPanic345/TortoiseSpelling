@@ -1,8 +1,11 @@
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+  oxc: { jsx: { runtime: "automatic", importSource: "preact" } },
+  define: { __BUILD__: JSON.stringify("test") },
   test: {
     environment: "node",
-    setupFiles: ["fake-indexeddb/auto"],
+    include: ["test/**/*.test.{ts,tsx}"],
+    setupFiles: ["fake-indexeddb/auto", "test/ui/setup.ts"],
   },
 });

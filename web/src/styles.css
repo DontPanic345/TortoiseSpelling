@@ -1,0 +1,295 @@
+/* Tokens are named after the Material roles in Theme.kt and hold its values. */
+:root {
+  color-scheme: light dark;
+  --primary: #2f5d50;
+  --on-primary: #ffffff;
+  --primary-container: #cfe5dc;
+  --on-primary-container: #163a30;
+  --secondary: #5c8a7b;
+  --secondary-container: #dce8e2;
+  --on-secondary-container: #163a30;
+  --tertiary: #8a5a1f;
+  --tertiary-container: #f6e3c7;
+  --on-tertiary-container: #3b2503;
+  --background: #f7f4ee;
+  --on-background: #1b1c1a;
+  --surface: #f7f4ee;
+  --on-surface: #1b1c1a;
+  --surface-variant: #e6e3dc;
+  --on-surface-variant: #4a4a46;
+  --surface-container-low: #ffffff;
+  --surface-container: #f1ede6;
+  --surface-container-high: #ece8e0;
+  --outline: #7a776f;
+  --outline-variant: #d6d1c7;
+  --error: #b3261e;
+  --correct: #1b5e3a;
+  --correct-container: #d3efdf;
+  --wrong: #b3261e;
+  --scrim: rgb(0 0 0 / 0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary: #9ccfbe;
+    --on-primary: #073428;
+    --primary-container: #25503f;
+    --on-primary-container: #b9ebd9;
+    --secondary: #b1ccc1;
+    --secondary-container: #2c3f38;
+    --on-secondary-container: #cfe5dc;
+    --tertiary: #e7be8a;
+    --tertiary-container: #5c3f17;
+    --on-tertiary-container: #ffddb3;
+    --background: #141615;
+    --on-background: #e3e3df;
+    --surface: #141615;
+    --on-surface: #e3e3df;
+    --surface-variant: #3f4945;
+    --on-surface-variant: #bfc9c4;
+    --surface-container-low: #1c1f1e;
+    --surface-container: #202322;
+    --surface-container-high: #2a2d2c;
+    --outline: #89938e;
+    --outline-variant: #3f4945;
+    --error: #f2b8b5;
+    --correct: #8ed9ae;
+    --correct-container: #20402f;
+    --wrong: #f2b8b5;
+    --scrim: rgb(0 0 0 / 0.6);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--background);
+  color: var(--on-background);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* One column, at most 600px wide: a phone's layout on any screen. */
+#app {
+  max-width: 600px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding-bottom: env(safe-area-inset-bottom);
+  display: flex;
+  flex-direction: column;
+}
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 16px 16px;
+  gap: 16px;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 56px;
+  padding: env(safe-area-inset-top) 4px 0;
+}
+
+.top-bar-navigation,
+.top-bar-actions {
+  display: flex;
+  align-items: center;
+  min-width: 48px;
+}
+
+.top-bar-title {
+  flex: 1;
+  margin: 0;
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.icon {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 0;
+  border-radius: 24px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 24px;
+}
+
+.icon-button:disabled,
+.button:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.button,
+.text-button {
+  min-height: 48px;
+  padding: 0 24px;
+  border: 0;
+  border-radius: 24px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.button {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.button.tonal {
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+
+.text-button {
+  padding: 0 12px;
+  background: transparent;
+  color: var(--primary);
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.card {
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--surface-container);
+}
+
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  gap: 8px;
+  text-align: center;
+  color: var(--on-surface-variant);
+}
+
+.empty-state-title {
+  margin: 8px 0 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--on-surface);
+}
+
+.empty-state-body {
+  margin: 0;
+}
+
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepper-value {
+  min-width: 2.5em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* The words under test are monospaced so a doubled letter or a transposition shows. */
+.word {
+  font-family: ui-monospace, monospace;
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.dialog {
+  width: min(calc(100% - 48px), 480px);
+  padding: 0;
+  border: 0;
+  border-radius: 28px;
+  background: var(--surface-container-high);
+  color: var(--on-surface);
+}
+
+.dialog::backdrop {
+  background: var(--scrim);
+}
+
+.dialog-content {
+  padding: 24px;
+}
+
+.dialog-title {
+  margin: 0 0 16px;
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.snackbar-host {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  display: flex;
+  justify-content: center;
+  padding: 0 16px;
+  pointer-events: none;
+}
+
+.snackbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 568px;
+  padding: 6px 8px 6px 16px;
+  border-radius: 8px;
+  background: var(--on-surface);
+  color: var(--surface);
+  pointer-events: auto;
+}
+
+.snackbar .text-button {
+  color: var(--primary-container);
+}

@@ -34,6 +34,18 @@ data class SettingsUiState(
     val message: String? = null,
 )
 
+/** What Settings says after an import: how many words came in and how many were already there. */
+fun importMessage(added: Int, skipped: Int): String = buildString {
+    append("Imported $added word")
+    if (added != 1) {
+        append("s")
+    }
+    if (skipped > 0) {
+        append(", skipped $skipped already in your list")
+    }
+    append(".")
+}
+
 class SettingsViewModel(
     private val context: Context,
     private val store: SettingsStore,
@@ -129,16 +141,7 @@ class SettingsViewModel(
                 }
                 val backup = parseBackup(raw)
                 val summary = repository.importWords(backup.words.map { it.toImport() })
-                buildString {
-                    append("Imported ${summary.added} word")
-                    if (summary.added != 1) {
-                        append("s")
-                    }
-                    if (summary.skipped > 0) {
-                        append(", skipped ${summary.skipped} already in your list")
-                    }
-                    append(".")
-                }
+                importMessage(summary.added, summary.skipped)
             } catch (error: BackupFormatException) {
                 error.message
             } catch (error: Exception) {
