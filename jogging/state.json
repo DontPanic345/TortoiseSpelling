@@ -6,7 +6,7 @@
     {
       "id": "jogging-poc",
       "title": "Proof that Jogging runs on GitHub Actions",
-      "status": "active",
+      "status": "done",
       "dependsOn": [],
       "spec": "jogging/specs/jogging-poc.md",
       "steps": [
@@ -24,7 +24,7 @@
           "title": "Blocker round trip: block once, then record Alan's reply",
           "model": "haiku",
           "effort": "low",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
