@@ -6,7 +6,7 @@ import { openTestRepository } from "../support/repo";
 
 async function installed() {
   const { repo, clock } = await openTestRepository();
-  installSeedHook({ repository: repo, clock, platform: fakePlatform(), autoAdvanceMillis: 0 });
+  installSeedHook({ repository: repo, clock, platform: fakePlatform(), autoAdvanceMillis: 0, reminders: null });
   return repo;
 }
 

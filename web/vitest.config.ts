@@ -2,7 +2,7 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   oxc: { jsx: { runtime: "automatic", importSource: "preact" } },
-  define: { __BUILD__: JSON.stringify("test") },
+  define: { __BUILD__: JSON.stringify("test"), __PUSH_SERVER__: JSON.stringify("") },
   test: {
     environment: "node",
     include: ["test/**/*.test.{ts,tsx}"],

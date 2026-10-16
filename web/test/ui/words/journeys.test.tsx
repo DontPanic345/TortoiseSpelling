@@ -12,7 +12,7 @@ async function setup() {
   const { repo, clock } = await openTestRepository();
   const platform = fakePlatform();
   history.replaceState(null, "", "#/words");
-  render(<App container={{ repository: repo, clock, platform, autoAdvanceMillis: 0 }} />);
+  render(<App container={{ repository: repo, clock, platform, autoAdvanceMillis: 0, reminders: null }} />);
   return { repo, platform };
 }
 

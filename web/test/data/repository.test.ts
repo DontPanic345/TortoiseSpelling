@@ -341,7 +341,7 @@ describe("recordReview", () => {
 describe("settings", () => {
   test("default to 10 new words a day and clamp to 1..100", async () => {
     const { repo } = await openTestRepository();
-    expect(await repo.settings()).toEqual({ newWordsPerDay: 10, lastExportedAt: null });
+    expect(await repo.settings()).toMatchObject({ newWordsPerDay: 10, lastExportedAt: null });
     await repo.setNewWordsPerDay(0);
     expect((await repo.settings()).newWordsPerDay).toBe(1);
     await repo.setNewWordsPerDay(500);

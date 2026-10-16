@@ -5,6 +5,8 @@ import { openDatabase } from "./data/db";
 import { createRepository } from "./data/repository";
 import { installSeedHook } from "./debug/seedHook";
 import { deviceClock } from "./domain/clock";
+import { createPushApi } from "./push/pushApi";
+import { createReminderSync } from "./push/reminderSync";
 import { browserPlatform, registerServiceWorker } from "./ui/browserPlatform";
 import type { AppContainer } from "./ui/container";
 
@@ -16,11 +18,22 @@ async function start(root: HTMLElement): Promise<void> {
   let container: AppContainer;
   try {
     const db = await openDatabase(undefined, () => onVersionChange());
+    const repository = createRepository({ db });
+    const platform = browserPlatform();
+    // Before anything can write a word: a notification's #/review launch must not review an
+    // overdue word first and make the day it was skipped look quiet.
+    await repository.settleQuietDays();
+    const api = __PUSH_SERVER__ === "" ? null : createPushApi(__PUSH_SERVER__, fetch);
     container = {
-      repository: createRepository({ db }),
+      repository,
       clock: deviceClock,
-      platform: browserPlatform(),
+      platform,
       autoAdvanceMillis: AUTO_ADVANCE_MILLIS,
+      reminders: api && {
+        push: platform.push,
+        api,
+        sync: createReminderSync({ repository, clock: deviceClock, push: platform.push, api }),
+      },
     };
   } catch {
     root.textContent =
@@ -32,7 +45,19 @@ async function start(root: HTMLElement): Promise<void> {
     render(<App container={container} updatedInAnotherTab={updatedInAnotherTab} />, root);
   onVersionChange = () => draw(true);
   draw(false);
+  keepRemindersInSync(container);
   if (import.meta.env.PROD) registerServiceWorker();
+}
+
+/** Syncs the reminder on load, after every write and when the page comes back into view. */
+function keepRemindersInSync({ repository, reminders }: AppContainer): void {
+  if (!reminders) return;
+  const sync = () => void reminders.sync.sync();
+  sync();
+  repository.subscribe(sync);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") sync();
+  });
 }
 
 const root = document.getElementById("app");

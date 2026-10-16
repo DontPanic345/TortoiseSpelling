@@ -6,7 +6,7 @@ import { content, openTestRepository } from "../support/repo";
 async function setup() {
   const { repo, clock } = await openTestRepository();
   const platform = fakePlatform();
-  return { repo, clock, platform, container: { repository: repo, clock, platform, autoAdvanceMillis: 0 } };
+  return { repo, clock, platform, container: { repository: repo, clock, platform, autoAdvanceMillis: 0, reminders: null } };
 }
 
 describe("backupActions", () => {

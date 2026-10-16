@@ -249,10 +249,14 @@ backup, with Preact screens, deployed to https://dontpanic345.github.io/Tortoise
   `Platform` (`browserPlatform.ts`) is the only code that touches `navigator`. The copy is
   Android's, and test ids are the `TestTags.kt` values as `data-testid`, checked by
   `testIds.test.ts`. UI rules shared with Android live in `golden/ui.json`.
-- The service worker is hand-written (`sw-template.js`); `build/precache.ts` fills in the
-  file list and a version hashed from the build, so a changed build is a new cache. Change
-  the worker's logic and the cached files change with it; keep `ignoreVary: true` on its
-  `caches.match`.
+- The service worker is TypeScript (`src/sw/sw.ts`), bundled into one classic-script `sw.js`
+  by a nested `vite build` inside `build/precache.ts`, which also gives it the file list and
+  a version hashed from the build, so a changed build is a new cache. `tsconfig.sw.json`
+  type-checks `src/sw/` with the WebWorker lib, so what it imports must not touch DOM
+  globals. Keep `ignoreVary: true` on its `caches.match`.
+- The reminder's web half is in `src/push/` (`PushPlatform`, `pushApi.ts`, `reminderSync.ts`,
+  `server.ts` with `PUSH_SERVER`, empty until the server is deployed) and `src/sw/handlers.ts`.
+  `main.tsx` calls `settleQuietDays()` before the first render. See `jogging/specs/web-push.md`.
 - The production `index.html` carries a CSP limiting everything to the app's own origin
   (`build/csp.ts`). A new origin (such as `web-push`) must be added there deliberately, and
   `PRIVACY.md` updated.

@@ -11,7 +11,7 @@ import { content, openTestRepository } from "../../support/repo";
 async function setup() {
   const { repo, clock } = await openTestRepository();
   const platform = fakePlatform();
-  const container = { repository: repo, clock, platform, autoAdvanceMillis: 0 };
+  const container = { repository: repo, clock, platform, autoAdvanceMillis: 0, reminders: null };
   return { repo, clock, platform, container };
 }
 

@@ -27,8 +27,10 @@ src/data/     model types, backup, IndexedDB (db.ts) and the repository
 src/ui/       Preact: router, container, platform (the only `navigator` code is
               browserPlatform.ts), test ids, common components, and a `<name>State.ts` per screen
 build/        csp.ts: the Content Security Policy added to the production index.html;
-              precache.ts: fills in sw-template.js and emits dist/sw.js
-sw-template.js the service worker (cache-first, precaches every built file)
+              precache.ts: bundles src/sw/sw.ts and emits dist/sw.js
+src/sw/       the service worker (cache-first, precaches every built file; push, click and
+              subscription-change handlers), typechecked by tsconfig.sw.json
+src/push/     the reminder: PushPlatform, the server client, reminderSync and PUSH_SERVER
 public/       compat.js (the unsupported-browser check), manifest.webmanifest and icons
 smoke/        Playwright specs; a console or page error fails any of them
 steps/        step definitions for the shared specs in ../specs

@@ -23,11 +23,32 @@ export interface TortoiseSpellingSchema extends DBSchema {
   };
   settings: {
     key: SettingName;
-    value: number | number[];
+    value: SettingValue;
   };
 }
 
-export type SettingName = "newWordsPerDay" | "satisfiedDays" | "lastExportedAt";
+export type SettingName =
+  | "newWordsPerDay"
+  | "satisfiedDays"
+  | "lastExportedAt"
+  | "reminderEnabled"
+  | "reminderHour"
+  | "reminderMinute"
+  | "pushRegistration"
+  | "quietCheckedThrough";
+
+/** What the server last accepted for this browser's push subscription. */
+export interface PushRegistration {
+  endpoint: string;
+  /** The server key the subscription was made with. */
+  publicKey: string;
+  /** The exact JSON of the last body the server accepted. */
+  sent: string;
+  /** Millis when it was sent. */
+  sentAt: number;
+}
+
+export type SettingValue = number | boolean | number[] | PushRegistration;
 
 export type Db = IDBPDatabase<TortoiseSpellingSchema>;
 

@@ -11,7 +11,7 @@ const D = Date.UTC(2026, 2, 2) / 86_400_000;
 async function setup() {
   const { repo, clock, db } = await openTestRepository();
   const platform = fakePlatform();
-  const container = { repository: repo, clock, platform, autoAdvanceMillis: 0 };
+  const container = { repository: repo, clock, platform, autoAdvanceMillis: 0, reminders: null };
   return { repo, clock, db, container };
 }
 

@@ -1,3 +1,5 @@
+import { decodeBase64Url } from "../push/base64url";
+import { describeSubscription, type Permission, type PushPlatform, type PushSupport } from "../push/pushPlatform";
 import type { InstallState, Platform } from "./platform";
 
 /** Chrome's install prompt event, which lib.dom doesn't type. */
@@ -33,6 +35,41 @@ function download(name: string, file: File): void {
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
 
+function pushPlatform(installState: () => InstallState): PushPlatform {
+  const registration = () => navigator.serviceWorker.getRegistration();
+
+  return {
+    support(): PushSupport {
+      if ("serviceWorker" in navigator && "PushManager" in window && "Notification" in window) return "supported";
+      return installState() === "ios" ? "needs-install" : "unsupported";
+    },
+
+    async permission() {
+      return Notification.permission as Permission;
+    },
+
+    requestPermission() {
+      return Notification.requestPermission() as Promise<Permission>;
+    },
+
+    async subscription() {
+      const subscription = await (await registration())?.pushManager.getSubscription();
+      return subscription ? describeSubscription(subscription) : null;
+    },
+
+    async subscribe(publicKey) {
+      const ready = await navigator.serviceWorker.ready;
+      return describeSubscription(
+        await ready.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: decodeBase64Url(publicKey) }),
+      );
+    },
+
+    async unsubscribe() {
+      await (await (await registration())?.pushManager.getSubscription())?.unsubscribe();
+    },
+  };
+}
+
 /** The real browser behind [Platform]. The only code that touches `navigator`. */
 export function browserPlatform(): Platform {
   let deferred: BeforeInstallPromptEvent | null = null;
@@ -48,6 +85,12 @@ export function browserPlatform(): Platform {
     deferred = null;
     changed();
   });
+
+  const installState = (): InstallState => {
+    if (isStandalone()) return "installed";
+    if (deferred) return "prompt";
+    return isIos() ? "ios" : "unavailable";
+  };
 
   return {
     async copyText(text) {
@@ -82,11 +125,7 @@ export function browserPlatform(): Platform {
       return (await navigator.storage?.persisted?.()) ?? false;
     },
 
-    installState(): InstallState {
-      if (isStandalone()) return "installed";
-      if (deferred) return "prompt";
-      return isIos() ? "ios" : "unavailable";
-    },
+    installState,
 
     onInstallStateChange(listener) {
       listeners.add(listener);
@@ -100,6 +139,8 @@ export function browserPlatform(): Platform {
       deferred = null;
       changed();
     },
+
+    push: pushPlatform(installState),
   };
 }
 

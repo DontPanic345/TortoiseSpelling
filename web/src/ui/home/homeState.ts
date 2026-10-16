@@ -70,6 +70,7 @@ export async function loadHome(repository: Repository, clock: Clock, platform: P
   const plan = await repository.todayPlan();
   const totalWords = await repository.wordCount();
 
+  await repository.settleQuietDays();
   // A day with nothing due must bridge the streak rather than break it.
   if (totalWords > 0 && planTotal(plan) === 0) await repository.markTodaySatisfied();
 
