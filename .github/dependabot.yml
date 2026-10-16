@@ -52,6 +52,20 @@ updates:
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
 
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+    groups:
+      web-minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # CI runs Node 22; a major @types/node bump tracks a newer Node line and would let
+      # code typecheck against APIs that don't exist on the runtime CI actually uses.
+      # Bump this once the supported Node major does.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+
   - package-ecosystem: github-actions
     directory: /
     schedule:

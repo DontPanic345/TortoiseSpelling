@@ -1,0 +1,14 @@
+{
+  "about": "Where a wrong attempt first diverges from the target (SpellingDiffTest, SpellingDiff.kt).",
+  "spellingDiff": [
+    { "name": "identical strings do not diverge", "expected": "receive", "actual": "receive", "firstDivergence": -1, "matches": true, "correctPrefixLength": 7 },
+    { "name": "casing alone is not a divergence", "expected": "Paris", "actual": "paris", "firstDivergence": -1, "matches": true, "correctPrefixLength": 5 },
+    { "name": "reports the first differing character", "expected": "receive", "actual": "recieve", "firstDivergence": 3, "matches": false, "correctPrefixLength": 3 },
+    { "name": "a truncated attempt diverges at its end", "expected": "accommodate", "actual": "accomm", "firstDivergence": 6, "matches": false, "correctPrefixLength": 6 },
+    { "name": "an overlong attempt diverges at the end of the target", "expected": "cat", "actual": "cats", "firstDivergence": 3, "matches": false, "correctPrefixLength": 3 },
+    { "name": "an empty attempt diverges immediately", "expected": "cat", "actual": "", "firstDivergence": 0, "matches": false, "correctPrefixLength": 0 },
+    { "name": "two empty strings match", "expected": "", "actual": "", "firstDivergence": -1, "matches": true, "correctPrefixLength": 0 },
+    { "name": "a dotted capital I lowercases to i, one unit (Kotlin's simple mapping)", "expected": "İstanbul", "actual": "istanbul", "firstDivergence": -1, "matches": true, "correctPrefixLength": 8 },
+    { "name": "an accented capital matches its lowercase", "expected": "CAFÉ", "actual": "café", "firstDivergence": -1, "matches": true, "correctPrefixLength": 4 }
+  ]
+}

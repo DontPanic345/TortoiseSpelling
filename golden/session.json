@@ -1,0 +1,17 @@
+{
+  "about": "The new-word allowance and the interleave (SessionBuilderTest, SessionBuilder.kt). Words are given by id. interleaveSession is random, so each runner checks seeds 0..49: the result is a permutation of the input, and the ids in `fresh` sit at exactly the positions `freshAt` says (only which new word goes where is random).",
+  "remainingNewToday": [
+    { "name": "allowance subtracts words introduced today", "newWordsPerDay": 10, "introducedToday": 3, "out": 7 },
+    { "name": "allowance never goes negative", "newWordsPerDay": 10, "introducedToday": 25, "out": 0 },
+    { "name": "an untouched allowance is whole", "newWordsPerDay": 10, "introducedToday": 0, "out": 10 },
+    { "name": "an exhausted allowance is zero", "newWordsPerDay": 10, "introducedToday": 10, "out": 0 }
+  ],
+  "interleaveSession": [
+    { "name": "queue contains every word exactly once", "due": [1, 2, 3, 4, 5, 6, 7, 8], "fresh": [100, 101, 102, 103], "freshAt": [1, 4, 6, 9], "varies": true },
+    { "name": "new words are not all crammed at the end: 9 due and 3 new sit at 2, 5 and 9", "due": [1, 2, 3, 4, 5, 6, 7, 8, 9], "fresh": [100, 101, 102], "freshAt": [2, 5, 9], "varies": true },
+    { "name": "handles a session made only of new words", "due": [], "fresh": [1, 2, 3, 4, 5], "freshAt": [0, 1, 2, 3, 4] },
+    { "name": "handles an empty session", "due": [], "fresh": [], "freshAt": [] },
+    { "name": "due words alone are only shuffled", "due": [1, 2, 3, 4, 5, 6], "fresh": [], "freshAt": [], "varies": true },
+    { "name": "one new word goes in the middle", "due": [1, 2, 3, 4], "fresh": [100], "freshAt": [2] }
+  ]
+}

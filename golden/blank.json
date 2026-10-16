@@ -1,0 +1,28 @@
+{
+  "about": "Blanking a word in a sentence and scrubbing it from a definition (WordBlankTest, WordBlank.kt).",
+  "blankWordIn": [
+    { "name": "placeholder is the same regardless of word length (short)", "sentence": "Bury it.", "word": "bury", "text": "_____ it.", "didBlank": true },
+    { "name": "placeholder is the same regardless of word length (long)", "sentence": "Please accommodate my request.", "word": "accommodate", "text": "Please _____ my request.", "didBlank": true },
+    { "name": "word is replaced in the sentence", "sentence": "Please accommodate my request.", "word": "accommodate", "text": "Please _____ my request.", "didBlank": true },
+    { "name": "matching ignores case", "sentence": "Accommodate them.", "word": "accommodate", "text": "_____ them.", "didBlank": true },
+    { "name": "substrings of longer words are left alone", "sentence": "They ate a plate of dates.", "word": "ate", "text": "They _____ a plate of dates.", "didBlank": true },
+    { "name": "word touching punctuation still matches", "sentence": "Can you spell \"receive\"?", "word": "receive", "text": "Can you spell \"_____\"?", "didBlank": true },
+    { "name": "hyphen counts as a boundary", "sentence": "A well-groomed dog.", "word": "groomed", "text": "A well-_____ dog.", "didBlank": true },
+    { "name": "missing word reports that nothing was blanked", "sentence": "The dogs were accommodating.", "word": "accommodate", "text": "The dogs were accommodating.", "didBlank": false },
+    { "name": "every occurrence is blanked", "sentence": "Bury it, then bury it again.", "word": "bury", "text": "_____ it, then _____ it again.", "didBlank": true },
+    { "name": "regex metacharacters in the word are literal", "sentence": "Use a c++ compiler.", "word": "c++", "text": "Use a _____ compiler.", "didBlank": true },
+    { "name": "a dot in the word does not match any character", "sentence": "See a.b and axb.", "word": "a.b", "text": "See _____ and axb.", "didBlank": true },
+    { "name": "empty sentence is left alone", "sentence": "", "word": "word", "text": "", "didBlank": false },
+    { "name": "a blank word is left alone", "sentence": "Some words here.", "word": "  ", "text": "Some words here.", "didBlank": false },
+    { "name": "a blank sentence is left alone", "sentence": "   ", "word": "word", "text": "   ", "didBlank": false },
+    { "name": "accented capitals match an accented lowercase word", "sentence": "Un CAFÉ noir.", "word": "café", "text": "Un _____ noir.", "didBlank": true },
+    { "name": "an accented letter is a letter, so it is not a boundary", "sentence": "Le cafés ferment.", "word": "café", "text": "Le cafés ferment.", "didBlank": false },
+    { "name": "digits are not boundaries", "sentence": "Take cat5 or cat.", "word": "cat", "text": "Take cat5 or _____.", "didBlank": true },
+    { "name": "a word between apostrophes", "sentence": "He said 'cat' twice.", "word": "cat", "text": "He said '_____' twice.", "didBlank": true },
+    { "name": "an apostrophe inside is a boundary", "sentence": "The cat's toy.", "word": "cat", "text": "The _____'s toy.", "didBlank": true }
+  ],
+  "hideWordInDefinition": [
+    { "name": "definition giving the answer away is scrubbed", "definition": "To accommodate someone is to help them.", "word": "accommodate", "out": "To _____ someone is to help them." },
+    { "name": "a definition without the word is unchanged", "definition": "To help someone.", "word": "accommodate", "out": "To help someone." }
+  ]
+}

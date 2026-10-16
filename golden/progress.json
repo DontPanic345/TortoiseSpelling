@@ -1,0 +1,91 @@
+{
+  "about": "Progress, filters, the week strip and the greeting (ProgressTest, Progress.kt). A word lists only the fields it needs; the rest take wordFrom's defaults (isNew true, as Word's constructor has it).",
+  "constants": [
+    { "name": "the known threshold and the chip labels", "KNOWN_INTERVAL_DAYS": 21,
+      "labels": { "ALL": "All", "DUE": "Due", "NEW": "New", "LEARNING": "Learning", "KNOWN": "Known", "SUSPENDED": "Suspended" },
+      "filters": ["ALL", "DUE", "NEW", "LEARNING", "KNOWN", "SUSPENDED"] }
+  ],
+  "learningStage": [
+    { "name": "a new word", "word": { "isNew": true }, "out": "NEW" },
+    { "name": "a reviewed word under three weeks is learning", "word": { "isNew": false, "intervalDays": 20 }, "out": "LEARNING" },
+    { "name": "three weeks is known", "word": { "isNew": false, "intervalDays": 21 }, "out": "KNOWN" },
+    { "name": "a suspended new word has no stage", "word": { "isNew": true, "suspended": true }, "out": null },
+    { "name": "a suspended known word has no stage", "word": { "isNew": false, "intervalDays": 30, "suspended": true }, "out": null }
+  ],
+  "wordProgress": [
+    { "name": "words split into new, learning and known",
+      "words": [ { "isNew": true }, { "isNew": false, "intervalDays": 1 }, { "isNew": false, "intervalDays": 20 },
+                 { "isNew": false, "intervalDays": 21 }, { "isNew": false, "intervalDays": 200 } ],
+      "out": { "new": 1, "learning": 2, "known": 2, "total": 5 } },
+    { "name": "suspended words are left out",
+      "words": [ { "isNew": true, "suspended": true }, { "isNew": false, "intervalDays": 30, "suspended": true } ],
+      "out": { "new": 0, "learning": 0, "known": 0, "total": 0 } },
+    { "name": "no words", "words": [], "out": { "new": 0, "learning": 0, "known": 0, "total": 0 } }
+  ],
+  "matches": [
+    { "name": "Due matches a word due today", "filter": "DUE", "word": { "isNew": false, "dueOn": 100 }, "today": 100, "out": true },
+    { "name": "Due matches a word overdue", "filter": "DUE", "word": { "isNew": false, "dueOn": 95 }, "today": 100, "out": true },
+    { "name": "Due does not match tomorrow's word", "filter": "DUE", "word": { "isNew": false, "dueOn": 101 }, "today": 100, "out": false },
+    { "name": "Due does not match a new word", "filter": "DUE", "word": { "isNew": true, "dueOn": 100 }, "today": 100, "out": false },
+    { "name": "Due does not match a suspended word", "filter": "DUE", "word": { "isNew": false, "dueOn": 100, "suspended": true }, "today": 100, "out": false },
+    { "name": "Suspended matches a suspended word", "filter": "SUSPENDED", "word": { "isNew": false, "suspended": true }, "today": 100, "out": true },
+    { "name": "Suspended matches a suspended new word", "filter": "SUSPENDED", "word": { "isNew": true, "suspended": true }, "today": 100, "out": true },
+    { "name": "Suspended does not match an active word", "filter": "SUSPENDED", "word": { "isNew": false }, "today": 100, "out": false },
+    { "name": "All matches an active word", "filter": "ALL", "word": { "isNew": false }, "today": 100, "out": true },
+    { "name": "All matches a suspended word", "filter": "ALL", "word": { "isNew": false, "suspended": true }, "today": 100, "out": true },
+    { "name": "All matches a new word", "filter": "ALL", "word": { "isNew": true }, "today": 100, "out": true },
+    { "name": "New matches a new word", "filter": "NEW", "word": { "isNew": true }, "today": 100, "out": true },
+    { "name": "New does not match a suspended new word", "filter": "NEW", "word": { "isNew": true, "suspended": true }, "today": 100, "out": false },
+    { "name": "Learning matches a short interval", "filter": "LEARNING", "word": { "isNew": false, "intervalDays": 20 }, "today": 100, "out": true },
+    { "name": "Learning does not match a known word", "filter": "LEARNING", "word": { "isNew": false, "intervalDays": 21 }, "today": 100, "out": false },
+    { "name": "Known matches a three week interval", "filter": "KNOWN", "word": { "isNew": false, "intervalDays": 21 }, "today": 100, "out": true },
+    { "name": "Known does not match a suspended known word", "filter": "KNOWN", "word": { "isNew": false, "intervalDays": 30, "suspended": true }, "today": 100, "out": false }
+  ],
+  "wordFilterCounts": [
+    { "name": "the New, Learning and Known filters agree with wordProgress for the same list",
+      "words": [ { "isNew": true }, { "isNew": false, "intervalDays": 1 }, { "isNew": false, "intervalDays": 20 },
+                 { "isNew": false, "intervalDays": 21 }, { "isNew": false, "intervalDays": 200 },
+                 { "isNew": true, "suspended": true }, { "isNew": false, "intervalDays": 30, "suspended": true } ],
+      "today": 0,
+      "out": { "ALL": 7, "DUE": 4, "NEW": 1, "LEARNING": 2, "KNOWN": 2, "SUSPENDED": 2 } },
+    { "name": "counts are over the whole list and each word counts for exactly one learning stage",
+      "words": [ { "isNew": true }, { "isNew": false, "intervalDays": 1 }, { "isNew": false, "intervalDays": 21 }, { "isNew": false, "suspended": true } ],
+      "today": 0,
+      "out": { "ALL": 4, "DUE": 2, "NEW": 1, "LEARNING": 1, "KNOWN": 1, "SUSPENDED": 1 } }
+  ],
+  "recentDays": [
+    { "name": "the strip is the last seven days, oldest first",
+      "today": 100, "studyDays": [], "satisfiedDays": [], "firstDay": 50,
+      "days": [94, 95, 96, 97, 98, 99, 100],
+      "marks": ["MISSED", "MISSED", "MISSED", "MISSED", "MISSED", "MISSED", "PENDING"] },
+    { "name": "each day is practised, bridged, missed or pending",
+      "today": 100, "studyDays": [95, 96, 99], "satisfiedDays": [97], "firstDay": 50,
+      "days": [94, 95, 96, 97, 98, 99, 100],
+      "marks": ["MISSED", "PRACTICED", "PRACTICED", "NOTHING_DUE", "MISSED", "PRACTICED", "PENDING"] },
+    { "name": "today reads as practised once there has been a review",
+      "today": 100, "studyDays": [100], "satisfiedDays": [], "firstDay": 100,
+      "days": [94, 95, 96, 97, 98, 99, 100],
+      "marks": ["BEFORE_START", "BEFORE_START", "BEFORE_START", "BEFORE_START", "BEFORE_START", "BEFORE_START", "PRACTICED"] },
+    { "name": "a new user's first week isn't a row of misses",
+      "today": 100, "studyDays": [], "satisfiedDays": [], "firstDay": 99,
+      "days": [94, 95, 96, 97, 98, 99, 100],
+      "marks": ["BEFORE_START", "BEFORE_START", "BEFORE_START", "BEFORE_START", "BEFORE_START", "MISSED", "PENDING"] },
+    { "name": "with no words at all nothing counts as missed",
+      "today": 100, "studyDays": [], "satisfiedDays": [], "firstDay": null,
+      "days": [94, 95, 96, 97, 98, 99, 100],
+      "marks": ["BEFORE_START", "BEFORE_START", "BEFORE_START", "BEFORE_START", "BEFORE_START", "BEFORE_START", "PENDING"] },
+    { "name": "a count of three gives three days",
+      "today": 10, "studyDays": [9], "satisfiedDays": [], "firstDay": 5, "count": 3,
+      "days": [8, 9, 10],
+      "marks": ["MISSED", "PRACTICED", "PENDING"] }
+  ],
+  "greeting": [
+    { "name": "4 is still evening", "hour": 4, "out": "Good evening" },
+    { "name": "5 is morning", "hour": 5, "out": "Good morning" },
+    { "name": "11 is still morning", "hour": 11, "out": "Good morning" },
+    { "name": "12 is afternoon", "hour": 12, "out": "Good afternoon" },
+    { "name": "17 is still afternoon", "hour": 17, "out": "Good afternoon" },
+    { "name": "18 is evening", "hour": 18, "out": "Good evening" },
+    { "name": "midnight is evening", "hour": 0, "out": "Good evening" }
+  ]
+}

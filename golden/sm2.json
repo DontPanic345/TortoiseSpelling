@@ -1,0 +1,70 @@
+{
+  "about": "SM-2 steps and the due-day fuzz (SrsTest, Srs.kt, Grade). Random cases give a range; each runner checks seeds 0..49.",
+  "constants": [
+    {
+      "name": "the scheduling constants",
+      "MAX_INTERVAL_DAYS": 365,
+      "RESET_BELOW_QUALITY": 3,
+      "NEW_WORD_STATE": { "repetitions": 0, "easeFactor": 2.5, "intervalDays": 0 },
+      "Grade": { "FIRST_TRY": 5, "AFTER_RETYPE": 2, "GAVE_UP": 0 }
+    }
+  ],
+  "next": [
+    { "name": "new word answered correctly is due in one day",
+      "prev": { "repetitions": 0, "easeFactor": 2.5, "intervalDays": 0 }, "quality": 5,
+      "out": { "repetitions": 1, "easeFactor": 2.6, "intervalDays": 1 } },
+    { "name": "second correct review is due in six days",
+      "prev": { "repetitions": 1, "easeFactor": 2.6, "intervalDays": 1 }, "quality": 5,
+      "out": { "repetitions": 2, "easeFactor": 2.7, "intervalDays": 6 } },
+    { "name": "third correct review multiplies by the ease factor (6 * 2.8 = 16.8)",
+      "prev": { "repetitions": 2, "easeFactor": 2.7, "intervalDays": 6 }, "quality": 5,
+      "out": { "repetitions": 3, "easeFactor": 2.8, "intervalDays": 17 } },
+    { "name": "a miss resets repetitions, lowers the ease factor and schedules for tomorrow",
+      "prev": { "repetitions": 0, "easeFactor": 2.5, "intervalDays": 0 }, "quality": 2,
+      "out": { "repetitions": 0, "easeFactor": 2.18, "intervalDays": 1 } },
+    { "name": "correct after retype takes the lapse branch from a long interval",
+      "prev": { "repetitions": 5, "easeFactor": 2.5, "intervalDays": 40 }, "quality": 2,
+      "out": { "repetitions": 0, "easeFactor": 2.18, "intervalDays": 1 } },
+    { "name": "giving up lowers the ease factor the most",
+      "prev": { "repetitions": 0, "easeFactor": 2.5, "intervalDays": 0 }, "quality": 0,
+      "out": { "repetitions": 0, "easeFactor": 1.7, "intervalDays": 1 } },
+    { "name": "ease factor never drops below one point three",
+      "prev": { "repetitions": 0, "easeFactor": 1.3, "intervalDays": 1 }, "quality": 0,
+      "out": { "repetitions": 0, "easeFactor": 1.3, "intervalDays": 1 } },
+    { "name": "intervals are capped",
+      "prev": { "repetitions": 10, "easeFactor": 2.5, "intervalDays": 300 }, "quality": 5,
+      "out": { "repetitions": 11, "easeFactor": 2.6, "intervalDays": 365 } },
+    { "name": "quality 4 leaves the ease factor alone",
+      "prev": { "repetitions": 0, "easeFactor": 2.5, "intervalDays": 0 }, "quality": 4,
+      "out": { "repetitions": 1, "easeFactor": 2.5, "intervalDays": 1 } },
+    { "name": "quality 3 is not a lapse but lowers the ease factor",
+      "prev": { "repetitions": 0, "easeFactor": 2.5, "intervalDays": 0 }, "quality": 3,
+      "out": { "repetitions": 1, "easeFactor": 2.36, "intervalDays": 1 } },
+    { "name": "a half rounds up (3 * 2.5 = 7.5)",
+      "prev": { "repetitions": 2, "easeFactor": 2.5, "intervalDays": 3 }, "quality": 4,
+      "out": { "repetitions": 3, "easeFactor": 2.5, "intervalDays": 8 } },
+    { "name": "an interval never rounds below one day",
+      "prev": { "repetitions": 2, "easeFactor": 1.3, "intervalDays": 0 }, "quality": 5,
+      "out": { "repetitions": 3, "easeFactor": 1.4, "intervalDays": 1 } }
+  ],
+  "sequence": [
+    { "name": "three perfect reviews", "qualities": [5, 5, 5],
+      "out": { "repetitions": 3, "easeFactor": 2.8, "intervalDays": 17 } },
+    { "name": "four perfect reviews push the interval past six days", "qualities": [5, 5, 5, 5],
+      "out": { "repetitions": 4, "easeFactor": 2.9, "intervalDays": 49 } },
+    { "name": "a miss after four perfect reviews resets to tomorrow", "qualities": [5, 5, 5, 5, 2],
+      "out": { "repetitions": 0, "easeFactor": 2.58, "intervalDays": 1 } },
+    { "name": "twenty give-ups leave the ease factor at its floor", "qualities": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      "out": { "repetitions": 0, "easeFactor": 1.3, "intervalDays": 1 } }
+  ],
+  "fuzzedDueDay": [
+    { "name": "short intervals are not fuzzed", "today": 100, "intervalDays": 1, "within": [101, 101] },
+    { "name": "two days is still not fuzzed", "today": 100, "intervalDays": 2, "within": [102, 102] },
+    { "name": "zero days still schedules tomorrow", "today": 100, "intervalDays": 0, "within": [101, 101] },
+    { "name": "long intervals are fuzzed but stay close", "today": 1000, "intervalDays": 100, "within": [1095, 1105], "varies": true },
+    { "name": "fuzz never schedules a word in the past", "today": 500, "intervalDays": 3, "within": [502, 504], "all": true },
+    { "name": "a week spreads by one day either side", "today": 0, "intervalDays": 7, "within": [6, 8], "all": true },
+    { "name": "just over a week spreads by at least one day", "today": 0, "intervalDays": 8, "within": [7, 9], "all": true },
+    { "name": "the longest interval cannot pass the cap", "today": 0, "intervalDays": 365, "within": [347, 365], "varies": true }
+  ]
+}

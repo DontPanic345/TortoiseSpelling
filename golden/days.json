@@ -1,0 +1,37 @@
+{
+  "about": "Day arithmetic (DaysTest, Days.kt). Zones are IANA names; days are epoch days.",
+  "today": [
+    { "name": "today follows the clock's zone just before local midnight (Auckland, UTC+13 in January)", "millis": 1735729199000, "zone": "Pacific/Auckland", "out": 20089 },
+    { "name": "today follows the clock's zone just after local midnight", "millis": 1735729201000, "zone": "Pacific/Auckland", "out": 20090 },
+    { "name": "the same instant is the previous day in Los Angeles", "millis": 1735729201000, "zone": "America/Los_Angeles", "out": 20089 },
+    { "name": "UTC midnight itself starts the day", "millis": 1735689600000, "zone": "UTC", "out": 20089 }
+  ],
+  "dayOf": [
+    { "name": "Auckland, one second before local midnight", "millis": 1735729199000, "zone": "Pacific/Auckland", "out": 20089 },
+    { "name": "Auckland, one second after local midnight", "millis": 1735729201000, "zone": "Pacific/Auckland", "out": 20090 },
+    { "name": "Los Angeles, one second before local midnight", "millis": 1735804799000, "zone": "America/Los_Angeles", "out": 20089 },
+    { "name": "Los Angeles, one second after local midnight", "millis": 1735804801000, "zone": "America/Los_Angeles", "out": 20090 },
+    { "name": "the epoch in UTC is day zero", "millis": 0, "zone": "UTC", "out": 0 },
+    { "name": "a moment before the epoch is day minus one", "millis": -1, "zone": "UTC", "out": -1 },
+    { "name": "the epoch in Los Angeles is still the day before", "millis": 0, "zone": "America/Los_Angeles", "out": -1 }
+  ],
+  "relativeLabel": [
+    { "name": "today", "day": 100, "today": 100, "out": "today" },
+    { "name": "tomorrow", "day": 101, "today": 100, "out": "tomorrow" },
+    { "name": "in 5 days", "day": 105, "today": 100, "out": "in 5 days" },
+    { "name": "yesterday", "day": 99, "today": 100, "out": "yesterday" },
+    { "name": "two days ago", "day": 98, "today": 100, "out": "2 days ago" },
+    { "name": "in 2 days", "day": 102, "today": 100, "out": "in 2 days" }
+  ],
+  "currentStreak": [
+    { "name": "no reviews means no streak", "studyDays": [], "today": 100, "out": 0 },
+    { "name": "consecutive days ending today count", "studyDays": [98, 99, 100], "today": 100, "out": 3 },
+    { "name": "a streak ending yesterday still stands", "studyDays": [98, 99], "today": 100, "out": 2 },
+    { "name": "a two day gap breaks the streak", "studyDays": [97, 100], "today": 100, "out": 1 },
+    { "name": "a day with nothing due bridges the streak", "studyDays": [98, 100], "satisfiedDays": [99], "today": 100, "out": 2 },
+    { "name": "a quiet yesterday does not zero the streak before today's session", "studyDays": [98], "satisfiedDays": [99], "today": 100, "out": 1 },
+    { "name": "a run of quiet days keeps the streak", "studyDays": [94, 95], "satisfiedDays": [96, 97, 98, 99, 100], "today": 100, "out": 2 },
+    { "name": "quiet days after a real gap do not revive an old streak", "studyDays": [90], "satisfiedDays": [98, 99], "today": 100, "out": 0 },
+    { "name": "stale streak from long ago does not count", "studyDays": [50, 51], "today": 100, "out": 0 }
+  ]
+}

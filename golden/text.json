@@ -1,0 +1,41 @@
+{
+  "about": "Kotlin's string rules in the port: normalizeWord (NormalizeWordTest, Word.kt), String.trim() and String.isBlank().",
+  "normalizeWord": [
+    { "name": "casing is ignored", "in": "NECESSARY", "out": "necessary" },
+    { "name": "surrounding whitespace is ignored", "in": "  necessary \n", "out": "necessary" },
+    { "name": "inner whitespace collapses to one space", "in": "ad \t  hoc", "out": "ad hoc" },
+    { "name": "tab and newline inside collapse to one space", "in": "a\t\n b", "out": "a b" },
+    { "name": "accented capitals lowercase", "in": "CAFÉ", "out": "café" },
+    { "name": "empty stays empty", "in": "", "out": "" },
+    { "name": "only whitespace is empty", "in": "   \t\n", "out": "" },
+    { "name": "a non-breaking space at the ends is trimmed", "in": "\u00a0Cat\u00a0", "out": "cat" },
+    { "name": "a non-breaking space inside is not collapsed (Java's \\s doesn't match it)", "in": "a\u00a0\u00a0b", "out": "a\u00a0\u00a0b" },
+    { "name": "an em space inside is not collapsed", "in": "a\u2003\u2003b", "out": "a\u2003\u2003b" },
+    { "name": "U+001F at the start is trimmed (Kotlin's isWhitespace)", "in": "\u001fcat", "out": "cat" },
+    { "name": "a byte order mark is not trimmed (JavaScript's trim would)", "in": "\ufeffcat", "out": "\ufeffcat" },
+    { "name": "vertical tab and form feed at the ends are trimmed", "in": "\u000bcat\u000c", "out": "cat" },
+    { "name": "an ideographic space at the ends is trimmed", "in": "\u3000cat\u3000", "out": "cat" }
+  ],
+  "ktTrim": [
+    { "name": "plain spaces", "in": "  cat  ", "out": "cat" },
+    { "name": "inner spaces are kept", "in": " a  b ", "out": "a  b" },
+    { "name": "non-breaking spaces are trimmed", "in": "\u00a0Cat\u00a0", "out": "Cat" },
+    { "name": "U+001F is trimmed", "in": "\u001fcat\u001f", "out": "cat" },
+    { "name": "U+001C is trimmed", "in": "\u001ccat", "out": "cat" },
+    { "name": "a byte order mark is not trimmed", "in": "\ufeffcat", "out": "\ufeffcat" },
+    { "name": "line and paragraph separators are trimmed", "in": "\u2028cat\u2029", "out": "cat" },
+    { "name": "a zero width space is not trimmed", "in": "\u200bcat", "out": "\u200bcat" },
+    { "name": "NEL is not trimmed", "in": "\u0085cat", "out": "\u0085cat" },
+    { "name": "empty stays empty", "in": "", "out": "" },
+    { "name": "only whitespace becomes empty", "in": " \t\n\r", "out": "" }
+  ],
+  "ktIsBlank": [
+    { "name": "empty is blank", "in": "", "out": true },
+    { "name": "spaces are blank", "in": "   ", "out": true },
+    { "name": "a non-breaking space is blank", "in": "\u00a0", "out": true },
+    { "name": "U+001F is blank", "in": "\u001f", "out": true },
+    { "name": "a byte order mark is not blank", "in": "\ufeff", "out": false },
+    { "name": "a letter is not blank", "in": "a", "out": false },
+    { "name": "a letter among spaces is not blank", "in": " a ", "out": false }
+  ]
+}

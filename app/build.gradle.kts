@@ -91,6 +91,14 @@ room {
     schemaDirectory("$projectDir/schemas")
 }
 
+// The golden cases in golden/ are shared with the web app's Vitest runner.
+tasks.withType<Test>().configureEach {
+    val golden = rootProject.layout.projectDirectory.dir("golden")
+    systemProperty("golden.dir", golden.asFile.absolutePath)
+    // A changed case must rerun the tests, not leave the task UP-TO-DATE.
+    inputs.dir(golden).withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)
