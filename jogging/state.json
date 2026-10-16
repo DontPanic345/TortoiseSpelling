@@ -527,7 +527,7 @@
           "title": "Preact and Vite toolchain, shell (router, container, platform, theme, common components), test ids with parity test, golden/ui.json with both runners and the two Kotlin moves",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-2",
