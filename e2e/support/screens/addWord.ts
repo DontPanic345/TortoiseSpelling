@@ -71,7 +71,7 @@ export const addWord = {
         await typeInto(byTestId(testIds.addWordFormText(0, position)), form);
         await typeInto(byTestId(testIds.addWordFormLabel(0, position)), label);
         await typeInto(
-            await scrollToTestId(testIds.addWordExampleAt(0, position, 0)),
+            scrollToTestId(testIds.addWordExampleAt(0, position, 0)),
             example,
         );
     },
