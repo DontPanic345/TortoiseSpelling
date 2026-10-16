@@ -551,7 +551,7 @@
           "title": "Add and edit: the tree editor, Copy prompt and the paste dialog, save and delete",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-5",
