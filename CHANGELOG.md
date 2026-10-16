@@ -9,6 +9,10 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+### Added
+
+- **Tortoise Spelling for the web**, for iPhone, iPad and any browser, at https://dontpanic345.github.io/TortoiseSpelling/. It does everything the Android app does except the daily reminder, works offline once opened, installs to the Home Screen, and reads and writes the same backup files, so your words can move between the two.
+
 ## [0.7.0] - 2026-10-16
 
 ### Removed

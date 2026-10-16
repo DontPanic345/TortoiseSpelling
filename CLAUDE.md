@@ -6,7 +6,7 @@ Tortoise Spelling is a single-module native Android app (Kotlin, Jetpack Compose
 target 36) for learning to spell your own word list with SM-2 spaced repetition, a daily
 reminder, and word lookup by copying a prompt into any chat AI and pasting its answer back.
 User-facing overview: `README.md`. The repo also holds a web app in `web/` (TypeScript),
-which shares golden cases with the Android app (`golden/`); its screens arrive with `web-ui`.
+which shares golden cases with the Android app (`golden/`) and is deployed to GitHub Pages.
 
 ## Commands
 
@@ -37,6 +37,10 @@ Gradle needs `JAVA_HOME`; on this machine use Android Studio's JBR
 node --test 'scripts/*.test.mjs'              # script tests (quote the glob)
 (cd web && npm ci && npm test)                # web unit tests and golden cases, Node, no browser
 (cd web && npm run typecheck)                 # tsc --noEmit
+(cd web && npm run dev)                       # Vite dev server
+(cd web && npm run build)                     # production build in web/dist/
+(cd web && npm run smoke)                     # Playwright on the build; SMOKE_URL=<url> npm run smoke tests a deployed site
+(cd web && npm run icons)                     # rasterise docs/icon.svg into web/public/icons/
 node scripts/icon.mjs                         # regenerate the app and notification icons
 adb install -r app/build/outputs/apk/debug/app-debug.apk       # install the debug APK
 ```
@@ -52,14 +56,16 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk       # install the deb
 | End-to-end BDD tests | [`e2e/`](e2e/README.md) | The real APK on an emulator |
 | Script tests | `scripts/*.test.mjs` | Node, no device |
 | Web unit tests | `web/test/` | Node, no browser; storage on `fake-indexeddb` |
+| Web state, component and journey tests | `web/test/ui/` | Node + jsdom |
+| Web smoke tests | `web/smoke/` | Chromium and WebKit via Playwright, on the production build |
 | Golden cases | `golden/` | Both apps: `golden/*.json` run by JUnit (`./gradlew testDebugUnitTest`, `app/src/test/.../golden/`) and Vitest (`web/test/golden/`) |
 
 Each instrumented layer has its own package under `androidTest`, selected with the runner's
 `package` argument.
 
 - **CI** (`.github/workflows/ci.yml`) runs the unit tests, `lintDebug`, the script tests, the
-  `web` job (typecheck, Vitest and the golden cases; `release.yml` calls `ci.yml`, so a release
-  waits for it) and the e2e `check-steps`/`typecheck` on pushes to main and on PRs. It also validates the
+  `web` job (`web.yml`: typecheck, Vitest and the golden cases, build and the Playwright smoke
+  suite; `release.yml` calls `ci.yml`, so a release waits for it) and the e2e `check-steps`/`typecheck` on pushes to main and on PRs. It also validates the
   screenshots and runs the data, component, integration and accessibility layers, one
   `instrumented` matrix job each (API 26 emulators; API 34 for accessibility). It doesn't
   run the Appium scenarios; their release smoke runs from `release.yml`.
@@ -205,7 +211,7 @@ re-opens Review.
 - Word-list search matches the root and every form's spelling (`searchTerms`), never definitions.
 
 **Web app** (`web/`). A TypeScript port of the word logic, IndexedDB storage and the shared
-backup; no screens yet.
+backup, with Preact screens, deployed to https://dontpanic345.github.io/TortoiseSpelling/.
 - `web/src/domain/` mirrors `domain/` file for file, with the same names in camelCase.
   **A change to a rule in `domain/` or `Backup.kt` changes `golden/` and the TypeScript in the
   same commit.** The Kotlin runner is the oracle: a case is right only once it passes on the
@@ -227,6 +233,25 @@ backup; no screens yet.
   adds a test that opens the previous version's database with records in it. No store is
   deleted with its data.
 - Nothing in `web/src` makes a network call.
+- UI: Preact, with `XScreen`/`XContent` and `<name>State.ts` mirroring Android's split. Routes
+  are hash routes, and `back(fallback)` goes back only when the app pushed the entry.
+  `Platform` (`browserPlatform.ts`) is the only code that touches `navigator`. The copy is
+  Android's, and test ids are the `TestTags.kt` values as `data-testid`, checked by
+  `testIds.test.ts`. UI rules shared with Android live in `golden/ui.json`.
+- The service worker is hand-written (`sw-template.js`); `build/precache.ts` fills in the
+  file list and a version hashed from the build, so a changed build is a new cache. Change
+  the worker's logic and the cached files change with it; keep `ignoreVary: true` on its
+  `caches.match`.
+- The production `index.html` carries a CSP limiting everything to the app's own origin
+  (`build/csp.ts`). A new origin (such as `web-push`) must be added there deliberately, and
+  `PRIVACY.md` updated.
+- Safari 16.4 is the minimum; `compat.js` shows a message on older browsers.
+- The review field is one element that is never remounted, with attributes that stop
+  autocorrect: remounting it dismisses the iOS keyboard between words.
+- Home asks the browser for persistent storage once there is a word, and nudges to export
+  when storage isn't persistent and no export is under 30 days old.
+- `pages.yml` deploys `web/dist` to GitHub Pages on a push that touches the web app, after
+  `web.yml` passes. It is a deploy, not a release: no tag, no version.
 
 **Icons.** `ic_launcher_foreground.xml`, `ic_launcher_monochrome.xml`, `ic_notification.xml`,
 `ic_launcher_background.xml` and `docs/icon.svg` are generated. Edit `scripts/icon.mjs` and
@@ -249,6 +274,8 @@ There are no pull requests, no branches and no branch protection; work directly 
   taken gets an `ignore` entry in `.github/dependabot.yml`, with the reason in a comment.
 
 ## Release
+
+The web app is not released with a version: `pages.yml` deploys it on push, after the web checks.
 
 Merging a version bump to main releases it. `.github/workflows/release.yml` runs on every
 push to main and does nothing if `v<versionName>` is already tagged. Otherwise it runs

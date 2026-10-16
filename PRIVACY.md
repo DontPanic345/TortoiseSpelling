@@ -3,7 +3,8 @@
 Tortoise Spelling has no accounts, no ads, no analytics and no tracking. Your word list
 stays on your phone. The app has no Internet permission, so it can't send anything
 anywhere itself. Your words leave your phone only when you choose: when you paste a prompt
-into a chat app, export a backup, or turn on Google backup.
+into a chat app, export a backup, or turn on Google backup. The web app is covered in
+[its own section](#the-web-app).
 
 ## What the app keeps, and where
 
@@ -46,6 +47,20 @@ push service or server involved.
 | Permission | Why |
 |---|---|
 | Notifications | The daily reminder. You can turn it off in Settings. |
+
+## The web app
+
+The web app keeps the same things as the Android app, in the browser's storage for the
+site on that device (IndexedDB), plus a cached copy of the app (a service worker). Clearing
+the site's data deletes them.
+
+Nothing is sent anywhere. The pages are served by GitHub Pages, so loading or updating the
+app is a request to GitHub, which sees your IP address as any website host does (GitHub's
+privacy statement covers it). The app makes no other requests, and its Content Security
+Policy stops it contacting any other site.
+
+Copy prompt only writes to the clipboard, and the app never reads the clipboard. There are
+no cookies and no analytics.
 
 ## Children
 

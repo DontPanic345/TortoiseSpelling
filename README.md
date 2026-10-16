@@ -74,6 +74,14 @@ still edit before saving. The app never contacts the chat AI itself.
 - Backup export carries a version; importing a newer-format backup is refused
   rather than half-read. Import merges, so restoring a backup never undoes progress.
 
+## 🌐 Web app (iPhone, iPad and any browser)
+
+There is also a web app at <https://dontpanic345.github.io/TortoiseSpelling/>. Open it in
+Safari, tap Share, then **Add to Home Screen** (in Chrome, tap Install). It does everything
+the Android app does except the daily reminder, for now, and works offline once opened.
+Words stay in that browser on that device, so export a backup now and then; backups move
+between the two apps.
+
 ## 📦 Releases
 
 There's no Play Store listing: releases are signed APKs on the GitHub Releases page,

@@ -1,0 +1,60 @@
+name: Pages
+
+# Deploys the web app to GitHub Pages after the web checks pass. A deploy, not a release:
+# no tag and no version, and the Android release workflow is unaffected. Pages must be set
+# to Source: GitHub Actions under Settings -> Pages (once, by the owner).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+      - "golden/**"
+      - "docs/icon.svg"
+      - ".github/workflows/pages.yml"
+      - ".github/workflows/web.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  check:
+    name: Web checks
+    uses: ./.github/workflows/web.yml
+
+  deploy:
+    name: Deploy
+    needs: check
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build
+        working-directory: web
+        run: npm ci && npm run build
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: web/dist
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v5
