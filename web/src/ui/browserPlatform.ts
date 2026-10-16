@@ -102,3 +102,11 @@ export function browserPlatform(): Platform {
     },
   };
 }
+
+/** Registers the service worker once the page has loaded, where the browser has them. */
+export function registerServiceWorker(): void {
+  if (!("serviceWorker" in navigator)) return;
+  const register = () => void navigator.serviceWorker.register("./sw.js");
+  if (document.readyState === "complete") register();
+  else window.addEventListener("load", register);
+}

@@ -23,3 +23,7 @@ keystore.properties
 # Jogging run logs and lock
 /jogging/runs/
 /jogging/.lock
+
+# Playwright output
+/web/playwright-report/
+/web/test-results/

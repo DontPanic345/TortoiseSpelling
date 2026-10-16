@@ -4,7 +4,7 @@ import "./styles.css";
 import { openDatabase } from "./data/db";
 import { createRepository } from "./data/repository";
 import { deviceClock } from "./domain/clock";
-import { browserPlatform } from "./ui/browserPlatform";
+import { browserPlatform, registerServiceWorker } from "./ui/browserPlatform";
 import type { AppContainer } from "./ui/container";
 
 const AUTO_ADVANCE_MILLIS = 1100;
@@ -30,6 +30,7 @@ async function start(root: HTMLElement): Promise<void> {
     render(<App container={container} updatedInAnotherTab={updatedInAnotherTab} />, root);
   onVersionChange = () => draw(true);
   draw(false);
+  if (import.meta.env.PROD) registerServiceWorker();
 }
 
 const root = document.getElementById("app");
