@@ -504,7 +504,7 @@
       "dependsOn": [
         "web-core"
       ],
-      "status": "blocked",
+      "status": "active",
       "spec": "jogging/specs/web-ui.md",
       "steps": [
         {
@@ -575,7 +575,7 @@
           "title": "GitHub Pages deploy workflow and live check (blocker if Pages isn't enabled), docs and changelog",
           "model": "sonnet",
           "effort": "medium",
-          "status": "blocked"
+          "status": "pending"
         },
         {
           "id": "review",
@@ -586,9 +586,7 @@
           "status": "pending"
         }
       ],
-      "blocker": "Enable GitHub Pages for DontPanic345/TortoiseSpelling: Settings → Pages → Build and deployment → Source: GitHub Actions. Reply when it's on and the next session re-runs the deploy.",
-      "blockerIssue": 22,
-      "blockedAt": "2026-10-16T17:24:18.564Z"
+      "userReply": "Setup action pages 👌 "
     },
     {
       "id": "shared-specs",
