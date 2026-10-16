@@ -459,7 +459,7 @@
           "title": "web/ project, CI job and Dependabot, golden/ with JUnit and Vitest runners, Gradle wiring; port text, days, SM-2, session, queries, progress, diff and blanking with their golden files",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-2",
@@ -493,8 +493,7 @@
           "effort": "high",
           "status": "pending"
         }
-      ],
-      "userReply": "Ive updated the secret"
+      ]
     },
     {
       "id": "web-ui",
