@@ -28,3 +28,31 @@ const practice = {
 export const lookupAnswers: Record<string, string> = {
     practice: '```json ' + JSON.stringify(practice) + ' ```',
 };
+
+export interface BackupWordSpec {
+    text: string;
+    definition: string;
+}
+
+/** Builds the flat (pre-tree) on-disk backup JSON (data/Backup.kt): version, exportedAt, words[]. */
+export const flatBackupFile = (words: BackupWordSpec[]): string =>
+    JSON.stringify({
+        version: 1,
+        exportedAt: Date.now(),
+        words: words.map((word) => ({
+            text: word.text,
+            definition: word.definition,
+            example: '',
+            partOfSpeech: null,
+            createdAt: Date.now(),
+            repetitions: 0,
+            easeFactor: 2.5,
+            intervalDays: 0,
+            dueOn: 0,
+            lapses: 0,
+            lastReviewedAt: null,
+            firstReviewedOn: null,
+            isNew: true,
+            suspended: false,
+        })),
+    });

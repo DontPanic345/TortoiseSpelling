@@ -1,3 +1,5 @@
+# Android only until web-push: the permission prompt, notifications, rotation and process death are the system's.
+@e2e @android
 Feature: Daily reminder
   As a learner who forgets to open the app
   I want one notification a day when words are due

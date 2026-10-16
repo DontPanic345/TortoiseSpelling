@@ -1,4 +1,5 @@
-@release-smoke
+# Android only: it exercises the R8-minified release APK.
+@e2e @android @release-smoke
 Feature: The release build works end to end
   As a learner installing the published APK
   I want the build that R8 has shrunk to behave like the one that was tested

@@ -1,3 +1,4 @@
+@e2e
 Feature: Reviewing words
   As a learner
   I want to spell each of today's words from its definition, and be made to fix my misses

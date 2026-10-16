@@ -11,6 +11,6 @@
     "skipLibCheck": true,
     "types": ["node", "@wdio/globals/types", "@wdio/cucumber-framework", "@wdio/appium-service"]
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "../specs/support/**/*.ts"],
   "exclude": ["node_modules"]
 }

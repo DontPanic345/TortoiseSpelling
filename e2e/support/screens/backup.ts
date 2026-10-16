@@ -1,34 +1,7 @@
+import { flatBackupFile, type BackupWordSpec } from '../../../specs/support/fixtures.ts';
 import { byClassName, byText, byTextContaining, scrollToText } from '../selectors.ts';
 
 const DOWNLOAD_DIR = '/sdcard/Download';
-
-interface BackupWordSpec {
-    text: string;
-    definition: string;
-}
-
-/** Builds the on-disk backup JSON (data/Backup.kt): version, exportedAt, words[]. */
-const buildBackupJson = (words: BackupWordSpec[]): string =>
-    JSON.stringify({
-        version: 1,
-        exportedAt: Date.now(),
-        words: words.map((word) => ({
-            text: word.text,
-            definition: word.definition,
-            example: '',
-            partOfSpeech: null,
-            createdAt: Date.now(),
-            repetitions: 0,
-            easeFactor: 2.5,
-            intervalDays: 0,
-            dueOn: 0,
-            lapses: 0,
-            lastReviewedAt: null,
-            firstReviewedOn: null,
-            isNew: true,
-            suspended: false,
-        })),
-    });
 
 const mediaScan = async (): Promise<void> => {
     await driver.execute('mobile: shell', {
@@ -64,7 +37,7 @@ export const backup = {
     },
 
     pushWords: async (filename: string, words: BackupWordSpec[]): Promise<void> => {
-        await pushToDownloads(filename, buildBackupJson(words));
+        await pushToDownloads(filename, flatBackupFile(words));
     },
 
     /** Opens the Export picker and saves under the given filename, in Downloads. */

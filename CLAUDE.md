@@ -35,6 +35,7 @@ Gradle needs `JAVA_HOME`; on this machine use Android Studio's JBR
 ./gradlew validateDebugScreenshotTest       # compare screenshots to the references, JVM, no device
 ./gradlew assembleDebugAndroidTest            # compile the instrumented tests, no device
 node --test 'scripts/*.test.mjs'              # script tests (quote the glob)
+node scripts/check-specs.mjs                  # the tags on specs/*.feature
 (cd web && npm ci && npm test)                # web unit tests and golden cases, Node, no browser
 (cd web && npm run typecheck)                 # tsc --noEmit
 (cd web && npm run dev)                       # Vite dev server
@@ -53,7 +54,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk       # install the deb
 | Integration tests | `app/src/androidTest/.../integration/` | Emulator, the real nav graph over an in-memory DB and a `TestClock` |
 | Accessibility tests | `app/src/androidTest/.../accessibility/` | Emulator, the same `XContent` states as the component tests (`component/Fixtures.kt`), both themes |
 | Screenshot tests | `app/src/screenshotTest/` | JVM (Layoutlib), no device; references committed; CI's `screenshots` job validates them. After a deliberate UI change, run `update`, look at the images and commit them |
-| End-to-end BDD tests | [`e2e/`](e2e/README.md) | The real APK on an emulator |
+| Shared BDD specs | [`specs/`](specs/README.md), run on Android by [`e2e/`](e2e/README.md) | The real APK on an emulator |
 | Script tests | `scripts/*.test.mjs` | Node, no device |
 | Web unit tests | `web/test/` | Node, no browser; storage on `fake-indexeddb` |
 | Web state, component and journey tests | `web/test/ui/` | Node + jsdom |
@@ -65,7 +66,7 @@ Each instrumented layer has its own package under `androidTest`, selected with t
 
 - **CI** (`.github/workflows/ci.yml`) runs the unit tests, `lintDebug`, the script tests, the
   `web` job (`web.yml`: typecheck, Vitest and the golden cases, build and the Playwright smoke
-  suite; `release.yml` calls `ci.yml`, so a release waits for it) and the e2e `check-steps`/`typecheck` on pushes to main and on PRs. It also validates the
+  suite; `release.yml` calls `ci.yml`, so a release waits for it) and the spec tag check (`scripts/check-specs.mjs`) and the e2e `check-steps`/`typecheck` on pushes to main and on PRs. It also validates the
   screenshots and runs the data, component, integration and accessibility layers, one
   `instrumented` matrix job each (API 26 emulators; API 34 for accessibility). It doesn't
   run the Appium scenarios; their release smoke runs from `release.yml`.
@@ -82,9 +83,11 @@ Each instrumented layer has its own package under `androidTest`, selected with t
   re-checked on a release build on a device. Lint-vital runs as part of `assembleRelease`.
   `npm run e2e:release` (from `e2e/`, with `APK` set to the release APK) runs the one
   `@release-smoke` journey; `release-smoke.yml` runs it on CI and `release.yml` waits for it.
-- **E2E tests** live in `e2e/`, with their own npm project. From `e2e/`:
+- **E2E tests**: the features live in `specs/`, shared by both apps unless tagged `@android`
+  or `@web` (with a comment saying why); the Android runner is `e2e/`, with its own npm
+  project. From `e2e/`:
   - `npm run e2e`: needs a running emulator and a built debug APK.
-  - `npm run e2e -- --spec features/<name>.feature`: one feature file.
+  - `npm run e2e -- --spec ../specs/<name>.feature`: one feature file.
   - `npm run check-steps -- --all`: device-free check that every step is defined and used,
     in about a second.
   - `npm run typecheck`

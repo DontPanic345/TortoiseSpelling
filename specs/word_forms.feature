@@ -1,3 +1,4 @@
+@e2e
 Feature: Word forms
   As a learner
   I want a word to carry its other spellings, like "ran" for "run"

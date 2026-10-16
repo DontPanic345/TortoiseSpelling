@@ -61,6 +61,9 @@ jobs:
       - name: Release script tests
         run: node --test 'scripts/*.test.mjs'
 
+      - name: Shared specs are tagged
+        run: node scripts/check-specs.mjs
+
       - name: Install e2e dependencies
         working-directory: e2e
         run: npm ci

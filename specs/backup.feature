@@ -1,9 +1,11 @@
+@e2e
 Feature: Backing up the word list
   As a learner whose word list can't be recreated
   I want to export it to a file and import it back
   So that a new phone, or a mistake, doesn't cost me my words and their progress
 
-  # Files go through Android's document picker, in the emulator's Downloads folder.
+  # On Android, files go through the document picker in the device's Downloads folder. On the web,
+  # export is a download and import picks a file, both in a Downloads folder the test run owns.
 
   Scenario: Exporting a backup, then importing one adds only the words I don't have
     Given Downloads has no Tortoise Spelling test files

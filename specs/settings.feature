@@ -1,3 +1,5 @@
+# Android only: Google backup has no web equivalent.
+@e2e @android
 Feature: Settings
   As a learner
   I want to tune how many new words I get and when I'm reminded

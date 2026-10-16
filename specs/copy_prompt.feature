@@ -1,3 +1,4 @@
+@e2e
 Feature: Looking a word up with a chat AI
   As a learner who doesn't want to write definitions
   I want to paste a chat AI's answer into a word

@@ -1,11 +1,11 @@
 # 🧪 End-to-end tests
 
-Behaviour-driven tests for Tortoise Spelling: Gherkin features in [`features/`](features/),
-run against the real APK on an Android emulator by **WebdriverIO + Cucumber**, driving
+Behaviour-driven tests for Tortoise Spelling: the Gherkin features in [`../specs/`](../specs/README.md),
+shared with the web app, run against the real APK on an Android emulator by **WebdriverIO + Cucumber**, driving
 the app through **Appium's UiAutomator2** driver.
 
 Why not Playwright: its Android support only automates Chrome and WebViews, and this is
-a native Jetpack Compose app. Appium is the closest equivalent that can tap Compose
+a native Jetpack Compose app (the web app's run of the same specs does use Playwright). Appium is the closest equivalent that can tap Compose
 widgets, answer the system permission dialog and read notifications.
 
 > ⚠️ **Never point this at a phone with real data.** Every scenario wipes the app's data,
@@ -35,8 +35,8 @@ Start an emulator (Android Studio's Device Manager, or `emulator -avd <name>`) s
 
 | Command | What it does |
 |---|---|
-| `npm run e2e` | Every scenario not tagged `@todo`, `@slow` or `@release-smoke` |
-| `npm run e2e -- --spec features/add_word.feature` | One feature file |
+| `npm run e2e` | Every `@e2e` scenario not tagged `@web`, `@todo`, `@slow` or `@release-smoke` |
+| `npm run e2e -- --spec ../specs/add_word.feature` | One feature file |
 | `npm run e2e -- --cucumberOpts.tags="@network"` | Scenarios matching a tag expression |
 | `npm run e2e:slow` | The multi-minute `@slow` scenarios |
 | `npm run e2e:release` | The `@release-smoke` journey, against a release APK (set `APK`) |
@@ -64,18 +64,15 @@ before publishing.
 
 ### Tags
 
-| Tag | Meaning |
-|---|---|
-| `@todo` | Steps not implemented yet; excluded until they are |
-| `@slow` | Waits minutes for something real, e.g. a scheduled reminder |
-| `@network` | Needs internet (uses only a deliberately fake key) |
-| `@release-smoke` | The release-build journey; seeds nothing, so it runs only through `npm run e2e:release` |
+The tag table is in [`specs/README.md`](../specs/README.md). On this platform, `@e2e and not
+@web` selects the scenarios (`ANDROID_TAGS` in `support/config.ts`); `@todo` is excluded,
+`@slow` runs through `npm run e2e:slow` and `@release-smoke` through `npm run e2e:release`.
 
 ## How it's put together
 
 | Path | Holds |
 |---|---|
-| `features/` | One `.feature` per area of behaviour |
+| `../specs/` | One `.feature` per area of behaviour, shared with the web app, and `support/fixtures.ts`, the test data both runners use |
 | `step-definitions/` | Steps, grouped by the screen or area they drive |
 | `support/app.ts` | App lifecycle: `resetApp()` per scenario, `freshInstall()` for first-run behaviour |
 | `support/seed.ts` | `seedWords()`: Given steps add words through the debug build's `SeedWordsActivity` |
@@ -159,15 +156,8 @@ and are mirrored in `support/testIds.ts`; change both together.
 
 ## Writing scenarios
 
-- **Keep this suite small.** It's the top of the testing pyramid: a handful of journeys
-  through the real app, plus what only a device can show (permission prompts,
-  notifications, the document picker, process death). Rules and edge cases belong in unit
-  tests under `app/src/test`; a new scenario should be a new journey, and a new check on an
-  existing journey is a step added to its scenario, not a scenario of its own.
-- Write in the user's voice, about behaviour ("I am told…", "Home shows…"), not widgets.
-- **Given** arranges and waits until it is true; **When** acts and does not assert; **Then**
-  asserts. `I have added the word …` (Given) seeds the word directly; `I add the word …` (When)
-  types it into the Add screen and leaves the outcome to the Then steps.
+The rules are in [`specs/README.md`](../specs/README.md). Android-specific advice:
+
 - Reuse existing steps before adding new ones: `npm run check-steps -- --all` prints a
   snippet for anything undefined.
-- Keep scenarios independent; never rely on another scenario's leftovers.
+- Test data both platforms use goes in `specs/support/fixtures.ts`.

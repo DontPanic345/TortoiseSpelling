@@ -1,6 +1,6 @@
 import { Then, When } from '@wdio/cucumber-framework';
 import { expect } from '@wdio/globals';
-import { lookupAnswers } from '../support/lookupAnswers.ts';
+import { lookupAnswers } from '../../specs/support/fixtures.ts';
 import { addWord } from '../support/screens/addWord.ts';
 
 When('I copy the lookup prompt', async () => {
@@ -15,7 +15,7 @@ Then('the clipboard holds the lookup prompt for {string}', async (word: string) 
 When("I paste the chat's answer for {string}", async (word: string) => {
     const answer = lookupAnswers[word];
     if (answer === undefined) {
-        throw new Error(`No lookup answer for "${word}" in support/lookupAnswers.ts`);
+        throw new Error(`No lookup answer for "${word}" in specs/support/fixtures.ts`);
     }
     await addWord.pasteAnswer(answer);
 });

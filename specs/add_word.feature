@@ -1,3 +1,4 @@
+@e2e
 Feature: Adding words
   As a learner
   I want to add the words I actually misspell, typing the definition myself if I like

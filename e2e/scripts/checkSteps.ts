@@ -4,24 +4,25 @@
  * about a second, against minutes for a real run.
  *
  *   npm run check-steps            the scenarios a default run executes; must be clean
- *   npm run check-steps -- --all   every scenario, @todo included, and no unused steps
+ *   npm run check-steps -- --all   every scenario this platform runs (ANDROID_TAGS),
+ *                                  @todo included, and no unused steps
  *
  * Exits 1 if any selected step is undefined or ambiguous, printing a snippet for each.
  * With --all it also exits 1 on a step definition no scenario uses.
  * Cucumber's own dry run exits 0 on undefined steps, hence this script.
  */
 import { loadConfiguration, runCucumber } from '@cucumber/cucumber/api';
-import { DEFAULT_TAGS } from '../support/config.ts';
+import { ANDROID_TAGS, DEFAULT_TAGS } from '../support/config.ts';
 
 // Keep in step with cucumberOpts.require in wdio.conf.ts.
 const STEP_FILES = ['step-definitions/**/*.ts', 'support/hooks.ts'];
 
 const all = process.argv.includes('--all');
-const tags = all ? '' : (process.env.E2E_TAGS ?? DEFAULT_TAGS);
+const tags = all ? ANDROID_TAGS : (process.env.E2E_TAGS ?? DEFAULT_TAGS);
 
 const { runConfiguration } = await loadConfiguration({
     provided: {
-        paths: ['features'],
+        paths: ['../specs'],
         import: STEP_FILES,
         dryRun: true,
         tags,

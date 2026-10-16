@@ -37,7 +37,7 @@ export const config: WebdriverIO.Config = {
     runner: 'local',
     // One group, so the whole run shares one Appium session: a session per feature file
     // cost ~14 s each in reinstalling and restarting UiAutomator2.
-    specs: [['./features/**/*.feature']],
+    specs: [['../specs/**/*.feature']],
     maxInstances: 1,
 
     capabilities: [
