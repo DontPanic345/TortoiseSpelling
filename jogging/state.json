@@ -440,7 +440,7 @@
       "dependsOn": [
         "drop-api-key"
       ],
-      "status": "active",
+      "status": "blocked",
       "spec": "jogging/specs/web-core.md",
       "steps": [
         {
@@ -463,7 +463,7 @@
           "title": "web/ project, CI job and Dependabot, golden/ with JUnit and Vitest runners, Gradle wiring; port text, days, SM-2, session, queries, progress, diff and blanking with their golden files",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "blocked"
         },
         {
           "id": "build-2",
@@ -497,7 +497,10 @@
           "effort": "high",
           "status": "pending"
         }
-      ]
+      ],
+      "blocker": "The push of the new `web` job in .github/workflows/ci.yml was refused because the Actions token has no `workflow` scope; everything else in build-1 is pushed. Please either add that job to ci.yml yourself (checkout, actions/setup-node@v7 with Node 22 and npm cache on web/package-lock.json, then `npm ci`, `npm run typecheck`, `npm test` in web/) or give the jogging token the `workflow` scope.",
+      "blockerIssue": 16,
+      "blockedAt": "2026-10-16T07:45:09.036Z"
     },
     {
       "id": "web-ui",
