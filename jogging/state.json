@@ -475,7 +475,7 @@
           "title": "Backup JSON on the web: model types, parse, import and export mapping, golden/backup files read and written by both apps",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-4",
