@@ -118,8 +118,9 @@ export const stepPrompt = (piece, step) =>
         .join("\n");
 
 // The session's init frame says what it really got. A model the user's default
-// overrode, or a session without auto mode, can't do the step: Haiku has no auto mode and
-// silently falls back to default, which refuses every command and edit in `claude -p`.
+// overrode, or a session without auto mode, can't do the step. A model with no auto mode
+// (Haiku 4.5, which older CLIs pick for `haiku`) silently falls back to default, which
+// refuses every command and edit in `claude -p`.
 export const initProblem = (frame, step) => {
     if (!frame.model?.includes(step.model)) return `model mismatch: wanted ${step.model}, got ${frame.model}`;
     if (frame.permissionMode !== "auto") return `permission mode is ${frame.permissionMode}, not auto`;

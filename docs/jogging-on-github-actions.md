@@ -57,8 +57,10 @@ What's lost: the real Samsung. Keep the S23 for manual checks.
 - **Secrets are redacted from transcripts** (the artifact is readable by anyone signed in).
 - **No identity checks.** They guarded against the work account on the same PC. A runner
   only has the secrets put there.
-- **Claude Code is pinned** (`@anthropic-ai/claude-code@2.1.292`): the crew reads its
-  stream-json output (the `init` frame's model), so an upgrade is a deliberate edit.
+- **Claude Code is pinned** (`@anthropic-ai/claude-code@2.1.301`): the crew reads its
+  stream-json output (the `init` frame's model and permission mode), and model aliases
+  move between versions: in 2.1.292 `haiku` meant Haiku 4.5, which gets no auto mode.
+  An upgrade is a deliberate edit.
 
 ## Controls
 

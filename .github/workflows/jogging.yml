@@ -49,7 +49,7 @@ jobs:
 
       # Pinned: the crew reads the CLI's stream-json output, so an upgrade is a deliberate change.
       - name: Install Claude Code
-        run: npm install -g @anthropic-ai/claude-code@2.1.292
+        run: npm install -g @anthropic-ai/claude-code@2.1.301
 
       - name: Status
         if: inputs.command == 'status'

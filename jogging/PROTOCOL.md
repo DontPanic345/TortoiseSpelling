@@ -33,9 +33,8 @@ is now. It must contain:
   find or assert (test tags, text, the order of screens). Logic and data changes are
   proven by unit and instrumented tests, and the review step runs the whole suite.
 - The **model and effort** for each build step and for the final review step. Default
-  to Sonnet; use Sonnet at low effort for mechanical work. Never Haiku: it has no auto
-  mode, so an unattended session can't run a command or edit a file. Opus needs a
-  one-line justification in the spec, review steps included.
+  to Sonnet; use Haiku for mechanical work. Opus needs a one-line justification in the
+  spec, review steps included.
 - What a later piece will rely on (for pieces listed as depending on this one).
 
 Then append the build steps and the review step to the piece's `steps` in `state.json`:

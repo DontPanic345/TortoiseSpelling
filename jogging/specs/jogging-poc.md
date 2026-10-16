@@ -1,7 +1,7 @@
 # Jogging PoC: proof that Jogging runs on GitHub Actions
 
 Infrastructure, not part of The Work (`GOALS.md`, "Jogging on Actions"). It runs before
-the real pieces, cheaply, on Sonnet at low effort, and proves two things the move from
+the real pieces, cheaply, on Haiku, and proves two things the move from
 the Cloud Routine depends on:
 
 1. The runner can do a build step: emulator, Gradle, Appium and push all work, and fast.
@@ -11,13 +11,14 @@ the Cloud Routine depends on:
 Each step writes into `jogging/poc.md`, a scratch record that stays in the repo as
 evidence. No app code, no `CHANGELOG.md` line, no version bump.
 
-Both steps first ran on Haiku and ended within minutes, twice: Haiku has no auto mode, so
-the sessions fell back to default mode and every command was refused. The crew now
-refuses such a session before it begins.
+build-1 first ended within minutes, twice: the pinned Claude Code (2.1.292) resolved
+`haiku` to Haiku 4.5, which gets no auto mode, so the sessions fell back to default mode
+and every command was refused. The pin is now 2.1.301, where `haiku` is Haiku 5.5, and the
+crew refuses a session without auto mode before it begins.
 
 ## Build steps
 
-### build-1: runner check (sonnet, low)
+### build-1: runner check (haiku, low)
 
 Create `jogging/poc.md` with a `## Runner check` section. For each command below, record
 the command, whether it passed, and how long it took (time it with `time` or `date +%s`):
@@ -32,7 +33,7 @@ Acceptance: all four pass and `poc.md` lists the times. If one fails for a reaso
 this repo's code (no emulator, Appium can't start), that's a blocker: say which command
 and the error. Commit and push.
 
-### build-2: blocker round trip (sonnet, low)
+### build-2: blocker round trip (haiku, low)
 
 This step deliberately blocks once.
 

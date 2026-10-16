@@ -14,7 +14,7 @@
           "id": "build-1",
           "phase": 2,
           "title": "Runner check: emulator, Gradle, Appium and push, timed",
-          "model": "sonnet",
+          "model": "haiku",
           "effort": "low",
           "status": "blocked",
           "attempts": 2
@@ -23,7 +23,7 @@
           "id": "build-2",
           "phase": 2,
           "title": "Blocker round trip: block once, then record Alan's reply",
-          "model": "sonnet",
+          "model": "haiku",
           "effort": "low",
           "status": "pending"
         }
