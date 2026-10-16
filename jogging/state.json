@@ -483,7 +483,7 @@
           "title": "IndexedDB storage and the repository, repository and journey tests, CLAUDE.md, web and golden READMEs, the plan doc",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "review",
