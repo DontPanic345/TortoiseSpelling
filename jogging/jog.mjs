@@ -1,45 +1,38 @@
-// The Jogging support crew: runs The Work one step per `claude -p` session.
+// The Jogging support crew: runs The Work one step per `claude -p` session, on GitHub
+// Actions (.github/workflows/jogging.yml), beside an emulator.
 //
-//   node jogging/jog.mjs run       # run steps until the budget, the work or the pieces run out
+//   node jogging/jog.mjs run       # run steps until the budget, the deadline, the work or the pieces run out
 //   node jogging/jog.mjs status    # print the next step and the pacing verdict, run nothing
+//   node jogging/jog.mjs report <message>   # comment on the log issue
 //
-//   node jogging/jog.mjs report <message>   # post a message to the log issue
+// The crew is the only writer of a step's or a piece's status in state.json: a session
+// reports how its step ended in jogging/runs/result.json. See jogging/PROTOCOL.md.
 //
-// Add --cloud in a Cloud Routine session, after jogging/cloud-setup.sh.
-//
-// See jogging/PROTOCOL.md for what each session does.
+// Environment: GH_TOKEN (the push token, also the sessions' `gh`), BOT_TOKEN (the
+// workflow's own token: issues and comments come from github-actions[bot], so GitHub
+// notifies Alan), CLAUDE_CODE_OAUTH_TOKEN, ANDROID_SERIAL.
 
 import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
-import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.dirname(HERE);
 const STATE = path.join(HERE, "state.json");
-const LOCK = path.join(HERE, ".lock");
-const CLOUD_LOCK = path.join(HERE, "cloud-lock.json");
-const OUTBOX = path.join(HERE, "outbox.jsonl");
 const RUNS = path.join(HERE, "runs");
-const TASK_NAME = "TortoiseSpelling Jogging";
+const RESULT = path.join(RUNS, "result.json");
 const GH_USER = "DontPanic345";
 const GH_REPO = `${GH_USER}/TortoiseSpelling`;
-const CLOUD = process.argv.includes("--cloud");
-const CLOUD_PHONE = "127.0.0.1:15555";
-const PERSONAL_EMAIL = "falloonalan@gmail.com";
-const PERSONAL_CONFIG_DIR = path.join(os.homedir(), ".claude-personal");
-// Any of these would make `claude` sign in some other way than the personal profile's login.
-const AUTH_OVERRIDES = [
-    "ANTHROPIC_API_KEY",
-    "ANTHROPIC_AUTH_TOKEN",
-    "ANTHROPIC_BASE_URL",
-    "CLAUDE_CODE_OAUTH_TOKEN",
-    "CLAUDE_CODE_USE_BEDROCK",
-    "CLAUDE_CODE_USE_VERTEX",
-];
+const WORKFLOW = "jogging.yml";
 const MAX_ATTEMPTS = 2;
-const LOCK_STALE_MS = 8 * 3600_000;
+const STARTED = Date.now();
+// The job is killed at 345 minutes. No step starts after the deadline, and none runs
+// past its timeout, so the crew always gets to record the last one.
+const DEADLINE_MS = Number(process.env.JOGGING_DEADLINE_MIN ?? 250) * 60_000;
+const SESSION_TIMEOUT_MS = Number(process.env.JOGGING_SESSION_MIN ?? 90) * 60_000;
+// Written into transcripts, which become a workflow artifact anyone signed in can read.
+const SECRETS = ["CLAUDE_CODE_OAUTH_TOKEN", "GH_TOKEN", "BOT_TOKEN"];
 
 // ---- Pure logic (covered by jog.test.mjs) ----
 
@@ -78,21 +71,7 @@ export const nextStep = (state) => {
     return { stuck: true };
 };
 
-// `claude` without CLAUDE_CONFIG_DIR is the work account, so every session is refused
-// unless `claude auth status` proves it's the personal one.
-export const accountProblem = (status) => {
-    if (!status.loggedIn) return "not logged in";
-    if (status.email !== PERSONAL_EMAIL) return `signed in as ${status.email}, not ${PERSONAL_EMAIL}`;
-    if (status.authMethod !== "claude.ai" || status.apiProvider !== "firstParty") {
-        return `auth is ${status.authMethod}/${status.apiProvider}, not the claude.ai subscription`;
-    }
-    if (path.resolve(status.configDirectory) !== path.resolve(PERSONAL_CONFIG_DIR)) {
-        return `config directory is ${status.configDirectory}, not ${PERSONAL_CONFIG_DIR}`;
-    }
-    return null;
-};
-
-// A rejected GH_TOKEN turns even public reads into 401s and leaves every session without `gh`.
+// A rejected GH_TOKEN can't push, so nothing a session does would land.
 export const tokenProblem = async (token, get = fetch) => {
     if (!token) return "GH_TOKEN is not set";
     const res = await get("https://api.github.com/user", {
@@ -126,18 +105,80 @@ export const parseUsage = (raw) => {
     throw new Error("no session/weekly windows in the usage payload");
 };
 
-export const stepPrompt = (piece, step, cloud) =>
+export const stepPrompt = (piece, step) =>
     [
-        `You are a Jogging session for Tortoise Spelling, with no other context.`,
-        cloud ? `You are running in a Cloud Routine session: follow PROTOCOL.md's "In the cloud" rules.` : "",
-        `Read CLAUDE.md, jogging/PROTOCOL.md, jogging/GOALS.md, piece "${piece.id}" in jogging/state.json, and the end of jogging/LOG.md.`,
+        `You are a Jogging session for Tortoise Spelling, running in GitHub Actions with no other context.`,
+        `Read jogging/PROTOCOL.md, jogging/GOALS.md, piece "${piece.id}" in jogging/state.json, and the end of jogging/LOG.md.`,
         `Do step "${step.id}" of piece "${piece.id}" (${piece.title}) exactly as PROTOCOL.md describes, and nothing else.`,
         step.title ? `The step: ${step.title}. Its details are in ${piece.spec}.` : "",
         piece.userReply ? `Alan replied to this piece's blocker: """${piece.userReply}"""` : "",
-        `Finish by updating jogging/state.json and jogging/LOG.md, then commit and push.`,
+        `Finish as PROTOCOL.md's "Finishing a step" says: commit and push your work and the log entry, then write jogging/runs/result.json.`,
     ]
         .filter(Boolean)
         .join("\n");
+
+// How a session ended: what it wrote to result.json, or null when it wrote nothing
+// usable. `exitOk` is false when the session crashed, was killed or got the wrong model.
+export const readResult = (text) => {
+    if (text == null) return null;
+    try {
+        const r = JSON.parse(text);
+        if (!["done", "pending", "blocked"].includes(r.status)) return null;
+        if (r.status === "blocked" && !r.blocker) return null;
+        return r;
+    } catch {
+        return null;
+    }
+};
+
+// Applies one session's outcome to the state. Returns what happened, for the run report.
+export const applyResult = (state, pieceId, stepId, result, exitOk) => {
+    const piece = state.pieces.find((p) => p.id === pieceId);
+    const step = piece.steps.find((s) => s.id === stepId);
+    // A session that crashed may not have read the reply, so the next one gets it again.
+    if (exitOk) delete piece.userReply;
+    const status = exitOk ? result?.status ?? "pending" : "pending";
+    if (status === "done") {
+        step.status = "done";
+        if (piece.steps.every((s) => s.status === "done")) piece.status = "done";
+        return "done";
+    }
+    if (status === "blocked") {
+        step.status = "blocked";
+        piece.status = "blocked";
+        piece.blocker = result.blocker;
+        return "blocked";
+    }
+    step.attempts = (step.attempts ?? 0) + 1;
+    if (step.attempts >= MAX_ATTEMPTS) {
+        step.status = "blocked";
+        piece.status = "blocked";
+        piece.blocker = `Step ${step.id} ended ${step.attempts} times without finishing. See jogging/LOG.md and this run's transcripts.`;
+        return "blocked";
+    }
+    return exitOk ? "pending" : "pending (session failed)";
+};
+
+// A blocked piece resumes when Alan comments on its issue or closes it. Returns true when
+// it resumed. Clears the issue fields, so a later blocker gets an issue of its own.
+export const applyReplies = (piece, issue, comments) => {
+    const replies = comments.filter((c) => c.user.login === GH_USER && new Date(c.created_at) > new Date(piece.blockedAt));
+    if (replies.length === 0 && issue.state === "open") return false;
+    piece.userReply = replies.map((c) => c.body).join("\n\n") || "(Alan closed the issue without comment.)";
+    piece.status = "active";
+    for (const s of piece.steps) {
+        if (s.status === "blocked") {
+            s.status = "pending";
+            delete s.attempts;
+        }
+    }
+    delete piece.blocker;
+    delete piece.blockerIssue;
+    delete piece.blockedAt;
+    return true;
+};
+
+export const redact = (text, secrets) => secrets.filter((s) => s && s.length >= 8).reduce((t, s) => t.split(s).join("***"), text);
 
 // ---- Side effects ----
 
@@ -156,141 +197,99 @@ const sh = (cmd, args, opts = {}) =>
 
 const git = (...args) => sh("git", args);
 
+// Alan may push to main while a run is going (pausing it, say), so every push rebases first.
+const push = () => {
+    for (let i = 1; ; i++) {
+        try {
+            git("pull", "--rebase");
+            git("push");
+            return;
+        } catch (e) {
+            try {
+                git("rebase", "--abort");
+            } catch {
+                // no rebase in progress
+            }
+            if (i >= 3) throw e;
+        }
+    }
+};
+
 const commitState = (message) => {
     git("add", "jogging/state.json");
     if (git("diff", "--cached", "--name-only")) {
         git("commit", "-m", `jogging: ${message}`);
-        git("push");
+        push();
     }
-};
-
-// Forced, not defaulted: an inherited CLAUDE_CONFIG_DIR may point at the work profile.
-// A cloud session belongs to the routine's owner, so there's no profile to pick.
-const setupEnv = () => {
-    if (CLOUD) {
-        process.env.JAVA_HOME ??= "/usr/lib/jvm/java-17-openjdk-amd64";
-        process.env.ANDROID_HOME ??= "/opt/android-sdk";
-        process.env.ANDROID_SERIAL ??= CLOUD_PHONE;
-        return;
-    }
-    process.env.CLAUDE_CONFIG_DIR = PERSONAL_CONFIG_DIR;
-    for (const key of AUTH_OVERRIDES) delete process.env[key];
-    process.env.JAVA_HOME ??= "C:\\Program Files\\Android\\Android Studio\\jbr";
-    process.env.ANDROID_HOME ??= path.join(process.env.LOCALAPPDATA ?? "", "Android", "Sdk");
-    process.env.GH_TOKEN = sh("gh", ["auth", "token", "--user", GH_USER]);
-};
-
-// Runs before every session. Throws, so a wrong account stops the run before any model call.
-const assertIdentity = () => {
-    if (CLOUD) {
-        const email = git("config", "user.email");
-        if (email !== PERSONAL_EMAIL) throw new Error(`refusing to run: git user.email is ${email}`);
-        return;
-    }
-    const problem = accountProblem(JSON.parse(sh("claude", ["auth", "status"])));
-    if (problem) throw new Error(`refusing to run: Claude ${problem}`);
-    const email = git("config", "user.email");
-    if (email !== PERSONAL_EMAIL) throw new Error(`refusing to run: git user.email is ${email}`);
-    const login = gh("api", "user", "--jq", ".login");
-    if (login !== GH_USER) throw new Error(`refusing to run: GH_TOKEN belongs to ${login}`);
 };
 
 const readUsage = () => {
-    const python = process.platform === "win32" ? "python" : "python3";
-    const out = sh(python, [path.join(HERE, "usage.py"), "--json"], { timeout: 240_000 });
+    const out = sh("python3", [path.join(HERE, "usage.py"), "--json"], { timeout: 240_000 });
     return parseUsage(JSON.parse(out).raw);
 };
 
-const gh = (...args) => sh("gh", args);
-
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// The repo is public, so reads need no token; GH_TOKEN, when set, only lifts the rate limit.
-const githubGet = async (route) => {
-    const headers = { Accept: "application/vnd.github+json" };
-    if (process.env.GH_TOKEN) headers.Authorization = `Bearer ${process.env.GH_TOKEN}`;
-    const res = await fetch(`https://api.github.com/repos/${GH_REPO}${route}`, { headers });
-    if (!res.ok) throw new Error(`GitHub ${route}: HTTP ${res.status}`);
-    return res.json();
+const github = async (method, route, body) => {
+    const res = await fetch(`https://api.github.com/repos/${GH_REPO}${route}`, {
+        method,
+        headers: {
+            Accept: "application/vnd.github+json",
+            Authorization: `Bearer ${process.env.BOT_TOKEN}`,
+            ...(body ? { "Content-Type": "application/json" } : {}),
+        },
+        body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!res.ok) throw new Error(`GitHub ${method} ${route}: HTTP ${res.status} ${await res.text()}`);
+    return res.status === 204 ? null : res.json();
 };
 
-// Pushed to the outbox, which .github/workflows/jogging-notify.yml posts as
-// github-actions[bot]: GitHub doesn't notify Alan about comments made with his own token.
-const notify = (message) => {
-    fs.appendFileSync(OUTBOX, JSON.stringify(message) + "\n");
-    git("add", "jogging/outbox.jsonl");
-    git("commit", "-m", "jogging: notify");
-    git("push");
-};
-
-const findIssue = async (title) => {
-    for (let i = 0; i < 20; i++) {
-        await sleep(15_000);
-        const open = await githubGet("/issues?state=open&per_page=100");
-        const hit = open.find((issue) => issue.title === title && !issue.pull_request);
-        if (hit) return hit.number;
-    }
-    return null;
-};
+const comment = (issue, body) => github("POST", `/issues/${issue}/comments`, { body });
+const openIssue = async (title, body) => (await github("POST", "/issues", { title, body })).number;
 
 const ensureLogIssue = async (state) => {
     if (state.logIssue) return state.logIssue;
-    const title = "Jogging log";
-    notify({ title, body: "Progress from the Jogging loop. Blockers get their own issues." });
-    state.logIssue = await findIssue(title);
+    state.logIssue = await openIssue("Jogging log", "Progress from the Jogging loop. Blockers get their own issues.");
     writeState(state);
     commitState("record the log issue");
     return state.logIssue;
 };
 
-// A blocked piece resumes when Alan comments on its issue or closes it.
 const checkReplies = async (state) => {
     for (const piece of state.pieces.filter((p) => p.status === "blocked" && p.blockerIssue)) {
-        const issue = await githubGet(`/issues/${piece.blockerIssue}`);
-        const comments = await githubGet(`/issues/${piece.blockerIssue}/comments?per_page=100`);
-        const replies = comments.filter(
-            (c) => c.user.login === GH_USER && new Date(c.created_at) > new Date(piece.blockedAt),
-        );
-        if (replies.length === 0 && issue.state === "open") continue;
-        piece.userReply = replies.map((c) => c.body).join("\n\n") || "(Alan closed the issue without comment.)";
-        piece.status = "active";
-        for (const s of piece.steps) if (s.status === "blocked") s.status = "pending";
-        delete piece.blocker;
+        const n = piece.blockerIssue;
+        const issue = await github("GET", `/issues/${n}`);
+        const comments = await github("GET", `/issues/${n}/comments?per_page=100`);
+        if (!applyReplies(piece, issue, comments)) continue;
         log(`unblocked ${piece.id}`);
+        if (issue.state === "open") {
+            await comment(n, "Picked up. The next Jogging run carries on with this piece.");
+            await github("PATCH", `/issues/${n}`, { state: "closed" });
+        }
     }
 };
 
-// Pieces a session has just marked blocked get an issue.
+// Pieces that have just been blocked get an issue each.
 const raiseBlockers = async (state) => {
     for (const piece of state.pieces.filter((p) => p.status === "blocked" && !p.blockerIssue)) {
-        const title = `Jogging blocker: ${piece.id}`;
-        notify({
-            title,
-            body: `${piece.blocker ?? "(no details given; see jogging/LOG.md)"}\n\nReply here, or close the issue, to unblock it.`,
-        });
-        piece.blockerIssue = await findIssue(title);
+        piece.blockerIssue = await openIssue(
+            `Jogging blocker: ${piece.id}`,
+            `${piece.blocker}\n\nReply here, or close the issue, to unblock it.`,
+        );
         piece.blockedAt = new Date().toISOString();
         log(`blocked ${piece.id} -> issue #${piece.blockerIssue}`);
-    }
-};
-
-const disableTask = () => {
-    try {
-        sh("schtasks", ["/Change", "/TN", TASK_NAME, "/DISABLE"]);
-    } catch (e) {
-        log(`could not disable the scheduled task: ${e.message}`);
     }
 };
 
 const runSession = (piece, step) =>
     new Promise((resolve) => {
         fs.mkdirSync(RUNS, { recursive: true });
+        fs.rmSync(RESULT, { force: true });
         const stamp = new Date().toISOString().replace(/[:.]/g, "-");
         const out = fs.createWriteStream(path.join(RUNS, `${stamp}-${piece.id}-${step.id}.jsonl`));
+        const secrets = SECRETS.map((k) => process.env[k]);
         const child = spawn(
             "claude",
             [
-                "-p", stepPrompt(piece, step, CLOUD),
+                "-p", stepPrompt(piece, step),
                 "--model", step.model,
                 "--effort", step.effort,
                 "--permission-mode", "auto",
@@ -300,210 +299,169 @@ const runSession = (piece, step) =>
             { cwd: REPO, shell: false, stdio: ["ignore", "pipe", "pipe"] },
         );
         let model = null;
+        let timedOut = false;
+        const timer = setTimeout(() => {
+            timedOut = true;
+            log(`${piece.id}/${step.id} ran past ${SESSION_TIMEOUT_MS / 60_000} minutes; stopping it`);
+            child.kill();
+        }, SESSION_TIMEOUT_MS);
         let buf = "";
         child.stdout.on("data", (chunk) => {
-            out.write(chunk);
             buf += chunk;
             let nl;
             while ((nl = buf.indexOf("\n")) >= 0) {
                 const line = buf.slice(0, nl);
                 buf = buf.slice(nl + 1);
+                out.write(redact(line, secrets) + "\n");
                 try {
                     const frame = JSON.parse(line);
+                    // The model the session really got, which the user's default can't override.
                     if (frame.type === "system" && frame.subtype === "init" && !model) {
                         model = frame.model;
-                        if (!model.includes(step.model)) {
+                        if (!model?.includes(step.model)) {
                             log(`model mismatch: wanted ${step.model}, got ${model}; stopping the session`);
                             child.kill();
                         }
                     }
                 } catch {
-                    // partial or non-JSON line
+                    // non-JSON line
                 }
             }
         });
-        child.stderr.on("data", (chunk) => out.write(chunk));
+        child.stderr.on("data", (chunk) => out.write(redact(String(chunk), secrets)));
         child.on("close", (code) => {
-            out.end();
-            resolve({ code, model });
+            clearTimeout(timer);
+            out.end(redact(buf, secrets));
+            resolve({ code, model, timedOut });
         });
     });
 
-const localLock = {
-    acquire: () => {
+// Whatever the session left behind: unpushed commits are pushed if they rebase cleanly,
+// anything uncommitted is dropped. The runner is thrown away at the end of the job.
+const tidyUp = () => {
+    if (git("status", "--porcelain")) {
+        log("session left uncommitted changes; dropping them");
+        git("reset", "--hard");
+        git("clean", "-fdq", "-e", "jogging/runs/");
+    }
+    if (git("rev-list", "@{u}..HEAD")) {
         try {
-            const held = fs.statSync(LOCK);
-            if (Date.now() - held.mtimeMs < LOCK_STALE_MS) return false;
-        } catch {
-            // no lock
+            push();
+        } catch (e) {
+            log(`could not push the session's commits, dropping them: ${e.message}`);
+            git("reset", "--hard", "@{u}");
         }
-        fs.writeFileSync(LOCK, String(process.pid));
-        return true;
-    },
-    release: () => fs.rmSync(LOCK, { force: true }),
+    }
+    git("pull", "--rebase");
 };
 
-// Cloud sessions share nothing but the repo, so the lock is a file on main. Losing
-// the push race means another session took it first.
-const cloudLock = {
-    acquire: () => {
-        try {
-            const held = JSON.parse(fs.readFileSync(CLOUD_LOCK, "utf8"));
-            if (Date.now() - new Date(held.since).getTime() < LOCK_STALE_MS) return false;
-        } catch {
-            // no lock
-        }
-        fs.writeFileSync(CLOUD_LOCK, JSON.stringify({ since: new Date().toISOString() }) + "\n");
-        git("add", "jogging/cloud-lock.json");
-        git("commit", "-m", "jogging: take the cloud lock");
-        try {
-            git("push");
-            return true;
-        } catch {
-            git("reset", "--hard", "@{u}");
-            return false;
-        }
-    },
-    release: () => {
-        try {
-            git("pull", "--ff-only");
-            git("rm", "-q", "jogging/cloud-lock.json");
-            git("commit", "-m", "jogging: release the cloud lock");
-            git("push");
-        } catch (e) {
-            log(`could not release the cloud lock: ${e.message}`);
-        }
-    },
+// Turns the schedule off once The Work is done.
+const disableWorkflow = async () => {
+    try {
+        await github("PUT", `/actions/workflows/${WORKFLOW}/disable`);
+    } catch (e) {
+        log(`could not disable ${WORKFLOW}: ${e.message}`);
+    }
 };
 
 // Runs steps until something stops it, and says why.
 const runSteps = async (logIssue, ran) => {
     for (;;) {
-        const usage = readUsage();
-        const verdict = pace(usage, new Date());
-        if (!verdict.ok) return `budget stop: ${verdict.reason}`;
-
+        git("pull", "--rebase");
         let state = readState();
         if (!state.enabled) return "paused in state.json";
+        if (Date.now() - STARTED > DEADLINE_MS) return "deadline: no time for another step in this job";
         const next = nextStep(state);
         if (next.allDone) {
             state.done = true;
             state.enabled = false;
             writeState(state);
             commitState("The Work is done");
-            notify({ issue: logIssue, body: "🏁 Every piece is done. Jogging has disabled itself in state.json." });
-            if (!CLOUD) disableTask();
+            await comment(logIssue, "🏁 Every piece is done. Jogging has disabled itself and its workflow.");
+            await disableWorkflow();
             return "all done";
         }
         if (next.stuck) {
-            notify({ issue: logIssue, body: "⛔ Every remaining piece is blocked or waiting on one. Jogging stops until a blocker is answered." });
+            if (!state.stuck) {
+                state.stuck = true;
+                writeState(state);
+                commitState("every remaining piece is blocked");
+                await comment(logIssue, "⛔ Every remaining piece is blocked or waiting on one. Jogging idles until a blocker is answered.");
+            }
             return "all remaining pieces blocked";
         }
+        const verdict = pace(readUsage(), new Date());
+        if (!verdict.ok) return `budget stop: ${verdict.reason}`;
 
         const { piece, step } = next;
-        assertIdentity();
         log(`start ${piece.id}/${step.id} on ${step.model}/${step.effort} (${verdict.reason})`);
-        const { code, model } = await runSession(piece, step);
-        log(`end ${piece.id}/${step.id}: exit ${code}, model ${model}`);
+        const { code, model, timedOut } = await runSession(piece, step);
+        const exitOk = code === 0 && !timedOut && Boolean(model?.includes(step.model));
+        const result = readResult(fs.existsSync(RESULT) ? fs.readFileSync(RESULT, "utf8") : null);
+        log(`end ${piece.id}/${step.id}: exit ${code}, model ${model}, result ${JSON.stringify(result)}`);
 
-        git("pull", "--ff-only");
+        tidyUp();
         state = readState();
+        delete state.stuck;
+        const outcome = applyResult(state, piece.id, step.id, result, exitOk);
+        ran.push(`${piece.id}/${step.id}: ${outcome}`);
         const p = state.pieces.find((x) => x.id === piece.id);
-        const s = p.steps.find((x) => x.id === step.id);
-        if (code !== 0 || !model?.includes(step.model)) {
-            if (git("status", "--porcelain")) {
-                git("stash", "push", "--include-untracked", "-m", `jogging ${piece.id}/${step.id} leftovers`);
-            }
-            return `session ${piece.id}/${step.id} failed (exit ${code}, model ${model})`;
-        }
-        if (s.status === "pending") {
-            s.attempts = (s.attempts ?? 0) + 1;
-            if (s.attempts >= MAX_ATTEMPTS) {
-                s.status = "blocked";
-                p.status = "blocked";
-                p.blocker ??= `Step ${s.id} ended ${s.attempts} times without finishing. See jogging/LOG.md and jogging/runs/.`;
-            }
-        }
-        ran.push(`${piece.id}/${step.id}: ${s.status}`);
-        if (s.status === "done" && p.status === "done") {
-            notify({ issue: logIssue, body: `✅ ${p.id} is done: ${p.title}` });
-        }
+        if (p.status === "done") await comment(logIssue, `✅ ${p.id} is done: ${p.title}`);
         await raiseBlockers(state);
         writeState(state);
-        commitState(`after ${piece.id}/${step.id}`);
-        if (git("status", "--porcelain")) return "session left uncommitted changes";
+        commitState(`${piece.id}/${step.id} ${outcome}`);
     }
 };
 
 const run = async () => {
-    setupEnv();
-    git("pull", "--ff-only");
-    if (git("status", "--porcelain")) return log("working tree is dirty; not starting");
-    const lock = CLOUD ? cloudLock : localLock;
-    if (!lock.acquire()) return log("another run holds the lock");
-    try {
-        assertIdentity();
-        const state = readState();
-        if (!state.enabled) return log("disabled in state.json");
-        const badToken = CLOUD ? await tokenProblem(process.env.GH_TOKEN) : null;
-        if (badToken) {
-            log(badToken);
-            delete process.env.GH_TOKEN;
-        }
-        const logIssue = await ensureLogIssue(state);
-        if (badToken) {
-            notify({
-                issue: logIssue,
-                body: `⚠️ ${badToken}, so this run's sessions have no \`gh\`. Replace it in the cloud environment's variables.`,
-            });
-        }
-        await checkReplies(state);
-        writeState(state);
-        commitState("pick up replies");
+    git("pull", "--rebase");
+    const state = readState();
+    if (!state.enabled) return log("disabled in state.json");
+    const badToken = await tokenProblem(process.env.GH_TOKEN);
+    if (badToken) throw new Error(badToken);
+    const logIssue = await ensureLogIssue(state);
+    await checkReplies(state);
+    writeState(state);
+    commitState("pick up replies");
 
-        const ran = [];
-        const reason = await runSteps(logIssue, ran);
-        log(reason);
-        // Nobody watches a cloud run, so anything other than a quiet budget stop is reported.
-        if (CLOUD && (ran.length > 0 || !reason.startsWith("budget stop"))) {
-            const steps = ran.length ? ran.map((r) => `- ${r}`).join("\n") : "- (no steps)";
-            notify({ issue: logIssue, body: `☁️ Cloud run finished: ${reason}\n\n${steps}` });
-        }
-    } finally {
-        lock.release();
+    const ran = [];
+    const reason = await runSteps(logIssue, ran);
+    log(reason);
+    // A quiet budget stop with nothing run isn't worth a notification.
+    if (ran.length > 0 || !reason.startsWith("budget stop")) {
+        const steps = ran.length ? ran.map((r) => `- ${r}`).join("\n") : "- (no steps)";
+        const url = process.env.GITHUB_RUN_ID
+            ? `\n\n[The run](https://github.com/${GH_REPO}/actions/runs/${process.env.GITHUB_RUN_ID})`
+            : "";
+        await comment(logIssue, `🏃 Run finished: ${reason}\n\n${steps}${url}`);
     }
 };
 
 const status = () => {
-    setupEnv();
-    assertIdentity();
-    console.log(CLOUD ? `cloud, phone ${process.env.ANDROID_SERIAL}` : `identity: ${PERSONAL_EMAIL}, ${PERSONAL_CONFIG_DIR}, gh ${GH_USER}`);
     const state = readState();
     const next = nextStep(state);
+    console.log(`enabled: ${state.enabled}`);
     console.log(
         next.piece ? `next: ${next.piece.id}/${next.step.id} on ${next.step.model}/${next.step.effort}` : JSON.stringify(next),
     );
     console.log(`pacing: ${JSON.stringify(pace(readUsage(), new Date()))}`);
 };
 
-// For the routine to report a failure from before the crew started, e.g. in cloud-setup.sh.
-const report = () => {
-    const message = process.argv.slice(3).filter((a) => a !== "--cloud").join(" ");
-    notify({ issue: readState().logIssue, body: `⚠️ ${message}` });
-};
+// For the workflow to report a failure the crew couldn't, e.g. the job timing out.
+const report = () => comment(readState().logIssue, `⚠️ ${process.argv.slice(3).join(" ")}`);
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const cmd = process.argv[2];
     const main = { run, status, report }[cmd];
     if (!main) {
-        console.error("Usage: node jogging/jog.mjs <run|status|report <message>> [--cloud]");
+        console.error("Usage: node jogging/jog.mjs <run|status|report <message>>");
         process.exit(2);
     }
-    Promise.resolve(main()).catch((e) => {
+    Promise.resolve(main()).catch(async (e) => {
         log(`crash: ${e.stack ?? e}`);
-        if (CLOUD) {
+        if (cmd === "run") {
             try {
-                notify({ issue: readState().logIssue, body: `💥 Cloud run crashed:\n\n\`\`\`\n${e.message ?? e}\n\`\`\`` });
+                await comment(readState().logIssue, `💥 Jogging crashed:\n\n\`\`\`\n${e.message ?? e}\n\`\`\``);
             } catch {
                 // nothing left to report through
             }

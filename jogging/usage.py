@@ -28,6 +28,9 @@ CREDS = os.path.join(CONFIG_DIR, ".credentials.json")
 
 
 def _token():
+    # CI signs in with a long-lived `claude setup-token` token, with no credentials file.
+    if os.environ.get("CLAUDE_CODE_OAUTH_TOKEN"):
+        return os.environ["CLAUDE_CODE_OAUTH_TOKEN"]
     with open(CREDS) as fh:
         d = json.load(fh)
     oauth = d.get("claudeAiOauth") or {}

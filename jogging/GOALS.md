@@ -54,5 +54,6 @@ a goal above requires it, and must say which.
 - **Releases.** Each finished piece that changes the Android app for users ends with
   `node scripts/bump-version.mjs minor` (`patch` for fix-only pieces), committed and
   pushed, which publishes a GitHub Release. Test-only and web-only pieces don't bump.
-- **Cloud Jogging.** Jogging runs as a Cloud Routine that drives a spare phone over
-  Tailscale (`jogging/spike.md`). It's infrastructure, not a piece.
+- **Jogging on Actions.** Jogging runs as a scheduled GitHub Actions workflow beside an
+  emulator (`.github/workflows/jogging.yml`). It's infrastructure, not a piece; the
+  `jogging-poc` piece only proves it works.
