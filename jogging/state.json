@@ -627,7 +627,7 @@
           "title": "Web runner: playwright-bdd, the e2e build with its seed hook, playwright.specs.config.ts, web steps for add_word, review, completion and daily_allowance",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-3",
