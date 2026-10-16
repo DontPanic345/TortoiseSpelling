@@ -619,7 +619,7 @@
           "title": "Move e2e/features to specs/ with layer and platform tags, the tag check script and its tests, the Android runner and shared fixtures, CI scripts step, Android-side docs",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-2",
