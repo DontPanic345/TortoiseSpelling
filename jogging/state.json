@@ -575,7 +575,7 @@
           "title": "GitHub Pages deploy workflow and live check (blocker if Pages isn't enabled), docs and changelog",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "review",
@@ -585,8 +585,7 @@
           "effort": "high",
           "status": "pending"
         }
-      ],
-      "userReply": "Setup action pages 👌 "
+      ]
     },
     {
       "id": "shared-specs",
@@ -716,6 +715,5 @@
         }
       ]
     }
-  ],
-  "stuck": true
+  ]
 }
