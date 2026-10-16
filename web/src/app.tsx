@@ -5,6 +5,7 @@ import { TopBar } from "./ui/common/TopBar";
 import { BackButton } from "./ui/common/BackButton";
 import { CompletionScreen } from "./ui/complete/CompletionScreen";
 import { HomeScreen } from "./ui/home/HomeScreen";
+import { ReviewScreen } from "./ui/review/ReviewScreen";
 import { back, routeHash, useRoute, type Route } from "./ui/router";
 
 const TITLES: Record<Route["name"], string> = {
@@ -36,6 +37,9 @@ function Screen({ route }: { route: Route }) {
       return <HomeScreen />;
     case "completion":
       return <CompletionScreen />;
+    case "review":
+    case "practice":
+      return <ReviewScreen practiceMode={route.name === "practice"} />;
     default:
       return <Placeholder route={route} />;
   }
