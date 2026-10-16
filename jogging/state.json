@@ -372,7 +372,7 @@
       "dependsOn": [
         "copy-prompt"
       ],
-      "status": "active",
+      "status": "done",
       "spec": "jogging/specs/drop-api-key.md",
       "steps": [
         {
@@ -427,7 +427,7 @@
           "title": "Review the piece against its spec and the goals, rerun every layer, e2e and the release smoke, bump the minor version",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
