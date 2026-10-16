@@ -695,7 +695,7 @@
           "title": "Settings' Daily reminder section, the Home reminder card, test ids, e2e fakes, notifications.feature's shared scenario and web steps, push.spec.ts",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-4",
