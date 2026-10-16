@@ -1,0 +1,124 @@
+{
+    "version": 1,
+    "exportedAt": 1760000000000,
+    "words": [
+        {
+            "text": "run",
+            "definition": "To move fast on foot.",
+            "example": "I like to _____ every morning.",
+            "partOfSpeech": "verb",
+            "createdAt": 1750000000000,
+            "repetitions": 5,
+            "easeFactor": 2.36,
+            "intervalDays": 40,
+            "dueOn": 20450,
+            "lapses": 2,
+            "lastReviewedAt": 1759000000000,
+            "firstReviewedOn": 20300,
+            "isNew": false,
+            "suspended": false,
+            "definitions": [
+                {
+                    "text": "To move fast on foot.",
+                    "partOfSpeech": "verb",
+                    "forms": [
+                        {
+                            "text": "run",
+                            "label": null,
+                            "examples": [
+                                { "text": "I like to _____ every morning.", "shownAt": 1758000000000 },
+                                { "text": "They _____ for the bus.", "shownAt": null }
+                            ]
+                        },
+                        {
+                            "text": "ran",
+                            "label": "past tense",
+                            "examples": [
+                                { "text": "She _____ home yesterday.", "shownAt": null }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "text": "To manage or operate.",
+                    "partOfSpeech": null,
+                    "forms": [
+                        {
+                            "text": "run",
+                            "label": null,
+                            "examples": []
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "text": "child",
+            "definition": "A young person.",
+            "example": "The _____ laughed.",
+            "partOfSpeech": "noun",
+            "createdAt": 1751000000000,
+            "repetitions": 0,
+            "easeFactor": 1.3,
+            "intervalDays": 0,
+            "dueOn": 20390,
+            "lapses": 0,
+            "lastReviewedAt": null,
+            "firstReviewedOn": null,
+            "isNew": true,
+            "suspended": true,
+            "definitions": [
+                {
+                    "text": "A young person.",
+                    "partOfSpeech": "noun",
+                    "forms": [
+                        {
+                            "text": "child",
+                            "label": null,
+                            "examples": [
+                                { "text": "The _____ laughed.", "shownAt": null }
+                            ]
+                        },
+                        {
+                            "text": "children",
+                            "label": "plural",
+                            "examples": [
+                                { "text": "The _____ played outside.", "shownAt": 1757000000000 }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "text": "Café",
+            "definition": "A small restaurant.",
+            "example": "We met at the _____.",
+            "partOfSpeech": null,
+            "createdAt": 1752000000000,
+            "repetitions": 1,
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "dueOn": 20391,
+            "lapses": 0,
+            "lastReviewedAt": 1759500000000,
+            "firstReviewedOn": 20360,
+            "isNew": false,
+            "suspended": false,
+            "futureKey": { "ignored": [1, 2, 3] },
+            "definitions": [
+                {
+                    "text": "A small restaurant.",
+                    "forms": [
+                        {
+                            "text": "Café",
+                            "examples": [
+                                { "text": "We met at the _____.", "shownAt": 1756000000000 }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -39,6 +39,9 @@ object Golden {
     fun load(name: String): JsonObject =
         Json.parseToJsonElement(File(dir, "$name.json").readText()).jsonObject
 
+    /** A whole backup file from `golden/backup/`. */
+    fun backupFile(name: String): File = File(dir, "backup/$name")
+
     /** The file has exactly these functions, so no case sits unread. */
     fun assertFunctions(file: JsonObject, known: Set<String>) {
         assertEquals(known, file.keys - "about")

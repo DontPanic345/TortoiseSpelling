@@ -55,6 +55,7 @@ output, and a `name` saying what it checks (the Kotlin test it came from, in wor
 | `pick.json` | `pickCard`, the card's `answer` and `hint` |
 | `prompt.json` | `lookupPrompt`, the whole text |
 | `paste.json` | `parsePastedLookup` (every message, the order of the checks, each limit at and one over), `summary`, `isBlank` |
+| `backup.json` | `parseBackup`, `toImport`, `toBackup`: whole files in `backup/` (`files`: what each imports as, and what exporting those words writes back), refusals with their messages, and `quirks` |
 
 ## Known differences
 
@@ -67,7 +68,7 @@ bug in the port unless it is listed here.
   parser, and a chat AI rarely writes such JSON. (A raw newline, tab or other control character
   inside a string is also looser on the JVM; the port escapes those before parsing, so the two
   agree, and `paste.json` pins it.)
-- Arriving with the backup format: JSON numbers such as `17.0`, which `JSON.parse` reads as
+- Backup files: JSON numbers such as `17.0`, which `JSON.parse` reads as
   `17`, and `Long` keys beyond JavaScript's safe integers.
 
 ## Kotlin's string rules
@@ -78,3 +79,10 @@ characters count as whitespace. The port's `ktTrim` strips `Char.isWhitespace` c
 `normalizeWord` collapses only `[ \t\n\v\f\r]+`. `text.json` pins the traps: a non-breaking
 space is trimmed at the ends but not collapsed inside, U+001F is trimmed, and the byte order
 mark is not.
+
+## Backup quirks
+
+kotlinx reads a quoted number (`"dueOn": "3"`) and a quoted boolean in any case
+(`"isNew": "TRUE"`) where the key expects one, with `isLenient` off. `parseBackup` in the port
+does the same, pinned by `quirks`. A word with no `createdAt` takes the time of the read, so
+`files` cases for such a file set `ignoreCreatedAt`.

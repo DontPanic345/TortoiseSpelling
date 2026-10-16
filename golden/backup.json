@@ -1,0 +1,727 @@
+{
+  "about": "Whole backup files and refusals: BackupFile, toImport, toBackup, parseBackup (Backup.kt, BackupTest).",
+  "files": [
+    {
+      "name": "an export from Android 0.3.0: flat words, the two refresh keys, blank and missing parts of speech",
+      "file": "android-0.3.0.json",
+      "imported": [
+        {
+          "word": {
+            "text": "necessary",
+            "normalizedText": "necessary",
+            "createdAt": 1750000000000,
+            "repetitions": 3,
+            "easeFactor": 2.36,
+            "intervalDays": 14,
+            "dueOn": 20400,
+            "lapses": 1,
+            "lastReviewedAt": 1759000000000,
+            "firstReviewedOn": 20350,
+            "isNew": false,
+            "suspended": false
+          },
+          "content": {
+            "definitions": [
+              {
+                "text": "Needed; required.",
+                "partOfSpeech": "adjective",
+                "forms": [
+                  {
+                    "text": "necessary",
+                    "label": "",
+                    "examples": [
+                      {
+                        "text": "It is _____ to arrive early.",
+                        "shownAt": null
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "word": {
+            "text": "Caf\u00e9",
+            "normalizedText": "caf\u00e9",
+            "createdAt": 1751000000000,
+            "repetitions": 0,
+            "easeFactor": 2.5,
+            "intervalDays": 0,
+            "dueOn": 20390,
+            "lapses": 0,
+            "lastReviewedAt": null,
+            "firstReviewedOn": null,
+            "isNew": true,
+            "suspended": true
+          },
+          "content": {
+            "definitions": [
+              {
+                "text": "A small restaurant.",
+                "partOfSpeech": "",
+                "forms": [
+                  {
+                    "text": "  Caf\u00e9 ",
+                    "label": "",
+                    "examples": []
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "word": {
+            "text": "Separate",
+            "normalizedText": "separate",
+            "createdAt": 1752000000000,
+            "repetitions": 1,
+            "easeFactor": 1.3,
+            "intervalDays": 1,
+            "dueOn": 20391,
+            "lapses": 4,
+            "lastReviewedAt": 1759500000000,
+            "firstReviewedOn": 20360,
+            "isNew": false,
+            "suspended": false
+          },
+          "content": {
+            "definitions": [
+              {
+                "text": "To divide.",
+                "partOfSpeech": "",
+                "forms": [
+                  {
+                    "text": "Separate",
+                    "label": "",
+                    "examples": [
+                      {
+                        "text": "Please _____ the papers.",
+                        "shownAt": null
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "exported": [
+        {
+          "text": "necessary",
+          "definition": "Needed; required.",
+          "example": "It is _____ to arrive early.",
+          "partOfSpeech": "adjective",
+          "createdAt": 1750000000000,
+          "repetitions": 3,
+          "easeFactor": 2.36,
+          "intervalDays": 14,
+          "dueOn": 20400,
+          "lapses": 1,
+          "lastReviewedAt": 1759000000000,
+          "firstReviewedOn": 20350,
+          "isNew": false,
+          "suspended": false,
+          "definitions": [
+            {
+              "text": "Needed; required.",
+              "partOfSpeech": "adjective",
+              "forms": [
+                {
+                  "text": "necessary",
+                  "label": null,
+                  "examples": [
+                    {
+                      "text": "It is _____ to arrive early.",
+                      "shownAt": null
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "text": "Caf\u00e9",
+          "definition": "A small restaurant.",
+          "example": "",
+          "partOfSpeech": null,
+          "createdAt": 1751000000000,
+          "repetitions": 0,
+          "easeFactor": 2.5,
+          "intervalDays": 0,
+          "dueOn": 20390,
+          "lapses": 0,
+          "lastReviewedAt": null,
+          "firstReviewedOn": null,
+          "isNew": true,
+          "suspended": true,
+          "definitions": [
+            {
+              "text": "A small restaurant.",
+              "partOfSpeech": null,
+              "forms": [
+                {
+                  "text": "Caf\u00e9",
+                  "label": null,
+                  "examples": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "text": "Separate",
+          "definition": "To divide.",
+          "example": "Please _____ the papers.",
+          "partOfSpeech": null,
+          "createdAt": 1752000000000,
+          "repetitions": 1,
+          "easeFactor": 1.3,
+          "intervalDays": 1,
+          "dueOn": 20391,
+          "lapses": 4,
+          "lastReviewedAt": 1759500000000,
+          "firstReviewedOn": 20360,
+          "isNew": false,
+          "suspended": false,
+          "definitions": [
+            {
+              "text": "To divide.",
+              "partOfSpeech": null,
+              "forms": [
+                {
+                  "text": "Separate",
+                  "label": null,
+                  "examples": [
+                    {
+                      "text": "Please _____ the papers.",
+                      "shownAt": null
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "an export with trees: several definitions, labelled forms, shownAt set and null, an unknown key",
+      "file": "android-tree.json",
+      "imported": [
+        {
+          "word": {
+            "text": "run",
+            "normalizedText": "run",
+            "createdAt": 1750000000000,
+            "repetitions": 5,
+            "easeFactor": 2.36,
+            "intervalDays": 40,
+            "dueOn": 20450,
+            "lapses": 2,
+            "lastReviewedAt": 1759000000000,
+            "firstReviewedOn": 20300,
+            "isNew": false,
+            "suspended": false
+          },
+          "content": {
+            "definitions": [
+              {
+                "text": "To move fast on foot.",
+                "partOfSpeech": "verb",
+                "forms": [
+                  {
+                    "text": "run",
+                    "label": "",
+                    "examples": [
+                      {
+                        "text": "I like to _____ every morning.",
+                        "shownAt": 1758000000000
+                      },
+                      {
+                        "text": "They _____ for the bus.",
+                        "shownAt": null
+                      }
+                    ]
+                  },
+                  {
+                    "text": "ran",
+                    "label": "past tense",
+                    "examples": [
+                      {
+                        "text": "She _____ home yesterday.",
+                        "shownAt": null
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "text": "To manage or operate.",
+                "partOfSpeech": "",
+                "forms": [
+                  {
+                    "text": "run",
+                    "label": "",
+                    "examples": []
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "word": {
+            "text": "child",
+            "normalizedText": "child",
+            "createdAt": 1751000000000,
+            "repetitions": 0,
+            "easeFactor": 1.3,
+            "intervalDays": 0,
+            "dueOn": 20390,
+            "lapses": 0,
+            "lastReviewedAt": null,
+            "firstReviewedOn": null,
+            "isNew": true,
+            "suspended": true
+          },
+          "content": {
+            "definitions": [
+              {
+                "text": "A young person.",
+                "partOfSpeech": "noun",
+                "forms": [
+                  {
+                    "text": "child",
+                    "label": "",
+                    "examples": [
+                      {
+                        "text": "The _____ laughed.",
+                        "shownAt": null
+                      }
+                    ]
+                  },
+                  {
+                    "text": "children",
+                    "label": "plural",
+                    "examples": [
+                      {
+                        "text": "The _____ played outside.",
+                        "shownAt": 1757000000000
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "word": {
+            "text": "Caf\u00e9",
+            "normalizedText": "caf\u00e9",
+            "createdAt": 1752000000000,
+            "repetitions": 1,
+            "easeFactor": 2.5,
+            "intervalDays": 1,
+            "dueOn": 20391,
+            "lapses": 0,
+            "lastReviewedAt": 1759500000000,
+            "firstReviewedOn": 20360,
+            "isNew": false,
+            "suspended": false
+          },
+          "content": {
+            "definitions": [
+              {
+                "text": "A small restaurant.",
+                "partOfSpeech": "",
+                "forms": [
+                  {
+                    "text": "Caf\u00e9",
+                    "label": "",
+                    "examples": [
+                      {
+                        "text": "We met at the _____.",
+                        "shownAt": 1756000000000
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "exported": [
+        {
+          "text": "run",
+          "definition": "To move fast on foot.",
+          "example": "I like to _____ every morning.",
+          "partOfSpeech": "verb",
+          "createdAt": 1750000000000,
+          "repetitions": 5,
+          "easeFactor": 2.36,
+          "intervalDays": 40,
+          "dueOn": 20450,
+          "lapses": 2,
+          "lastReviewedAt": 1759000000000,
+          "firstReviewedOn": 20300,
+          "isNew": false,
+          "suspended": false,
+          "definitions": [
+            {
+              "text": "To move fast on foot.",
+              "partOfSpeech": "verb",
+              "forms": [
+                {
+                  "text": "run",
+                  "label": null,
+                  "examples": [
+                    {
+                      "text": "I like to _____ every morning.",
+                      "shownAt": 1758000000000
+                    },
+                    {
+                      "text": "They _____ for the bus.",
+                      "shownAt": null
+                    }
+                  ]
+                },
+                {
+                  "text": "ran",
+                  "label": "past tense",
+                  "examples": [
+                    {
+                      "text": "She _____ home yesterday.",
+                      "shownAt": null
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "text": "To manage or operate.",
+              "partOfSpeech": null,
+              "forms": [
+                {
+                  "text": "run",
+                  "label": null,
+                  "examples": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "text": "child",
+          "definition": "A young person.",
+          "example": "The _____ laughed.",
+          "partOfSpeech": "noun",
+          "createdAt": 1751000000000,
+          "repetitions": 0,
+          "easeFactor": 1.3,
+          "intervalDays": 0,
+          "dueOn": 20390,
+          "lapses": 0,
+          "lastReviewedAt": null,
+          "firstReviewedOn": null,
+          "isNew": true,
+          "suspended": true,
+          "definitions": [
+            {
+              "text": "A young person.",
+              "partOfSpeech": "noun",
+              "forms": [
+                {
+                  "text": "child",
+                  "label": null,
+                  "examples": [
+                    {
+                      "text": "The _____ laughed.",
+                      "shownAt": null
+                    }
+                  ]
+                },
+                {
+                  "text": "children",
+                  "label": "plural",
+                  "examples": [
+                    {
+                      "text": "The _____ played outside.",
+                      "shownAt": 1757000000000
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "text": "Caf\u00e9",
+          "definition": "A small restaurant.",
+          "example": "We met at the _____.",
+          "partOfSpeech": null,
+          "createdAt": 1752000000000,
+          "repetitions": 1,
+          "easeFactor": 2.5,
+          "intervalDays": 1,
+          "dueOn": 20391,
+          "lapses": 0,
+          "lastReviewedAt": 1759500000000,
+          "firstReviewedOn": 20360,
+          "isNew": false,
+          "suspended": false,
+          "definitions": [
+            {
+              "text": "A small restaurant.",
+              "partOfSpeech": null,
+              "forms": [
+                {
+                  "text": "Caf\u00e9",
+                  "label": null,
+                  "examples": [
+                    {
+                      "text": "We met at the _____.",
+                      "shownAt": 1756000000000
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "the shortest legal file; every other key takes its default",
+      "file": "minimal.json",
+      "ignoreCreatedAt": true,
+      "imported": [
+        {
+          "word": {
+            "text": "cat",
+            "normalizedText": "cat",
+            "repetitions": 0,
+            "easeFactor": 2.5,
+            "intervalDays": 0,
+            "dueOn": 3,
+            "lapses": 0,
+            "lastReviewedAt": null,
+            "firstReviewedOn": null,
+            "isNew": true,
+            "suspended": false
+          },
+          "content": {
+            "definitions": [
+              {
+                "text": "An animal.",
+                "partOfSpeech": "",
+                "forms": [
+                  {
+                    "text": "cat",
+                    "label": "",
+                    "examples": []
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "exported": [
+        {
+          "text": "cat",
+          "definition": "An animal.",
+          "example": "",
+          "partOfSpeech": null,
+          "repetitions": 0,
+          "easeFactor": 2.5,
+          "intervalDays": 0,
+          "dueOn": 3,
+          "lapses": 0,
+          "lastReviewedAt": null,
+          "firstReviewedOn": null,
+          "isNew": true,
+          "suspended": false,
+          "definitions": [
+            {
+              "text": "An animal.",
+              "partOfSpeech": null,
+              "forms": [
+                {
+                  "text": "cat",
+                  "label": null,
+                  "examples": []
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "refusals": [
+    {
+      "name": "not JSON at all",
+      "text": "this is not json",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "an empty file",
+      "text": "",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "a list at the top",
+      "text": "[]",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "a newer version",
+      "text": "{\"version\":99,\"words\":[]}",
+      "error": "That backup was made by a newer version of Tortoise Spelling (v99)."
+    },
+    {
+      "name": "a newer version with a word",
+      "text": "{\"version\":2,\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3}]}",
+      "error": "That backup was made by a newer version of Tortoise Spelling (v2)."
+    },
+    {
+      "name": "no words key",
+      "text": "{\"version\":1}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "words is null",
+      "text": "{\"words\":null}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "words is not a list",
+      "text": "{\"words\":{}}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "a word with no dueOn",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\"}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "a word with no text",
+      "text": "{\"words\":[{\"definition\":\"An animal.\",\"dueOn\":3}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "a word with no definition",
+      "text": "{\"words\":[{\"text\":\"cat\",\"dueOn\":3}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "text is a number",
+      "text": "{\"words\":[{\"text\":5,\"definition\":\"An animal.\",\"dueOn\":3}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "isNew is a word",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"isNew\":\"yes\"}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "isNew is a number",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"isNew\":1}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "dueOn is null",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":null}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "dueOn has a fraction",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3.5}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "a null for a key that has a default",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"repetitions\":null}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "an Int key past 32 bits",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"repetitions\":2147483648}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "a Long key as a list",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"createdAt\":[1]}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "easeFactor is a word",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"easeFactor\":\"fast\"}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "definitions is null",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"definitions\":null}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "a definition is a string",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"definitions\":[\"x\"]}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "a definition with no text",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"definitions\":[{\"forms\":[]}]}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "a tree form with no text",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"definitions\":[{\"text\":\"An animal.\",\"forms\":[{\"label\":null,\"examples\":[]}]}]}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "an example with no text",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"definitions\":[{\"text\":\"An animal.\",\"forms\":[{\"text\":\"cat\",\"examples\":[{\"shownAt\":null}]}]}]}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "shownAt is a word",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"definitions\":[{\"text\":\"An animal.\",\"forms\":[{\"text\":\"cat\",\"examples\":[{\"text\":\"x\",\"shownAt\":\"soon\"}]}]}]}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    },
+    {
+      "name": "a null label is fine but a number is not",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"definitions\":[{\"text\":\"An animal.\",\"forms\":[{\"text\":\"cat\",\"label\":4}]}]}]}",
+      "error": "That file isn't a Tortoise Spelling backup."
+    }
+  ],
+  "quirks": [
+    {
+      "name": "a quoted number for a Long key",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":\"3\"}]}",
+      "dueOn": 3
+    },
+    {
+      "name": "a quoted boolean",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"isNew\":\"false\"}]}",
+      "isNew": false
+    },
+    {
+      "name": "a quoted double",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"easeFactor\":\"2.1\"}]}",
+      "easeFactor": 2.1
+    },
+    {
+      "name": "a quoted boolean in capitals",
+      "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"isNew\":\"TRUE\"}]}",
+      "isNew": true
+    }
+  ]
+}

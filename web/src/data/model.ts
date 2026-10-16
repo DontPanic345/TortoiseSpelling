@@ -1,3 +1,5 @@
+import type { WordContent } from "../domain/wordContent";
+
 /**
  * A word the user is learning to spell, plus its SM-2 scheduling state. Teaching content
  * lives beside it (see `StoredWord`); only the scheduling is here.
@@ -29,4 +31,9 @@ export interface ReviewLog {
   grade: number;
   correct: boolean;
   typedAnswer: string;
+}
+
+/** A word as the web app stores it: the scheduling row and its teaching tree together. */
+export interface StoredWord extends Word {
+  content: WordContent;
 }

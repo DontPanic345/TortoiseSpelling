@@ -1,0 +1,60 @@
+{
+    "version": 1,
+    "exportedAt": 1760000000000,
+    "words": [
+        {
+            "text": "necessary",
+            "definition": "Needed; required.",
+            "example": "It is _____ to arrive early.",
+            "partOfSpeech": "adjective",
+            "createdAt": 1750000000000,
+            "repetitions": 3,
+            "easeFactor": 2.36,
+            "intervalDays": 14,
+            "dueOn": 20400,
+            "lapses": 1,
+            "lastReviewedAt": 1759000000000,
+            "firstReviewedOn": 20350,
+            "isNew": false,
+            "suspended": false,
+            "autoRefresh": true,
+            "refreshedOn": 20380
+        },
+        {
+            "text": "  Café ",
+            "definition": "A small restaurant.",
+            "example": "",
+            "partOfSpeech": "",
+            "createdAt": 1751000000000,
+            "repetitions": 0,
+            "easeFactor": 2.5,
+            "intervalDays": 0,
+            "dueOn": 20390,
+            "lapses": 0,
+            "lastReviewedAt": null,
+            "firstReviewedOn": null,
+            "isNew": true,
+            "suspended": true,
+            "autoRefresh": false,
+            "refreshedOn": 0
+        },
+        {
+            "text": "Separate",
+            "definition": "To divide.",
+            "example": "Please _____ the papers.",
+            "partOfSpeech": null,
+            "createdAt": 1752000000000,
+            "repetitions": 1,
+            "easeFactor": 1.3,
+            "intervalDays": 1,
+            "dueOn": 20391,
+            "lapses": 4,
+            "lastReviewedAt": 1759500000000,
+            "firstReviewedOn": 20360,
+            "isNew": false,
+            "suspended": false,
+            "autoRefresh": false,
+            "refreshedOn": 0
+        }
+    ]
+}
