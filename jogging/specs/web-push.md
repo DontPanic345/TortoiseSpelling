@@ -135,16 +135,19 @@ push/
   tsconfig.json
   wrangler.toml
   src/
-    index.ts            fetch (routes, CORS) and scheduled handlers; exports Subscriptions
-    subscriptions.ts    the Durable Object: SQL, register, remove, test, tick
+    index.ts            fetch and scheduled handlers; exports Subscriptions
+    api.ts              handleRequest: routes, CORS, body limit (pure over a SubscriptionService)
+    env.ts              the Env bindings
+    service.ts          createService over Rows: register, remove, test, tick (pure)
+    subscriptions.ts    the Durable Object: the SQL Rows and the RPC methods
     schedule.ts         localDay, shouldSend, sentDayOnRegister: pure
     validate.ts         parseRegistration, parseEndpoint, PUSH_HOSTS: pure
-    webpush.ts          vapidAuthorization, encryptPayload, sendPush
+    webpush.ts          vapidAuthorization, encryptPayload, createSender
     base64url.ts
   scripts/
     vapid.mjs           prints a new P-256 private JWK on stdout
     smoke.mjs           wrangler dev + a fake push service that decrypts what it gets
-  test/                 schedule, validate, webpush (RFC 8291 vector), api (fake store)
+  test/                 schedule, validate, webpush (RFC 8291 vector), api (in-memory Rows)
   README.md
 ```
 
@@ -261,9 +264,11 @@ drop: losing the table loses every user's reminder.
   `aes128gcm` body (RFC 8188 header with a 4096 record size and the sender's public key,
   one record, padding delimiter `0x02`). The optional arguments make the RFC 8291
   Appendix A example a test.
-- `sendPush(row, payload, { ttl, auth })`: `POST` to the endpoint with `TTL` (43,200 for
-  a reminder, 600 for a test), `Urgency: normal`, `Topic: reminder`, `Content-Encoding:
-  aes128gcm` and the encrypted body. Returns the status, or 0 on a network error.
+- `createSender(jwkJson, subject, nowMillis)`: returns `(row, kind) → status`, which signs
+  one VAPID header per push-service origin and `POST`s to the endpoint with `TTL` (43,200
+  for a reminder, 600 for a test), `Urgency: normal`, `Topic: reminder`, `Content-Encoding:
+  aes128gcm` and the encrypted body. It returns the status, or 0 on a network error or a
+  10-second timeout.
 
 **`index.ts`**: `fetch` routes to the Durable Object; `scheduled` calls
 `stub.tick(controller.scheduledTime)` inside `ctx.waitUntil`.
@@ -615,9 +620,9 @@ a fake push service on a local port that records requests. The scheduled route i
 (`/__scheduled`, or `/cdn-cgi/handler/scheduled` where that replaces it), and the tick
 uses the real clock. It checks `GET /key`; a `PUT` with a subscription whose keys the
 script holds, due today, at a time already passed in `UTC`, then a scheduled run
-(expects no push: `sentDayOnRegister`); a second `PUT` of the same subscription in UTC
-(or an `Etc/GMT±N` zone if UTC is within two minutes of midnight) at the next minute,
-so registering doesn't mark it sent; a wait until that minute has passed (at most about
+(expects no push: `sentDayOnRegister`); a `PUT` of a second subscription in UTC
+(or `Etc/GMT-12` if UTC is within a few minutes of midnight) at the next minute (re-registering
+the first would keep its sent day), so registering doesn't mark it sent; a wait until that minute has passed (at most about
 a minute); then a scheduled run: one push arrives, its VAPID JWT verifies, and
 decrypting it gives `{"kind":"reminder"}`; another scheduled run sends nothing; `POST /test` sends `{"kind":"test"}`; the fake service answering 410 to the next
 test removes the row (the following test is 404); `DELETE` is 204. It stops `wrangler`

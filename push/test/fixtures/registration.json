@@ -1,0 +1,11 @@
+{
+  "endpoint": "https://fcm.googleapis.com/fcm/send/dpH5lCsTSSM:APA91bHbcdefghijklmnopqrstuvwxyz",
+  "keys": {
+    "p256dh": "BCVxsr7N_eNgVRqvHtD0zTZsEc6-VV-JvLexhqUzORcxaOzi6-AYWXvTBHm4bjyPjs7Vd8pZGH6SRpkNtoIAiw4",
+    "auth": "BTBZMqHH6r4Tts7J_aSIgg"
+  },
+  "timeZone": "Pacific/Auckland",
+  "hour": 8,
+  "minute": 0,
+  "dueDay": 20743
+}

@@ -1,9 +1,9 @@
 name: CI
 
 # Unit tests, lint and the device-free checks (including web.yml: the web app's typecheck,
-# Vitest suite, build and Playwright smoke tests), on every push to main and every pull
-# request. release.yml calls this too, so a release can't be built from a commit whose
-# tests fail.
+# Vitest suite, build and Playwright smoke tests) and the push server's tests and smoke
+# run, on every push to main and every pull request. release.yml calls this too, so a
+# release can't be built from a commit whose tests fail.
 #
 # The screenshot tests validate on the JVM. The data, component, integration and
 # accessibility layers run as instrumented tests on an emulator, one job each. The Appium
@@ -79,6 +79,33 @@ jobs:
   web:
     name: Web checks
     uses: ./.github/workflows/web.yml
+
+  push:
+    name: Push server checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: push
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: push/package-lock.json
+
+      - run: npm ci
+
+      - run: npm run typecheck
+
+      - run: npm test
+
+      - name: Smoke test (wrangler dev with a fake push service)
+        run: npm run smoke
+
+      - name: The Worker bundles with its Durable Object and cron
+        run: npx wrangler deploy --dry-run --outdir dist
 
   instrumented:
     name: ${{ matrix.layer }} tests (emulator)

@@ -1,0 +1,22 @@
+name = "tortoisespelling-push"
+main = "src/index.ts"
+compatibility_date = "2026-10-16"
+workers_dev = true
+
+[observability]
+enabled = false
+
+[triggers]
+crons = ["*/5 * * * *"]
+
+[[durable_objects.bindings]]
+name = "SUBSCRIPTIONS"
+class_name = "Subscriptions"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Subscriptions"]
+
+[vars]
+ALLOWED_ORIGINS = "https://dontpanic345.github.io,http://localhost:4173,http://localhost:5173"
+VAPID_SUBJECT = "https://github.com/DontPanic345/TortoiseSpelling"

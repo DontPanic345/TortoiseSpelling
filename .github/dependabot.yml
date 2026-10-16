@@ -66,6 +66,18 @@ updates:
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
 
+  - package-ecosystem: npm
+    directory: /push
+    schedule:
+      interval: weekly
+    groups:
+      push-minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Same as /web: CI runs Node 22, and a major @types/node bump tracks a newer line.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
