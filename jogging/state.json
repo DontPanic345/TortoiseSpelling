@@ -6,7 +6,7 @@
     {
       "id": "jogging-poc",
       "title": "Proof that Jogging runs on GitHub Actions",
-      "status": "active",
+      "status": "blocked",
       "dependsOn": [],
       "spec": "jogging/specs/jogging-poc.md",
       "steps": [
@@ -16,8 +16,8 @@
           "title": "Runner check: emulator, Gradle, Appium and push, timed",
           "model": "haiku",
           "effort": "low",
-          "status": "pending",
-          "attempts": 1
+          "status": "blocked",
+          "attempts": 2
         },
         {
           "id": "build-2",
@@ -27,7 +27,10 @@
           "effort": "low",
           "status": "pending"
         }
-      ]
+      ],
+      "blocker": "Step build-1 ended 2 times without finishing. See jogging/LOG.md and this run's transcripts.",
+      "blockerIssue": 15,
+      "blockedAt": "2026-10-16T06:49:56.326Z"
     },
     {
       "id": "icon",
