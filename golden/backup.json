@@ -723,5 +723,21 @@
       "text": "{\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"dueOn\":3,\"isNew\":\"TRUE\"}]}",
       "isNew": true
     }
+  ],
+  "envelope": [
+    {
+      "name": "a file with no version reads as version 1 and an empty export is the bare envelope",
+      "source": "{\"words\":[]}",
+      "version": 1,
+      "exportedAt": 5,
+      "out": "{\n    \"version\": 1,\n    \"exportedAt\": 5,\n    \"words\": []\n}"
+    },
+    {
+      "name": "an export writes version, exportedAt and words in that order, indented four spaces",
+      "source": "{\"version\":1,\"exportedAt\":1,\"words\":[{\"text\":\"cat\",\"definition\":\"An animal.\",\"example\":\"The cat sat.\",\"createdAt\":9,\"dueOn\":3}]}",
+      "version": 1,
+      "exportedAt": 7,
+      "out": "{\n    \"version\": 1,\n    \"exportedAt\": 7,\n    \"words\": [\n        {\n            \"text\": \"cat\",\n            \"definition\": \"An animal.\",\n            \"example\": \"The cat sat.\",\n            \"partOfSpeech\": null,\n            \"createdAt\": 9,\n            \"repetitions\": 0,\n            \"easeFactor\": 2.5,\n            \"intervalDays\": 0,\n            \"dueOn\": 3,\n            \"lapses\": 0,\n            \"lastReviewedAt\": null,\n            \"firstReviewedOn\": null,\n            \"isNew\": true,\n            \"suspended\": false,\n            \"definitions\": [\n                {\n                    \"text\": \"An animal.\",\n                    \"partOfSpeech\": null,\n                    \"forms\": [\n                        {\n                            \"text\": \"cat\",\n                            \"label\": null,\n                            \"examples\": [\n                                {\n                                    \"text\": \"The cat sat.\",\n                                    \"shownAt\": null\n                                }\n                            ]\n                        }\n                    ]\n                }\n            ]\n        }\n    ]\n}"
+    }
   ]
 }

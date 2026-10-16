@@ -1,5 +1,6 @@
 package io.github.dontpanic345.tortoisespelling.golden
 
+import io.github.dontpanic345.tortoisespelling.data.BackupFile
 import io.github.dontpanic345.tortoisespelling.data.BackupFormatException
 import io.github.dontpanic345.tortoisespelling.data.BackupJson
 import io.github.dontpanic345.tortoisespelling.data.BackupWord
@@ -29,7 +30,7 @@ class BackupGoldenTest {
     private val file = Golden.load("backup")
 
     @Test
-    fun everyFunctionHasARunner() = Golden.assertFunctions(file, setOf("files", "refusals", "quirks"))
+    fun everyFunctionHasARunner() = Golden.assertFunctions(file, setOf("files", "refusals", "quirks", "envelope"))
 
     @Test
     fun files() = forEachCase(file, "files") { c ->
@@ -75,6 +76,15 @@ class BackupGoldenTest {
             c.boolOrNull("isNew")?.let { assertEquals(it, word.isNew) }
             c.doubleOrNull("easeFactor")?.let { assertEquals(it, word.easeFactor, 1e-9) }
         }
+    }
+
+    @Test
+    fun envelope() = forEachCase(file, "envelope") { c ->
+        val parsed = parseBackup(c.str("source"))
+        assertEquals(c.int("version"), parsed.version)
+        val words = parsed.words.map { it.toImport().stored().toBackup() }
+        val text = BackupJson.encodeToString(BackupFile.serializer(), BackupFile(exportedAt = c.long("exportedAt"), words = words))
+        assertEquals(c.str("out"), text)
     }
 
     private fun assertRefused(text: String, message: String) {

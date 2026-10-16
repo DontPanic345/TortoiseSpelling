@@ -13,7 +13,7 @@ function backupFile(name: string): string {
 
 describe("backup golden cases", () => {
   it("has a runner for every function", () => {
-    expectFunctions(file, ["files", "refusals", "quirks"]);
+    expectFunctions(file, ["files", "refusals", "quirks", "envelope"]);
   });
 
   describe.each(cases(file, "files"))("files: $name", (c) => {
@@ -57,6 +57,19 @@ describe("backup golden cases", () => {
       } catch (e) {
         expect(e).toBeInstanceOf(BackupFormatError);
       }
+    });
+  });
+
+  describe.each(cases(file, "envelope"))("envelope: $name", (c) => {
+    it("reads the version and writes the same text", () => {
+      const parsed = parseBackup(c.source, NOW);
+      expect(parsed.version).toBe(c.version);
+      const stored = parsed.words.map(toImport).map((i) => ({
+        ...i.word,
+        id: 1,
+        content: preparedFor(i.content, i.word.text),
+      }));
+      expect(exportBackup(stored, c.exportedAt)).toBe(c.out);
     });
   });
 

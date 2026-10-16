@@ -322,6 +322,20 @@ describe("recordReview", () => {
     });
     expect(await repo.reviewedToday()).toBe(1);
   });
+
+  test("reviewedToday counts words, not log rows", async () => {
+    const { repo } = await openTestRepository();
+    await repo.addWord("rhythm", content("A definition."));
+    await repo.addWord("cat", content("An animal."));
+    const rhythm = await wordNamed(repo, "rhythm");
+    const cat = await wordNamed(repo, "cat");
+
+    await repo.recordReview(rhythm.id, false, "rythm");
+    await repo.recordReview(rhythm.id, true, "rhythm");
+    await repo.recordReview(cat.id, true, "cat");
+
+    expect(await repo.reviewedToday()).toBe(2);
+  });
 });
 
 describe("settings", () => {

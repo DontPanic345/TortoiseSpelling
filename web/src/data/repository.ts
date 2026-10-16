@@ -304,7 +304,8 @@ export function createRepository({
 
     async reviewedToday(): Promise<number> {
       const today = todayOf(clock);
-      return (await db.getAll("reviewLog")).filter((log) => log.reviewedOn === today).length;
+      const logs = await db.getAll("reviewLog");
+      return new Set(logs.filter((log) => log.reviewedOn === today).map((log) => log.wordId)).size;
     },
 
     async currentStreak(): Promise<number> {
