@@ -635,7 +635,7 @@
           "title": "Web steps for word_list, word_forms, copy_prompt and backup, the unused-step check, web.yml runs the shared specs, web-side docs",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "review",
