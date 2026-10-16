@@ -679,7 +679,7 @@
           "title": "The push server in push/: Worker, cron, SQLite Durable Object, validation, timing, VAPID and RFC 8291 encryption with the RFC vector, the wrangler dev smoke with a decrypting fake push service, CI job and Dependabot",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-2",
