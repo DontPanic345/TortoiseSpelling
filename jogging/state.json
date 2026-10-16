@@ -436,7 +436,7 @@
       "dependsOn": [
         "drop-api-key"
       ],
-      "status": "active",
+      "status": "done",
       "spec": "jogging/specs/web-core.md",
       "steps": [
         {
@@ -491,7 +491,7 @@
           "title": "Review the piece against its spec and the goals: golden coverage of every Kotlin test, both runners, transactions; full checks and CI green (no version bump)",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
