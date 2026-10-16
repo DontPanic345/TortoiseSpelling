@@ -291,3 +291,6 @@ Runner check passed on the GitHub Actions runner: the emulator answers as Androi
 
 ## 2026-10-16 08:28 jogging-poc/build-2 (haiku)
 No blocker raised by this session. The crew's `userReply` for the piece ("Neato burrito 🌯", from issue #15, which blocked at 06:49:56Z) was recorded in `jogging/poc.md` with the raised time, the word and the read time (08:28:54Z), so the blocker round trip is covered. The reply came from the build-1 blocker's issue rather than one raised by build-2, so the raised time is that block's; the spec's first branch did not run. No code or e2e changed.
+
+## 2026-10-16 08:35 web-core/build-1 (sonnet)
+Alan updated the token secret, so the `web` job (checkout, `setup-node@v7` Node 22 with npm cache on `web/package-lock.json`, `npm ci`, `npm run typecheck`, `npm test`, all in `web/`) is now in `ci.yml` after `scripts`, with the header comment updated. Everything else in build-1 was pushed last session. I'll check the job on the pushed commit; see the result line below.
