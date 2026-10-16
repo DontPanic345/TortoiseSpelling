@@ -1,17 +1,21 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
+import { fakePush } from "../../src/debug/fakePush";
 import { installSeedHook } from "../../src/debug/seedHook";
 import { fakePlatform } from "../support/fakePlatform";
 import { openTestRepository } from "../support/repo";
 
+const push = fakePush();
+
 async function installed() {
   const { repo, clock } = await openTestRepository();
-  installSeedHook({ repository: repo, clock, platform: fakePlatform(), autoAdvanceMillis: 0, reminders: null });
+  installSeedHook({ repository: repo, clock, platform: fakePlatform(), autoAdvanceMillis: 0, reminders: null }, push);
   return repo;
 }
 
 afterEach(() => {
   delete window.__tortoiseSpellingSeed;
+  delete window.__tortoiseSpellingPush;
 });
 
 describe("the seed hook", () => {
@@ -36,5 +40,13 @@ describe("the seed hook", () => {
     await window.__tortoiseSpellingSeed?.([{ word: "rhythm" }]);
 
     await expect(window.__tortoiseSpellingSeed?.([{ word: "Rhythm" }])).rejects.toThrow(/duplicate/);
+  });
+
+  it("answers the next permission request as told", async () => {
+    await installed();
+    window.__tortoiseSpellingPush?.answer("denied");
+
+    expect(await push.requestPermission()).toBe("denied");
+    expect(await push.permission()).toBe("denied");
   });
 });

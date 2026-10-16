@@ -2,10 +2,10 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import * as ids from "../../src/ui/testIds";
 
-// Tags that exist on Android only: the web app has no reminder yet, and no Google backup.
-const ANDROID_ONLY = new Set(["settings_reminder_switch", "settings_reminder_time_button", "settings_cloud_backup_switch"]);
+// Tags that exist on Android only: the web app has no Google backup.
+const ANDROID_ONLY = new Set(["settings_cloud_backup_switch"]);
 // Ids that exist on the web only.
-const WEB_ONLY = new Set(["home_backup_nudge"]);
+const WEB_ONLY = new Set(["home_backup_nudge", "home_reminder_card", "home_reminder_turn_on", "home_reminder_not_now"]);
 
 const kotlin = readFileSync(
   new URL("../../../app/src/main/java/io/github/dontpanic345/tortoisespelling/ui/TestTags.kt", import.meta.url),

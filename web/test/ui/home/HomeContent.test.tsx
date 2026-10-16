@@ -16,6 +16,8 @@ function show(state: HomeUiState) {
       onOpenWords={() => calls.push("words")}
       onOpenSettings={() => calls.push("settings")}
       onExport={() => calls.push("export")}
+      onReminderTurnOn={() => calls.push("turn-on")}
+      onReminderNotNow={() => calls.push("not-now")}
       locale="en"
     />,
   );
@@ -30,6 +32,7 @@ function withWords(
     streak?: number;
     nextDueDay?: number | null;
     showBackupNudge?: boolean;
+    showReminderCard?: boolean;
   } = {},
 ): HomeUiState {
   return {
@@ -44,6 +47,7 @@ function withWords(
     greeting: "Good morning",
     dateLabel: "Monday",
     showBackupNudge: over.showBackupNudge ?? false,
+    showReminderCard: over.showReminderCard ?? false,
   };
 }
 
@@ -163,6 +167,35 @@ describe("HomeContent", () => {
     it("is absent with no words", () => {
       show({ ...noWords, showBackupNudge: true });
       expect(screen.queryByTestId(TestIds.HOME_BACKUP_NUDGE)).toBeNull();
+    });
+  });
+
+  describe("the reminder card", () => {
+    it("asks, and its buttons call back", () => {
+      const calls = show(withWords({ due: 1, showReminderCard: true }));
+      expect(screen.getByTestId(TestIds.HOME_REMINDER_CARD).textContent).toContain(
+        "Get a reminder each day when words are due?",
+      );
+      fireEvent.click(screen.getByTestId(TestIds.HOME_REMINDER_TURN_ON));
+      fireEvent.click(screen.getByTestId(TestIds.HOME_REMINDER_NOT_NOW));
+      expect(calls).toEqual(["turn-on", "not-now"]);
+    });
+
+    it("sits above the week card", () => {
+      show(withWords({ due: 1, showReminderCard: true }));
+      const card = screen.getByTestId(TestIds.HOME_REMINDER_CARD);
+      const week = screen.getByTestId(TestIds.HOME_WEEK);
+      expect(card.compareDocumentPosition(week) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    });
+
+    it("is absent when the state doesn't ask for it", () => {
+      show(withWords({ due: 1 }));
+      expect(screen.queryByTestId(TestIds.HOME_REMINDER_CARD)).toBeNull();
+    });
+
+    it("is absent with no words", () => {
+      show({ ...noWords, showReminderCard: true });
+      expect(screen.queryByTestId(TestIds.HOME_REMINDER_CARD)).toBeNull();
     });
   });
 });

@@ -512,14 +512,16 @@ button {
   color: var(--on-surface-variant);
 }
 
-.backup-nudge {
+.backup-nudge,
+.reminder-card {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 12px;
 }
 
-.backup-nudge p {
+.backup-nudge p,
+.reminder-card p {
   margin: 0;
 }
 
@@ -1050,6 +1052,62 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.switch {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 52px;
+  height: 32px;
+  margin: 0;
+  border: 2px solid var(--outline);
+  border-radius: 16px;
+  background: var(--surface-variant);
+  cursor: pointer;
+}
+
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--outline);
+  transition: transform 0.1s;
+}
+
+.switch:checked {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+.switch:checked::after {
+  background: var(--on-primary);
+  transform: translateX(20px);
+}
+
+.switch:disabled,
+.time-input:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.switch:focus-visible,
+.time-input:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.time-input {
+  padding: 6px 10px;
+  border: 1px solid var(--outline);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--on-surface);
+  font: inherit;
 }
 
 .help-text {

@@ -2,6 +2,7 @@ import type { Repository, TodayPlan } from "../../data/repository";
 import type { Clock } from "../../domain/clock";
 import { today as todayOf, hourOf } from "../../domain/days";
 import { greeting, type MarkedDay, type WordProgress } from "../../domain/progress";
+import type { AppContainer } from "../container";
 import type { Platform } from "../platform";
 
 /** Home's state, as `HomeUiState`. */
@@ -19,6 +20,8 @@ export interface HomeUiState {
   today: number;
   /** Web-only: storage isn't persistent and nothing was exported lately. */
   showBackupNudge: boolean;
+  /** Web-only: offer the daily reminder, as Android asks for the notification permission once there is a word. */
+  showReminderCard: boolean;
 }
 
 export const initialHomeState: HomeUiState = {
@@ -34,6 +37,7 @@ export const initialHomeState: HomeUiState = {
   dateLabel: "",
   today: 0,
   showBackupNudge: false,
+  showReminderCard: false,
 };
 
 export const planTotal = (plan: TodayPlan): number => plan.dueCount + plan.newCount;
@@ -66,7 +70,12 @@ export function dateLabel(day: number, locale?: string): string {
   return `${part("weekday")} ${part("day")} ${part("month")}`;
 }
 
-export async function loadHome(repository: Repository, clock: Clock, platform: Platform): Promise<HomeUiState> {
+export async function loadHome(
+  repository: Repository,
+  clock: Clock,
+  platform: Platform,
+  reminders: AppContainer["reminders"] = null,
+): Promise<HomeUiState> {
   const plan = await repository.todayPlan();
   const totalWords = await repository.wordCount();
 
@@ -75,7 +84,14 @@ export async function loadHome(repository: Repository, clock: Clock, platform: P
   if (totalWords > 0 && planTotal(plan) === 0) await repository.markTodaySatisfied();
 
   const today = todayOf(clock);
-  const { lastExportedAt } = await repository.settings();
+  const { lastExportedAt, reminderEnabled } = await repository.settings();
+  // Browsers only show the permission prompt from a tap, so a card asks first.
+  const showReminderCard =
+    totalWords > 0 &&
+    reminders !== null &&
+    reminderEnabled &&
+    reminders.push.support() === "supported" &&
+    (await reminders.push.permission()) === "default";
   return {
     loading: false,
     plan,
@@ -89,5 +105,6 @@ export async function loadHome(repository: Repository, clock: Clock, platform: P
     dateLabel: dateLabel(today),
     today,
     showBackupNudge: shouldNudgeBackup(totalWords, await platform.storagePersisted(), lastExportedAt, clock.millis()),
+    showReminderCard,
   };
 }

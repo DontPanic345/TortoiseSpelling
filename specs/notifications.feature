@@ -1,13 +1,14 @@
-# Android only until web-push: the permission prompt, notifications, rotation and process death are the system's.
-@e2e @android
+@e2e
 Feature: Daily reminder
   As a learner who forgets to open the app
   I want one notification a day when words are due
   So that the habit sticks
 
-  # Scenarios starting "Given the app is freshly installed" reinstall the APK, because
-  # only a reinstall resets a notification-permission decision. Every other scenario
-  # starts with notifications already allowed (support/app.ts resetApp).
+  # On Android, scenarios starting "Given the app is freshly installed" reinstall the APK,
+  # because only a reinstall resets a notification-permission decision. Every other scenario
+  # starts with notifications already allowed (support/app.ts resetApp). On the web every
+  # scenario starts in a fresh browser context, and the test build's reminder fakes stand
+  # in for the browser's prompt.
 
   Scenario: A fresh install asks for notification permission once there is a word
     Given the app is freshly installed
@@ -19,6 +20,8 @@ Feature: Daily reminder
     And I open Settings
     Then the daily reminder is on
 
+  # Android only: a web page can't open the browser's notification settings, and the second refusal is Android's system behaviour.
+  @android
   Scenario: Refusing notifications turns the reminder off, and a second refusal points to the system page
     Given the app is freshly installed
     And I have added the word "necessary" defined as "needed or required"
@@ -36,6 +39,8 @@ Feature: Daily reminder
     When I choose "Open settings"
     Then Android's notification settings for Tortoise Spelling are shown
 
+  # Android only: Playwright can't receive a real push or tap a system notification.
+  @android
   Scenario: Tapping the reminder opens today's session, once
     Given I have added the word "necessary" defined as "needed or required"
     And I open Settings
@@ -48,7 +53,8 @@ Feature: Daily reminder
     When I press the system Back button
     Then I am not in a session
 
-  @slow
+  # Android only: it kills the app's process and waits for WorkManager.
+  @android @slow
   Scenario: The reminder arrives even when the app is not running
     # The bug this guards against: app start used to cancel the pending reminder, so
     # it only fired if the process happened to be alive. Takes about three minutes.

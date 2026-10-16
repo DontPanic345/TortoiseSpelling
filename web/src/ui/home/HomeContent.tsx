@@ -14,6 +14,8 @@ export interface HomeContentProps {
   onOpenWords: () => void;
   onOpenSettings: () => void;
   onExport: () => void;
+  onReminderTurnOn: () => void;
+  onReminderNotNow: () => void;
   /** The browser's locale for the week strip's weekday letters; tests pin one. */
   locale?: string;
 }
@@ -26,6 +28,8 @@ export function HomeContent({
   onOpenWords,
   onOpenSettings,
   onExport,
+  onReminderTurnOn,
+  onReminderNotNow,
   locale,
 }: HomeContentProps) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -94,6 +98,20 @@ export function HomeContent({
               reviewedToday={state.reviewedToday}
               onStart={onStartReview}
             />
+          )}
+
+          {state.showReminderCard && (
+            <div class="card home-card reminder-card" data-testid={TestIds.HOME_REMINDER_CARD}>
+              <p>Get a reminder each day when words are due?</p>
+              <div class="button-row">
+                <button type="button" class="button tonal" data-testid={TestIds.HOME_REMINDER_TURN_ON} onClick={onReminderTurnOn}>
+                  Turn on
+                </button>
+                <button type="button" class="text-button" data-testid={TestIds.HOME_REMINDER_NOT_NOW} onClick={onReminderNotNow}>
+                  Not now
+                </button>
+              </div>
+            </div>
           )}
 
           <WeekCard week={state.week} streak={state.streak} locale={locale} />

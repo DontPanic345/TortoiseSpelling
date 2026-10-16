@@ -1,6 +1,8 @@
 import { describe, expect, test } from "vitest";
 import { dateLabel, loadHome, shouldNudgeBackup } from "../../../src/ui/home/homeState";
 import { fakePlatform } from "../../support/fakePlatform";
+import { fakePushApi } from "../../support/fakePushApi";
+import { createReminderSync } from "../../../src/push/reminderSync";
 import { content, openTestRepository } from "../../support/repo";
 import { today } from "../../../src/domain/days";
 
@@ -58,4 +60,35 @@ describe("shouldNudgeBackup", () => {
   test("never exported", () => expect(shouldNudgeBackup(3, false, null, now)).toBe(true));
   test("a recent export", () => expect(shouldNudgeBackup(3, false, now - 29 * day, now)).toBe(false));
   test("an export 30 days old", () => expect(shouldNudgeBackup(3, false, now - 30 * day, now)).toBe(true));
+});
+
+describe("loadHome's reminder card", () => {
+  async function load(over: { words?: boolean; permission?: "default" | "granted" | "denied"; enabled?: boolean; support?: "supported" | "needs-install" | "unsupported"; server?: boolean }) {
+    const { repo, clock } = await openTestRepository();
+    if (over.words ?? true) await repo.addWord("cat", content("a pet"));
+    if (over.enabled === false) await repo.setReminderEnabled(false);
+    const platform = fakePlatform();
+    platform.push.granted = over.permission ?? "default";
+    platform.push.supported = over.support ?? "supported";
+    const api = fakePushApi();
+    const reminders =
+      over.server === false ? null : { push: platform.push, api, sync: createReminderSync({ repository: repo, clock, push: platform.push, api }) };
+    return (await loadHome(repo, clock, platform, reminders)).showReminderCard;
+  }
+
+  test("shows once there is a word and the browser hasn't been asked", async () => {
+    expect(await load({})).toBe(true);
+  });
+
+  test.each([
+    ["no words", { words: false }],
+    ["permission granted", { permission: "granted" as const }],
+    ["permission denied", { permission: "denied" as const }],
+    ["reminders off", { enabled: false }],
+    ["push needs an install", { support: "needs-install" as const }],
+    ["push unsupported", { support: "unsupported" as const }],
+    ["no reminder server", { server: false }],
+  ])("is hidden with %s", async (_name, over) => {
+    expect(await load(over)).toBe(false);
+  });
 });

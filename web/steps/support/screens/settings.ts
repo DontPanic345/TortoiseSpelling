@@ -8,6 +8,8 @@ export const settings = {
   newWordsDecrease: (page: Page) => byTestId(page, TestIds.SETTINGS_NEW_WORDS_DECREASE),
   newWordsIncrease: (page: Page) => byTestId(page, TestIds.SETTINGS_NEW_WORDS_INCREASE),
 
+  reminderSwitch: (page: Page) => byTestId(page, TestIds.SETTINGS_REMINDER_SWITCH),
+
   /** Opens Settings from any screen, or stays put if it is already open. */
   open: async (page: Page): Promise<void> => {
     if (await settings.newWordsValue(page).isVisible()) return;

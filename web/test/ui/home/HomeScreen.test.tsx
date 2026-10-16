@@ -6,6 +6,8 @@ import { CompletionScreen } from "../../../src/ui/complete/CompletionScreen";
 import { HomeScreen } from "../../../src/ui/home/HomeScreen";
 import { TestIds } from "../../../src/ui/testIds";
 import { fakePlatform } from "../../support/fakePlatform";
+import { fakePushApi } from "../../support/fakePushApi";
+import { createReminderSync } from "../../../src/push/reminderSync";
 import { content, openTestRepository } from "../../support/repo";
 
 async function setup() {
@@ -132,5 +134,53 @@ describe("CompletionScreen", () => {
     await screen.findByText("Nothing was due today.");
     await screen.findByRole("button", { name: "Done" });
     expect(screen.getByText("Practise a few more anyway")).toBeTruthy();
+  });
+});
+
+describe("HomeScreen's reminder card", () => {
+  async function withReminders() {
+    const { repo, clock, platform } = await setup();
+    const api = fakePushApi();
+    const container = {
+      repository: repo,
+      clock,
+      platform,
+      autoAdvanceMillis: 0,
+      reminders: { push: platform.push, api, sync: createReminderSync({ repository: repo, clock, push: platform.push, api }) },
+    };
+    await repo.addWord("cat", content("a pet"));
+    render(
+      <ContainerContext.Provider value={container}>
+        <HomeScreen />
+      </ContainerContext.Provider>,
+    );
+    await screen.findByTestId(TestIds.HOME_REMINDER_CARD);
+    return { repo, platform, api };
+  }
+
+  it("Turn on asks the browser in the tap, registers and drops the card", async () => {
+    const { repo, platform, api } = await withReminders();
+    fireEvent.click(screen.getByTestId(TestIds.HOME_REMINDER_TURN_ON));
+    expect(platform.push.calls).toEqual(["requestPermission"]);
+    await waitFor(() => expect(screen.queryByTestId(TestIds.HOME_REMINDER_CARD)).toBeNull());
+    await waitFor(() => expect(api.registered).toHaveLength(1));
+    expect((await repo.settings()).reminderEnabled).toBe(true);
+  });
+
+  it("a refusal turns reminders off, says why, and the card stays gone", async () => {
+    const { repo, platform } = await withReminders();
+    platform.push.answer = "denied";
+    fireEvent.click(screen.getByTestId(TestIds.HOME_REMINDER_TURN_ON));
+    await screen.findByText(/Notifications are blocked for Tortoise Spelling/);
+    expect((await repo.settings()).reminderEnabled).toBe(false);
+    await waitFor(() => expect(screen.queryByTestId(TestIds.HOME_REMINDER_CARD)).toBeNull());
+  });
+
+  it("Not now turns reminders off without asking the browser", async () => {
+    const { repo, platform } = await withReminders();
+    fireEvent.click(screen.getByTestId(TestIds.HOME_REMINDER_NOT_NOW));
+    await waitFor(() => expect(screen.queryByTestId(TestIds.HOME_REMINDER_CARD)).toBeNull());
+    expect((await repo.settings()).reminderEnabled).toBe(false);
+    expect(platform.push.calls).toEqual([]);
   });
 });

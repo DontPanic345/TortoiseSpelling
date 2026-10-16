@@ -4,12 +4,23 @@ import { Stepper } from "../common/Stepper";
 import { TopBar } from "../common/TopBar";
 import type { InstallState } from "../platform";
 import { TestIds } from "../testIds";
-import { NEW_WORDS_MAX, NEW_WORDS_MIN, PRIVACY_POLICY_URL, SOURCE_CODE_URL } from "./settingsState";
+import {
+  NEW_WORDS_MAX,
+  NEW_WORDS_MIN,
+  parseTime,
+  PRIVACY_POLICY_URL,
+  REMINDER_HELP,
+  SOURCE_CODE_URL,
+  timeValue,
+  type ReminderUi,
+} from "./settingsState";
 
 export interface SettingsContentProps {
   newWordsPerDay: number;
   busy: boolean;
   installState: InstallState;
+  /** The Daily reminder section, or null while there is no reminder server. */
+  reminder: ReminderUi | null;
   /** The short commit the build came from, or "dev". */
   build: string;
   onBack: () => void;
@@ -18,18 +29,25 @@ export interface SettingsContentProps {
   /** The file the user picked in the Import dialog. */
   onImport: (file: File) => void;
   onInstall: () => void;
+  onReminderToggle: (wantOn: boolean) => void;
+  onReminderTimeChange: (hour: number, minute: number) => void;
+  onSendTest: () => void;
 }
 
 export function SettingsContent({
   newWordsPerDay,
   busy,
   installState,
+  reminder,
   build,
   onBack,
   onNewWordsPerDayChange,
   onExport,
   onImport,
   onInstall,
+  onReminderToggle,
+  onReminderTimeChange,
+  onSendTest,
 }: SettingsContentProps) {
   const showInstall = installState === "prompt" || installState === "ios";
   return (
@@ -57,6 +75,47 @@ export function SettingsContent({
                 to lose your words.
               </HelpText>
             )}
+          </section>
+          <hr />
+        </>
+      )}
+
+      {reminder && (
+        <>
+          <section class="settings-section">
+            <h2 class="section-title">Daily reminder</h2>
+            <label class="setting-row">
+              <span>Remind me daily</span>
+              <input
+                type="checkbox"
+                role="switch"
+                class="switch"
+                data-testid={TestIds.SETTINGS_REMINDER_SWITCH}
+                checked={reminder.on}
+                disabled={reminder.support !== "supported"}
+                onChange={(event) => onReminderToggle(event.currentTarget.checked)}
+              />
+            </label>
+            <label class="setting-row">
+              <span>Reminder time</span>
+              <input
+                type="time"
+                class="time-input"
+                data-testid={TestIds.SETTINGS_REMINDER_TIME_BUTTON}
+                value={timeValue(reminder.hour, reminder.minute)}
+                disabled={!reminder.on}
+                onChange={(event) => {
+                  const time = parseTime(event.currentTarget.value);
+                  if (time) onReminderTimeChange(time.hour, time.minute);
+                }}
+              />
+            </label>
+            <div>
+              <button type="button" class="text-button" onClick={onSendTest}>
+                Send a test notification
+              </button>
+            </div>
+            <HelpText>{REMINDER_HELP[reminder.support]}</HelpText>
           </section>
           <hr />
         </>
