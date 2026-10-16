@@ -1,6 +1,6 @@
 import type { StoredWord, Word } from "../../data/model";
 import { relativeLabel } from "../../domain/days";
-import { WORD_FILTER_LABELS, matches, type WordFilter } from "../../domain/progress";
+import { WORD_FILTER_LABELS, matches, wordFilterCounts, type WordFilter } from "../../domain/progress";
 import { ktIsBlank, normalizeWord } from "../../domain/text";
 import { searchTerms } from "../../domain/wordContent";
 
@@ -37,4 +37,39 @@ export function noMatchesBody(query: string, filter: WordFilter): string {
   if (filterPhrase === null) return `Nothing in your list matches “${query}”.`;
   if (ktIsBlank(query)) return `No ${filterPhrase}.`;
   return `No ${filterPhrase} match “${query}”.`;
+}
+
+export interface WordListUiState {
+  query: string;
+  filter: WordFilter;
+  filterCounts: Partial<Record<WordFilter, number>>;
+  rows: WordRow[];
+  totalCount: number;
+  loading: boolean;
+}
+
+export const initialWordListState: WordListUiState = {
+  query: "",
+  filter: "ALL",
+  filterCounts: {},
+  rows: [],
+  totalCount: 0,
+  loading: true,
+};
+
+/** True when the query and filter together, not the filter alone, narrow the list. */
+export function isFiltering(state: WordListUiState): boolean {
+  return !ktIsBlank(state.query) || state.filter !== "ALL";
+}
+
+/** The loaded state for every word, a query and a filter. */
+export function buildWordList(words: readonly StoredWord[], query: string, filter: WordFilter, today: number): WordListUiState {
+  return {
+    query,
+    filter,
+    filterCounts: wordFilterCounts(words, today),
+    rows: filterRows(words, query, filter, today),
+    totalCount: words.length,
+    loading: false,
+  };
 }

@@ -1,36 +1,13 @@
 import { useEffect } from "preact/hooks";
 import { ContainerContext, type AppContainer } from "./ui/container";
 import { Snackbar, useSnackbar } from "./ui/common/Snackbar";
-import { TopBar } from "./ui/common/TopBar";
-import { BackButton } from "./ui/common/BackButton";
 import { AddWordScreen } from "./ui/add/AddWordScreen";
 import { CompletionScreen } from "./ui/complete/CompletionScreen";
 import { HomeScreen } from "./ui/home/HomeScreen";
+import { SettingsScreen } from "./ui/settings/SettingsScreen";
+import { WordListScreen } from "./ui/words/WordListScreen";
 import { ReviewScreen } from "./ui/review/ReviewScreen";
-import { back, routeHash, useRoute, type Route } from "./ui/router";
-
-const TITLES: Record<Route["name"], string> = {
-  home: "Tortoise Spelling",
-  review: "Review",
-  practice: "Extra practice",
-  completion: "All done",
-  add: "Add word",
-  edit: "Edit word",
-  words: "All words",
-  settings: "Settings",
-};
-
-/** Stands in for each screen until its build step lands. */
-function Placeholder({ route }: { route: Route }) {
-  return (
-    <main class="screen" data-route={route.name}>
-      <TopBar
-        title={TITLES[route.name]}
-        navigation={route.name === "home" ? undefined : <BackButton onClick={() => back({ name: "home" })} />}
-      />
-    </main>
-  );
-}
+import { routeHash, useRoute, type Route } from "./ui/router";
 
 function Screen({ route }: { route: Route }) {
   switch (route.name) {
@@ -45,8 +22,10 @@ function Screen({ route }: { route: Route }) {
       return <AddWordScreen editingId={null} />;
     case "edit":
       return <AddWordScreen editingId={route.id} />;
-    default:
-      return <Placeholder route={route} />;
+    case "words":
+      return <WordListScreen />;
+    case "settings":
+      return <SettingsScreen />;
   }
 }
 
