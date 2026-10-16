@@ -2,7 +2,8 @@
 
 Status: **proposal**. Drafted 08/10/2026 from a planning conversation and revised the same
 day: a native iOS app was considered and dropped (see [Why not native iOS](#why-not-native-ios)),
-so the second codebase is a web app. Nothing here is built yet; this is the plan to
+so the second codebase is a web app. The web core (`web/`: the domain port, IndexedDB storage and the shared backup, with
+the golden cases in `golden/`) is built; the screens, push and hosting are not. The rest is the plan to
 implement against. Items marked **(unverified)** are things I believe but haven't confirmed.
 
 ## Where things stand
@@ -85,15 +86,15 @@ the point is a plain web app.
 |---|---|
 | Jetpack Compose | The web UI framework (open question) |
 | ViewModel + `StateFlow` | Plain stores or framework state |
-| Room | IndexedDB (through a small wrapper such as Dexie or idb) |
+| Room | IndexedDB through `idb`; one record per word with its content nested (`web/src/data/`) |
 | `Sm2Scheduler`, `SessionBuilder`, `SpellingDiff`, `WordBlank` | Ported to TypeScript; the Kotlin unit tests become golden test cases |
 | WorkManager daily reminder | Web Push from a small server (see below) |
-| Versioned JSON backup (`data/Backup.kt`) | Same JSON format, so a backup can move between Android and web (needs checking against `Backup.kt`) |
+| Versioned JSON backup (`data/Backup.kt`) | Same JSON format, so a backup moves between Android and web; whole files in `golden/backup/` prove it both ways |
 | `TestTags.kt` | `data-testid`, mirrored the same way |
 | Debug-only `SeedWordsActivity` | A debug hook that seeds words |
 
 Tests for the web app mirror the layers above: Vitest for unit and component tests, and
-Playwright for end-to-end, both assumed **(unverified)**. Playwright's WebKit engine isn't
+Playwright for end-to-end (Vitest is in use; Playwright is assumed **(unverified)**). Playwright's WebKit engine isn't
 iOS Safari, so the Home Screen install flow and the push permission prompt can only be
 checked by hand on a real iPhone.
 
@@ -160,8 +161,8 @@ Considered on 08/10/2026 and dropped. From Apple's
 
 ## Open questions
 
-- The web UI framework, and whether `web/` lives in this repo.
+- The web UI framework. (`web/` lives in this repo: decided.)
 - Where the web app is hosted, and under what address.
 - Whether the first web release ships without push.
 - Where the push server runs, if it ships at all, and what it stores.
-- Whether the backup JSON should be shared between the two apps from the start.
+- ~~Whether the backup JSON should be shared between the two apps from the start.~~ Decided: one format, proved by `golden/backup/`.

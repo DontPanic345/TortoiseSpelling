@@ -57,6 +57,10 @@ output, and a `name` saying what it checks (the Kotlin test it came from, in wor
 | `paste.json` | `parsePastedLookup` (every message, the order of the checks, each limit at and one over), `summary`, `isBlank` |
 | `backup.json` | `parseBackup`, `toImport`, `toBackup`: whole files in `backup/` (`files`: what each imports as, and what exporting those words writes back), refusals with their messages, and `quirks` |
 
+Not golden: the DAO's SQL queries and the repositories. They have no pure Kotlin twin, so the
+web's queries (`domain/queries.ts`) and repository (`data/repository.ts`) are tested in
+`web/test/`, and Android's in `app/src/androidTest/.../data/` and `integration/`.
+
 ## Known differences
 
 Where the port deliberately differs from the Kotlin. A case where the runners disagree is a

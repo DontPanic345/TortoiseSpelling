@@ -5,7 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Tortoise Spelling is a single-module native Android app (Kotlin, Jetpack Compose, min SDK 26,
 target 36) for learning to spell your own word list with SM-2 spaced repetition, a daily
 reminder, and word lookup by copying a prompt into any chat AI and pasting its answer back.
-User-facing overview: `README.md`.
+User-facing overview: `README.md`. The repo also holds a web app in `web/` (TypeScript),
+which shares golden cases with the Android app (`golden/`); its screens arrive with `web-ui`.
 
 ## Commands
 
@@ -34,6 +35,8 @@ Gradle needs `JAVA_HOME`; on this machine use Android Studio's JBR
 ./gradlew validateDebugScreenshotTest       # compare screenshots to the references, JVM, no device
 ./gradlew assembleDebugAndroidTest            # compile the instrumented tests, no device
 node --test 'scripts/*.test.mjs'              # script tests (quote the glob)
+(cd web && npm ci && npm test)                # web unit tests and golden cases, Node, no browser
+(cd web && npm run typecheck)                 # tsc --noEmit
 node scripts/icon.mjs                         # regenerate the app and notification icons
 adb install -r app/build/outputs/apk/debug/app-debug.apk       # install the debug APK
 ```
@@ -48,12 +51,15 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk       # install the deb
 | Screenshot tests | `app/src/screenshotTest/` | JVM (Layoutlib), no device; references committed; CI's `screenshots` job validates them. After a deliberate UI change, run `update`, look at the images and commit them |
 | End-to-end BDD tests | [`e2e/`](e2e/README.md) | The real APK on an emulator |
 | Script tests | `scripts/*.test.mjs` | Node, no device |
+| Web unit tests | `web/test/` | Node, no browser; storage on `fake-indexeddb` |
+| Golden cases | `golden/` | Both apps: `golden/*.json` run by JUnit (`./gradlew testDebugUnitTest`, `app/src/test/.../golden/`) and Vitest (`web/test/golden/`) |
 
 Each instrumented layer has its own package under `androidTest`, selected with the runner's
 `package` argument.
 
-- **CI** (`.github/workflows/ci.yml`) runs the unit tests, `lintDebug`, the script tests and
-  the e2e `check-steps`/`typecheck` on pushes to main and on PRs. It also validates the
+- **CI** (`.github/workflows/ci.yml`) runs the unit tests, `lintDebug`, the script tests, the
+  `web` job (typecheck, Vitest and the golden cases; `release.yml` calls `ci.yml`, so a release
+  waits for it) and the e2e `check-steps`/`typecheck` on pushes to main and on PRs. It also validates the
   screenshots and runs the data, component, integration and accessibility layers, one
   `instrumented` matrix job each (API 26 emulators; API 34 for accessibility). It doesn't
   run the Appium scenarios; their release smoke runs from `release.yml`.
@@ -171,7 +177,9 @@ re-opens Review.
   `words` (the pattern a column drop copies). A schema change also appends its `Migration`
   to `ALL_MIGRATIONS`, bumps `DATABASE_VERSION`, and adds a test to `MigrationTest` that
   seeds the previous version and checks every column comes through.
-- Backups are versioned JSON (`data/Backup.kt`); import merges and never overwrites
+- Backups are versioned JSON (`data/Backup.kt`), the same file on Android and the web app; a
+  format change needs a case in `golden/backup/` and the TypeScript in `web/src/data/backup.ts`
+  in the same commit. Import merges and never overwrites
   existing words' progress. Each word carries a `definitions` tree beside flat
   `definition`, `example` and `partOfSpeech` fields from its root card, so older builds
   still read the file and the format version stays 1; a file with no tree imports as
@@ -195,6 +203,30 @@ re-opens Review.
 - The blank and the answer are the asked form's, and `hideWordInDefinition` scrubs every
   form of the word from every definition when a word is saved.
 - Word-list search matches the root and every form's spelling (`searchTerms`), never definitions.
+
+**Web app** (`web/`). A TypeScript port of the word logic, IndexedDB storage and the shared
+backup; no screens yet.
+- `web/src/domain/` mirrors `domain/` file for file, with the same names in camelCase.
+  **A change to a rule in `domain/` or `Backup.kt` changes `golden/` and the TypeScript in the
+  same commit.** The Kotlin runner is the oracle: a case is right only once it passes on the
+  JVM, and `golden/README.md` lists the known differences.
+- Kotlin's whitespace rules, not JavaScript's: use `ktTrim`/`ktIsBlank` wherever the Kotlin
+  calls `trim()`/`isBlank()`.
+- Clock, fuzz and random are parameters (`createRepository({ db, clock, fuzz, random })`);
+  only `clock.ts` and `random.ts` read the real time or `Math.random`. Golden cases never
+  expect a particular random outcome.
+- Words are stored with their content nested, one IndexedDB record each (the backup's tree),
+  and queries are pure functions over every word (`domain/queries.ts`).
+- Every repository write is one `readwrite` transaction that does its checks and re-reads
+  inside it, awaiting only that transaction's requests (anything else lets it commit early).
+  `updateWord` writes only `text`, `normalizedText` and `content` onto the row it reads, so
+  it can't undo scheduling; `markShown` stamps the example at the card's position only if
+  its text still matches.
+- IndexedDB version rule (`web/src/data/db.ts`): every schema change bumps `DB_VERSION`, adds
+  a `case` to `upgrade` that migrates existing records and never rewrites an earlier one, and
+  adds a test that opens the previous version's database with records in it. No store is
+  deleted with its data.
+- Nothing in `web/src` makes a network call.
 
 **Icons.** `ic_launcher_foreground.xml`, `ic_launcher_monochrome.xml`, `ic_notification.xml`,
 `ic_launcher_background.xml` and `docs/icon.svg` are generated. Edit `scripts/icon.mjs` and
