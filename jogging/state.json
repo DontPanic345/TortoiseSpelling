@@ -467,7 +467,7 @@
           "title": "Port the content model, card picking, the lookup prompt and the paste parser, with content, pick, prompt and paste golden files",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-3",
