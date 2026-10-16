@@ -3,6 +3,7 @@ import { ContainerContext, type AppContainer } from "./ui/container";
 import { Snackbar, useSnackbar } from "./ui/common/Snackbar";
 import { TopBar } from "./ui/common/TopBar";
 import { BackButton } from "./ui/common/BackButton";
+import { AddWordScreen } from "./ui/add/AddWordScreen";
 import { CompletionScreen } from "./ui/complete/CompletionScreen";
 import { HomeScreen } from "./ui/home/HomeScreen";
 import { ReviewScreen } from "./ui/review/ReviewScreen";
@@ -40,6 +41,10 @@ function Screen({ route }: { route: Route }) {
     case "review":
     case "practice":
       return <ReviewScreen practiceMode={route.name === "practice"} />;
+    case "add":
+      return <AddWordScreen editingId={null} />;
+    case "edit":
+      return <AddWordScreen editingId={route.id} />;
     default:
       return <Placeholder route={route} />;
   }
