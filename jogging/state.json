@@ -16,7 +16,8 @@
           "title": "Runner check: emulator, Gradle, Appium and push, timed",
           "model": "haiku",
           "effort": "low",
-          "status": "pending"
+          "status": "pending",
+          "attempts": 1
         },
         {
           "id": "build-2",
