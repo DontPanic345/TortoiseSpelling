@@ -217,7 +217,7 @@ describe("AddWordContent", () => {
   });
 
   it("Copy error sends the message and says it was copied", async () => {
-    const message = "That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again.";
+    const message = "That JSON is broken, so Tortoise Spelling can't read it. A bracket or comma may be missing. Ask the chat to fix it, or copy its whole answer again.";
     const calls = show(addPasteInvalid());
     fireEvent.click(byId(TestIds.ADD_WORD_PASTE_COPY_ERROR));
     expect(calls.copiedErrors).toEqual([message]);

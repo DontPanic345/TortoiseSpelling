@@ -177,7 +177,7 @@ class AddWordContentTest {
 
     @Test
     fun copyErrorSendsTheMessageAndSaysItWasCopied() {
-        val message = "That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again."
+        val message = "That JSON is broken, so Tortoise Spelling can't read it. A bracket or comma may be missing. Ask the chat to fix it, or copy its whole answer again."
         show(Fixtures.addPasteInvalid())
 
         compose.onNodeWithTag(TestTags.ADD_WORD_PASTE_COPY_ERROR).performClick()
