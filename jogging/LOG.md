@@ -389,3 +389,7 @@ Blocked: needs Alan's Cloudflare account and the two repo secrets. `PUSH_SERVER`
 ## 2026-10-17 04:45 web-push/build-4 (sonnet)
 The Cloudflare secrets are set now, so `push.yml` (run 39003194400) no longer skips, but `wrangler deploy` fails with "Authentication error [code: 10000]" on `/accounts/…/workers/services/tortoisespelling-push` and on `/accounts`; the VAPID step then fails too. Nothing is deployed, so `PUSH_SERVER`, the docs and the live and phone checks haven't been done.
 Blocked: the API token or account ID is wrong or under-scoped. The next session re-runs `gh workflow run push.yml` and carries on with steps 2 to 4.
+
+## 2026-10-17 05:10 web-push/build-4 (sonnet)
+Re-ran `push.yml` three times after Alan's "try again". Every `wrangler deploy` fails with "Authentication error [code: 10000]" on `/accounts/…/workers/services/tortoisespelling-push` (runs 39004877669 and 39004997606; the first, 39004803447, got as far as a rate limit on the secret step, code 10429), and the last also hit "Too many authentication failures" (10502) on `/user/tokens/verify`. Nothing is deployed, so `PUSH_SERVER`, the docs and the live and phone checks haven't been done.
+Blocked: the token is rejected for this Worker. It needs the "Edit Cloudflare Workers" template (Workers Scripts: Edit, plus Account Settings: Read and Workers KV/Durable Objects as the template gives) on the right account, and `CLOUDFLARE_ACCOUNT_ID` must match that account.
