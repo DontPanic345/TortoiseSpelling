@@ -656,7 +656,7 @@
       "dependsOn": [
         "web-ui"
       ],
-      "status": "blocked",
+      "status": "active",
       "spec": "jogging/specs/web-push.md",
       "steps": [
         {
@@ -703,7 +703,7 @@
           "title": "push.yml deploy (blocker if the Cloudflare secrets aren't set), live checks, PUSH_SERVER, PRIVACY.md and the other docs, the phone's Chrome check",
           "model": "sonnet",
           "effort": "medium",
-          "status": "blocked"
+          "status": "pending"
         },
         {
           "id": "review",
@@ -714,9 +714,7 @@
           "status": "pending"
         }
       ],
-      "blocker": "Cloudflare still rejects the deploy with Authentication error 10000 (and now rate-limits after repeated failures). Please recreate the API token from the \"Edit Cloudflare Workers\" template for the same account as CLOUDFLARE_ACCOUNT_ID, update both repo secrets, and wait a few minutes before the next try.",
-      "blockerIssue": 26,
-      "blockedAt": "2026-10-17T05:06:39.948Z"
+      "userReply": "Try again"
     }
   ],
   "stuck": true
