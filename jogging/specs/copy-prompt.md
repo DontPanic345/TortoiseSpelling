@@ -99,6 +99,7 @@ Rules:
 - "partOfSpeech": noun, verb, adjective and so on.
 - "forms": the common forms of the word for that meaning, such as plurals and verb tenses. The first form of the first definition is the word itself. "label" says which form it is, such as "plural" or "past tense".
 - "examples": one or two natural sentences for each form. Each one must contain that form's "text" exactly, letter for letter, as a whole word.
+- Use plain, everyday language that a learner would know, in the definitions and the example sentences.
 - About a dozen forms and sentences in total is plenty.
 ```
 
