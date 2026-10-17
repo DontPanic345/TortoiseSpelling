@@ -41,7 +41,7 @@ export function addRunWithTwoDefinitions(): AddWordState {
 export function addPasteInvalid(): AddWordState {
   const result: PastedLookup = {
     kind: "invalid",
-    message: "That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again.",
+    message: "That JSON is broken, so Tortoise Spelling can't read it. A bracket or comma may be missing. Ask the chat to fix it, or copy its whole answer again.",
   };
   return { ...addNew(), text: "run", paste: { text: "Sure! Here you go", result } };
 }

@@ -24,7 +24,9 @@ export const PASTE_LIMITS = {
 } as const;
 
 const TOO_LONG = "That's too long to be one word's answer.";
-const NOT_JSON = "That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again.";
+const NO_JSON = "There's no JSON in that. Copy the chat's whole answer and paste it again.";
+const BROKEN_JSON = "That JSON is broken, so Tortoise Spelling can't read it. A bracket or comma may be missing. Ask the chat to fix it, or copy its whole answer again.";
+const WRONG_SHAPE = "That's valid JSON, but not what Tortoise Spelling needs.";
 const PROMPT_PASTED = "That's the prompt, not the chat's answer. Paste the chat's reply instead.";
 const OVER_LIMIT = "That answer is longer than a word needs. Ask the chat for a shorter one.";
 
@@ -52,10 +54,32 @@ function escapeControlCharacters(json: string): string {
   return out;
 }
 
+// Chat apps that render markdown can copy a reply with a backslash before its brackets,
+// underscores and the like (\[ \] \_ \* \# \`). JSON has no such escape, so each one is
+// the chat's markdown, not the answer's; \\ and the real escapes are left alone.
+function unescapeMarkdown(json: string): string {
+  let out = "";
+  for (let i = 0; i < json.length; i++) {
+    const c = json.charAt(i);
+    if (c !== "\\") {
+      out += c;
+      continue;
+    }
+    const next = json.charAt(++i);
+    out += "[]_*#`".includes(next) && next !== "" ? next : c + next;
+  }
+  return out;
+}
+
 class Rejected extends Error {}
 
 function reject(message: string): never {
   throw new Rejected(message);
+}
+
+/** The reply is valid JSON, but not the shape the prompt asks for. */
+function wrong(message: string): never {
+  return reject(`${WRONG_SHAPE} ${message}`);
 }
 
 type Json = unknown;
@@ -74,7 +98,7 @@ function items(value: Json): Json[] {
 
 /**
  * Validates a chat AI's reply to `lookupPrompt` and turns it into content. The JSON is
- * located (first `{` to last `}`), never repaired; the first failure is the result.
+ * located (first `{` to last `}`), never repaired beyond removing markdown backslashes; the first failure is the result.
  */
 export function parsePastedLookup(text: string, typedWord: string): PastedLookup {
   try {
@@ -89,29 +113,29 @@ function parseOrReject(text: string, typedWord: string): PastedLookup {
   if (text.length > PASTE_LIMITS.TEXT) reject(TOO_LONG);
   const start = text.indexOf("{");
   const end = text.lastIndexOf("}");
-  if (start < 0 || end < start) reject(NOT_JSON);
+  if (start < 0 || end < start) reject(NO_JSON);
   let root: Json;
   try {
-    root = JSON.parse(escapeControlCharacters(text.substring(start, end + 1)));
+    root = JSON.parse(escapeControlCharacters(unescapeMarkdown(text.substring(start, end + 1))));
   } catch {
     root = null;
   }
-  if (!isObject(root)) reject(NOT_JSON);
+  if (!isObject(root)) reject(BROKEN_JSON);
 
   const word = string(root.word);
-  if (word === "") reject('The answer has no "word".');
+  if (word === "") wrong('The answer has no "word".');
   if ([...word].every((c) => c === "." || c === "…")) reject(PROMPT_PASTED);
   const rawDefinitions = Array.isArray(root.definitions) && root.definitions.length > 0 ? root.definitions : null;
-  if (rawDefinitions === null) reject("The answer has no definitions.");
+  if (rawDefinitions === null) wrong("The answer has no definitions.");
 
   let tooLong = rawDefinitions.length > PASTE_LIMITS.DEFINITIONS || word.length > PASTE_LIMITS.WORD;
   const definitions = rawDefinitions.map((element: Json, index: number): DefinitionDraft => {
     const n = index + 1;
     const definition = isObject(element) ? element : null;
     const definitionText = string(definition?.text);
-    if (definitionText === "") reject(`Definition ${n} has no text.`);
+    if (definitionText === "") wrong(`Definition ${n} has no text.`);
     const rawForms = items(definition?.forms);
-    if (rawForms.length === 0) reject(`Definition ${n} has no forms.`);
+    if (rawForms.length === 0) wrong(`Definition ${n} has no forms.`);
     const partOfSpeech = string(definition?.partOfSpeech);
     tooLong =
       tooLong ||
@@ -121,13 +145,13 @@ function parseOrReject(text: string, typedWord: string): PastedLookup {
     const forms = rawForms.map((rawForm): FormDraft => {
       const form = isObject(rawForm) ? rawForm : null;
       const formText = string(form?.text);
-      if (formText === "") reject(`A form in definition ${n} has no text.`);
+      if (formText === "") wrong(`A form in definition ${n} has no text.`);
       const examples = items(form?.examples)
         .map(string)
         .filter((example) => example !== "");
-      if (examples.length === 0) reject(`“${formText}” has no example sentence.`);
+      if (examples.length === 0) wrong(`“${formText}” has no example sentence.`);
       const missing = examples.find((example) => exampleMissesForm(example, formText));
-      if (missing !== undefined) reject(`“${missing}” doesn't contain “${formText}”.`);
+      if (missing !== undefined) wrong(`“${missing}” doesn't contain “${formText}”.`);
       const label = string(form?.label);
       tooLong =
         tooLong ||

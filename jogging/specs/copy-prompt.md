@@ -45,7 +45,9 @@ Goals it leans on:
 - **The JSON is located, not repaired.** The parser takes the text from the first `{` to
   the last `}`. That strips a code fence, as the doc asks, and also a line of prose such
   as "Here's the JSON:", which chat apps add often enough to matter. Nothing inside the
-  braces is repaired.
+  braces is repaired, with one exception: a backslash before `[`, `]`, `_`, `*`, `#` or a
+  backtick is removed. ChatGPT's copy button can put those in (`\[` for `[`), and JSON has
+  no such escape, so they are markdown, never part of the answer. `\\` is left alone.
 - **Validate as you paste, no separate Check button.** A paste is one change, so the
   result is there at once; the summary is the doc's "preview", and Use this / Cancel are
   its "save or cancel".
@@ -99,6 +101,7 @@ Rules:
 - "partOfSpeech": noun, verb, adjective and so on.
 - "forms": the common forms of the word for that meaning, such as plurals and verb tenses. The first form of the first definition is the word itself. "label" says which form it is, such as "plural" or "past tense".
 - "examples": one or two natural sentences for each form. Each one must contain that form's "text" exactly, letter for letter, as a whole word.
+- Use plain, everyday language that a learner would know, in the definitions and the example sentences.
 - About a dozen forms and sentences in total is plenty.
 ```
 
@@ -130,12 +133,13 @@ object PasteLimits { const val TEXT = 20_000; const val DEFINITIONS = 8; const v
 
 Rules, checked in this order; the first failure is the result. Every string is trimmed
 before it is checked or kept; a value that isn't a JSON string counts as missing.
-Definitions are numbered from 1 in messages.
+Definitions are numbered from 1 in messages. When the text is valid JSON but the wrong shape, the messages below (from "no word" to "doesn't contain") start with "That's valid JSON, but not what Tortoise Spelling needs."
 
 | Check | Message |
 |---|---|
 | `text.length > TEXT` | That's too long to be one word's answer. |
-| No `{` … `}`, it doesn't parse, or it isn't an object | That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again. |
+| No `{` … `}` | There's no JSON in that. Copy the chat's whole answer and paste it again. |
+| The text between them doesn't parse | That JSON is broken, so Tortoise Spelling can't read it. A bracket or comma may be missing. Ask the chat to fix it, or copy its whole answer again. |
 | `word` missing or blank | The answer has no "word". |
 | `word` is only dots or `…` (the prompt's placeholder, so the prompt itself was pasted back) | That's the prompt, not the chat's answer. Paste the chat's reply instead. |
 | `definitions` missing, not an array, or empty | The answer has no definitions. |
@@ -344,6 +348,7 @@ Tests (JVM):
     examples in order, parts of speech and labels kept, `renames` false, and `summary()`
     "2 definitions, 4 forms, 4 example sentences".
   - A ` ```json ` fence, and a line of prose before and after, both parse the same.
+  - Markdown backslashes before brackets (`\[ ... \]`) parse the same; `\\[` keeps its backslash.
   - One test per row of the table, asserting the exact message; definition numbering is
     1-based; a non-string `text` counts as missing.
   - Order: a bad example in definition 1 and a blank definition 2 report the example;

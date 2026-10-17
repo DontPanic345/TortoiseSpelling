@@ -15,6 +15,12 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 - **Daily reminder in the web app**: turn it on from Home or Settings to get a notification on days with words to practise. On iPhone and iPad, install the app to the Home Screen first.
 - **Copy error** in the Paste the answer dialog, on Android and the web, copies the message about a pasted answer that can't be used, so you can paste it back into the chat to get a corrected answer.
 
+### Changed
+
+- **Clearer errors when pasting an answer**: the app now says whether the text has no JSON in it, the JSON is broken (a missing bracket or comma, say), or the JSON is fine but isn't the shape Tortoise Spelling needs.
+- **Pasting an answer copied from ChatGPT works** when it comes with backslashes before the brackets (`\[`), which its copy button can add.
+- **Copy prompt asks for plain language**, so the definitions and example sentences a chat AI writes use everyday words a learner will know.
+
 ## [0.7.0] - 2026-10-16
 
 ### Removed

@@ -316,7 +316,7 @@ private val pasteWithError = AddWordUiState(
     paste = PasteDraft(
         text = "Sure! Here you go",
         result = PastedLookup.Invalid(
-            "That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again.",
+            "That JSON is broken, so Tortoise Spelling can't read it. A bracket or comma may be missing. Ask the chat to fix it, or copy its whole answer again.",
         ),
     ),
 )

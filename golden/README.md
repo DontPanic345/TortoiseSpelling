@@ -69,7 +69,7 @@ bug in the port unless it is listed here.
 
 - **Looser values in a pasted answer.** kotlinx reads a bare word, a leading-zero number, `+1`,
   `1.`, `NaN`, `0x1` or a single-quoted string as a value, where `JSON.parse` refuses the whole
-  text ("That isn't the JSON the prompt asks for."). Matching it would need a hand-written
+  text ("That JSON is broken…"). Matching it would need a hand-written
   parser, and a chat AI rarely writes such JSON. (A raw newline, tab or other control character
   inside a string is also looser on the JVM; the port escapes those before parsing, so the two
   agree, and `paste.json` pins it.)
