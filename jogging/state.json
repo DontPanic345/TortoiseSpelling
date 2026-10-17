@@ -656,7 +656,7 @@
       "dependsOn": [
         "web-ui"
       ],
-      "status": "blocked",
+      "status": "active",
       "spec": "jogging/specs/web-push.md",
       "steps": [
         {
@@ -703,7 +703,7 @@
           "title": "push.yml deploy (blocker if the Cloudflare secrets aren't set), live checks, PUSH_SERVER, PRIVACY.md and the other docs, the phone's Chrome check",
           "model": "sonnet",
           "effort": "medium",
-          "status": "blocked"
+          "status": "pending"
         },
         {
           "id": "review",
@@ -714,9 +714,7 @@
           "status": "pending"
         }
       ],
-      "blocker": "push.yml now sees the Cloudflare secrets, but wrangler deploy fails with Authentication error 10000 (run 39003194400). Please check CLOUDFLARE_API_TOKEN has Workers Scripts: Edit (use the \"Edit Cloudflare Workers\" template) for this account, and that CLOUDFLARE_ACCOUNT_ID is the matching account ID.",
-      "blockerIssue": 25,
-      "blockedAt": "2026-10-17T04:37:49.174Z"
+      "userReply": "try again"
     }
   ],
   "stuck": true
