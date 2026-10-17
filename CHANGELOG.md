@@ -13,6 +13,7 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 - **Tortoise Spelling for the web**, for iPhone, iPad and any browser, at https://dontpanic345.github.io/TortoiseSpelling/. It does everything the Android app does, works offline once opened, installs to the Home Screen, and reads and writes the same backup files, so your words can move between the two.
 - **Daily reminder in the web app**: turn it on from Home or Settings to get a notification on days with words to practise. On iPhone and iPad, install the app to the Home Screen first.
+- **Copy error** in the Paste the answer dialog, on Android and the web, copies the message about a pasted answer that can't be used, so you can paste it back into the chat to get a corrected answer.
 
 ## [0.7.0] - 2026-10-16
 

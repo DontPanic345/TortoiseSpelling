@@ -21,6 +21,7 @@ export const TestIds = {
   ADD_WORD_PASTE: "add_word_paste",
   ADD_WORD_PASTE_TEXT: "add_word_paste_text",
   ADD_WORD_PASTE_USE: "add_word_paste_use",
+  ADD_WORD_PASTE_COPY_ERROR: "add_word_paste_copy_error",
   ADD_WORD_ADD_DEFINITION: "add_word_add_definition",
 
   WORD_LIST_SEARCH: "word_list_search",

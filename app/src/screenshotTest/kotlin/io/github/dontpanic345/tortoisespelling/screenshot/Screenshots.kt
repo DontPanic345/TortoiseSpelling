@@ -270,6 +270,7 @@ private fun AddWordShot(dark: Boolean, state: AddWordUiState) = Themed(dark) {
         onPasteTextChange = {},
         onUsePaste = {},
         onDismissPaste = {},
+        onCopyPasteError = {},
         onEdit = {},
         onSave = {},
     )

@@ -29,6 +29,8 @@ function mount(state: AddWordState) {
     dismissed: 0,
     deleted: 0,
     pasted: [] as string[],
+    copiedErrors: [] as string[],
+    copyWorks: true,
   };
   const element = (state: AddWordState) => (
     <AddWordContent
@@ -41,6 +43,10 @@ function mount(state: AddWordState) {
       onPasteTextChange={(value) => calls.pasted.push(value)}
       onUsePaste={() => calls.used++}
       onDismissPaste={() => calls.dismissed++}
+      onCopyPasteError={(message) => {
+        calls.copiedErrors.push(message);
+        return Promise.resolve(calls.copyWorks);
+      }}
       onEdit={(edit) => calls.edits.push(edit)}
       onSave={() => calls.saved++}
     />
@@ -208,6 +214,26 @@ describe("AddWordContent", () => {
     ).toBeTruthy();
     expect((byId(TestIds.ADD_WORD_PASTE_USE) as HTMLButtonElement).disabled).toBe(true);
     expect(byId(TestIds.ADD_WORD_PASTE_TEXT).getAttribute("aria-invalid")).toBe("true");
+  });
+
+  it("Copy error sends the message and says it was copied", async () => {
+    const message = "That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again.";
+    const calls = show(addPasteInvalid());
+    fireEvent.click(byId(TestIds.ADD_WORD_PASTE_COPY_ERROR));
+    expect(calls.copiedErrors).toEqual([message]);
+    expect(await screen.findByText("Error copied")).toBeTruthy();
+  });
+
+  it("Copy error says so when the copy fails", async () => {
+    const calls = show(addPasteInvalid());
+    calls.copyWorks = false;
+    fireEvent.click(byId(TestIds.ADD_WORD_PASTE_COPY_ERROR));
+    expect(await screen.findByText("Couldn't copy the error")).toBeTruthy();
+  });
+
+  it("a valid answer has no Copy error", () => {
+    show(addPasteValid());
+    expect(screen.queryByTestId(TestIds.ADD_WORD_PASTE_COPY_ERROR)).toBeNull();
   });
 
   it("a blank dialog says to paste the whole reply and cannot be used", () => {

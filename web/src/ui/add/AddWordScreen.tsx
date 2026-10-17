@@ -104,6 +104,7 @@ export function AddWordScreen({ editingId }: { editingId: number | null }) {
         onPasteTextChange={(value) => update((s) => pasteTextChanged(s, value))}
         onUsePaste={() => update(usePaste)}
         onDismissPaste={() => update(dismissPaste)}
+        onCopyPasteError={(message) => platform.copyText(message)}
         onEdit={(edit: ContentEdit) => update((s) => edited(s, edit))}
         onSave={() => void save()}
       />

@@ -20,6 +20,7 @@ export const testIds = {
     addWordPaste: 'add_word_paste',
     addWordPasteText: 'add_word_paste_text',
     addWordPasteUse: 'add_word_paste_use',
+    addWordPasteCopyError: 'add_word_paste_copy_error',
     /** The tree editor's fields by position (definition, form, example). */
     addWordAddForm: (d: number): string => `add_word_add_form_${d}`,
     addWordFormText: (d: number, f: number): string => `add_word_form_text_${d}_${f}`,

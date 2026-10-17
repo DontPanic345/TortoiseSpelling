@@ -25,6 +25,7 @@ object TestTags {
     const val ADD_WORD_PASTE = "add_word_paste"
     const val ADD_WORD_PASTE_TEXT = "add_word_paste_text"
     const val ADD_WORD_PASTE_USE = "add_word_paste_use"
+    const val ADD_WORD_PASTE_COPY_ERROR = "add_word_paste_copy_error"
     const val ADD_WORD_ADD_DEFINITION = "add_word_add_definition"
 
     /**

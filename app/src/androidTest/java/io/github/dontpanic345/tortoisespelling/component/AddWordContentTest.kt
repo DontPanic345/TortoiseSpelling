@@ -33,6 +33,7 @@ class AddWordContentTest {
     private var used = 0
     private var dismissed = 0
     private val pasted = mutableListOf<String>()
+    private val copiedErrors = mutableListOf<String>()
 
     private fun show(state: AddWordUiState) {
         compose.setContent {
@@ -47,6 +48,7 @@ class AddWordContentTest {
                     onPasteTextChange = { pasted += it },
                     onUsePaste = { used++ },
                     onDismissPaste = { dismissed++ },
+                    onCopyPasteError = { copiedErrors += it },
                     onEdit = { edits += it },
                     onSave = { saved++ },
                 )
@@ -171,6 +173,23 @@ class AddWordContentTest {
         compose.onNodeWithText("That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again.")
             .assertExists()
         compose.onNodeWithTag(TestTags.ADD_WORD_PASTE_USE).assertIsNotEnabled()
+    }
+
+    @Test
+    fun copyErrorSendsTheMessageAndSaysItWasCopied() {
+        val message = "That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again."
+        show(Fixtures.addPasteInvalid())
+
+        compose.onNodeWithTag(TestTags.ADD_WORD_PASTE_COPY_ERROR).performClick()
+
+        assertEquals(listOf(message), copiedErrors)
+        compose.onNodeWithText("Error copied").assertExists()
+    }
+
+    @Test
+    fun aValidAnswerHasNoCopyError() {
+        show(Fixtures.addPasteValid())
+        compose.onNodeWithTag(TestTags.ADD_WORD_PASTE_COPY_ERROR).assertDoesNotExist()
     }
 
     @Test

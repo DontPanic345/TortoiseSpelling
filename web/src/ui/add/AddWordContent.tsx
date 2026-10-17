@@ -1,5 +1,5 @@
 import type { ComponentChildren } from "preact";
-import { useEffect, useId, useRef } from "preact/hooks";
+import { useEffect, useId, useRef, useState } from "preact/hooks";
 import { isBlank, summary, type PastedLookup } from "../../domain/pastedLookup";
 import { ktIsBlank, ktTrim } from "../../domain/text";
 import {
@@ -33,6 +33,8 @@ export interface AddWordContentProps {
   onPasteTextChange: (value: string) => void;
   onUsePaste: () => void;
   onDismissPaste: () => void;
+  /** Resolves to whether the copy worked. */
+  onCopyPasteError: (message: string) => Promise<boolean>;
   onEdit: (edit: ContentEdit) => void;
   onSave: () => void;
 }
@@ -47,6 +49,7 @@ export function AddWordContent({
   onPasteTextChange,
   onUsePaste,
   onDismissPaste,
+  onCopyPasteError,
   onEdit,
   onSave,
 }: AddWordContentProps) {
@@ -144,6 +147,7 @@ export function AddWordContent({
           onTextChange={onPasteTextChange}
           onUse={onUsePaste}
           onDismiss={onDismissPaste}
+          onCopyError={onCopyPasteError}
         />
       )}
     </main>
@@ -375,6 +379,7 @@ function PasteDialog({
   onTextChange,
   onUse,
   onDismiss,
+  onCopyError,
 }: {
   paste: PasteDraft;
   replacesContent: boolean;
@@ -382,10 +387,18 @@ function PasteDialog({
   onTextChange: (value: string) => void;
   onUse: () => void;
   onDismiss: () => void;
+  onCopyError: (message: string) => Promise<boolean>;
 }) {
   const { result } = paste;
   const field = useRef<HTMLTextAreaElement>(null);
   const id = useId();
+  // The modal dialog covers the snackbar, so the button itself says how the copy went,
+  // until the message changes.
+  const [copy, setCopy] = useState<{ message: string; ok: boolean } | null>(null);
+  const copyError = (message: string) => {
+    // Called straight from the tap: Safari refuses a clipboard write after an await.
+    void onCopyError(message).then((ok) => setCopy({ message, ok }));
+  };
   useEffect(() => {
     field.current?.focus();
   }, []);
@@ -426,6 +439,17 @@ function PasteDialog({
         </div>
         <p class="support">{pasteSupport(result)}</p>
       </div>
+      {result?.kind === "invalid" && (
+        // So the message can go back to the chat, which can usually fix its answer.
+        <button
+          type="button"
+          class="text-button"
+          data-testid={TestIds.ADD_WORD_PASTE_COPY_ERROR}
+          onClick={() => copyError(result.message)}
+        >
+          {copy?.message !== result.message ? "Copy error" : copy.ok ? "Error copied" : "Couldn't copy the error"}
+        </button>
+      )}
       {result?.kind === "valid" && result.renames && (
         <p>
           This answer is for “{result.word}”. Using it changes the word from “{typedWord}”.

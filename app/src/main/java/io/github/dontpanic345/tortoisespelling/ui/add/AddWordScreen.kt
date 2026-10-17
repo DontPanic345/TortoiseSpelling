@@ -37,8 +37,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -126,6 +128,11 @@ fun AddWordScreen(
         onPasteTextChange = viewModel::onPasteTextChange,
         onUsePaste = viewModel::usePaste,
         onDismissPaste = viewModel::dismissPaste,
+        onCopyPasteError = { message ->
+            scope.launch {
+                clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("Paste error", message)))
+            }
+        },
         onEdit = viewModel::onEdit,
         onSave = viewModel::save,
     )
@@ -143,6 +150,7 @@ fun AddWordContent(
     onPasteTextChange: (String) -> Unit,
     onUsePaste: () -> Unit,
     onDismissPaste: () -> Unit,
+    onCopyPasteError: (String) -> Unit,
     onEdit: (ContentEdit) -> Unit,
     onSave: () -> Unit,
     modifier: Modifier = Modifier,
@@ -241,6 +249,7 @@ fun AddWordContent(
             onTextChange = onPasteTextChange,
             onUse = onUsePaste,
             onDismiss = onDismissPaste,
+            onCopyError = onCopyPasteError,
         )
     }
 }
@@ -253,9 +262,13 @@ private fun PasteDialog(
     onTextChange: (String) -> Unit,
     onUse: () -> Unit,
     onDismiss: () -> Unit,
+    onCopyError: (String) -> Unit,
 ) {
     val result = paste.result
     val focus = remember { FocusRequester() }
+    // The dialog covers the snackbar, so the button itself confirms the copy, until the
+    // message changes.
+    var copiedMessage by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) {
         runCatching { focus.requestFocus() }
     }
@@ -289,6 +302,18 @@ private fun PasteDialog(
                         .focusRequester(focus)
                         .testTag(TestTags.ADD_WORD_PASTE_TEXT),
                 )
+                if (result is PastedLookup.Invalid) {
+                    // So the message can go back to the chat, which can usually fix its answer.
+                    TextButton(
+                        onClick = {
+                            onCopyError(result.message)
+                            copiedMessage = result.message
+                        },
+                        modifier = Modifier.testTag(TestTags.ADD_WORD_PASTE_COPY_ERROR),
+                    ) {
+                        Text(if (copiedMessage == result.message) "Error copied" else "Copy error")
+                    }
+                }
                 if (result is PastedLookup.Valid) {
                     if (result.renames) {
                         Text(
