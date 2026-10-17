@@ -1,6 +1,6 @@
 {
-  "enabled": true,
-  "done": false,
+  "enabled": false,
+  "done": true,
   "logIssue": 11,
   "pieces": [
     {
