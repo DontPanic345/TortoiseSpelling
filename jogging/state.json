@@ -656,7 +656,7 @@
       "dependsOn": [
         "web-ui"
       ],
-      "status": "blocked",
+      "status": "active",
       "spec": "jogging/specs/web-push.md",
       "steps": [
         {
@@ -703,7 +703,7 @@
           "title": "push.yml deploy (blocker if the Cloudflare secrets aren't set), live checks, PUSH_SERVER, PRIVACY.md and the other docs, the phone's Chrome check",
           "model": "sonnet",
           "effort": "medium",
-          "status": "blocked"
+          "status": "pending"
         },
         {
           "id": "review",
@@ -714,9 +714,7 @@
           "status": "pending"
         }
       ],
-      "blocker": "The Cloudflare token works now, but the account has no workers.dev subdomain, so wrangler deploy stops. Please register one (Cloudflare dashboard, Workers & Pages, the subdomain prompt) and reply.",
-      "blockerIssue": 27,
-      "blockedAt": "2026-10-17T05:23:42.759Z"
+      "userReply": "👟"
     }
   ],
   "stuck": true
