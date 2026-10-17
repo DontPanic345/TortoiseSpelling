@@ -16,6 +16,7 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ### Changed
 
+- **Pasting an answer copied from ChatGPT works** when it comes with backslashes before the brackets (`\[`), which its copy button can add.
 - **Copy prompt asks for plain language**, so the definitions and example sentences a chat AI writes use everyday words a learner will know.
 
 ## [0.7.0] - 2026-10-16

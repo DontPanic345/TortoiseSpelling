@@ -31,6 +31,26 @@ private const val NOT_JSON = "That isn't the JSON the prompt asks for. Copy the 
 private const val PROMPT_PASTED = "That's the prompt, not the chat's answer. Paste the chat's reply instead."
 private const val OVER_LIMIT = "That answer is longer than a word needs. Ask the chat for a shorter one."
 
+/**
+ * Chat apps that render markdown can copy a reply with a backslash before its brackets,
+ * underscores and the like (`\[ \] \_ \* \# \``). JSON has no such escape, so each one is the
+ * chat's markdown, not the answer's; `\\` and the real escapes are left alone.
+ */
+private fun unescapeMarkdown(json: String): String {
+    val out = StringBuilder(json.length)
+    var i = 0
+    while (i < json.length) {
+        val c = json[i++]
+        if (c != '\\' || i >= json.length) {
+            out.append(c)
+            continue
+        }
+        val next = json[i++]
+        if (next in "[]_*#`") out.append(next) else out.append(c).append(next)
+    }
+    return out.toString()
+}
+
 private class Rejected(override val message: String) : Exception(message)
 
 private fun reject(message: String): Nothing = throw Rejected(message)
@@ -43,7 +63,7 @@ private fun JsonElement?.items(): List<JsonElement> = (this as? JsonArray) ?: em
 
 /**
  * Validates a chat AI's reply to [lookupPrompt] and turns it into content. The JSON is
- * located (first `{` to last `}`), never repaired; the first failure is the result.
+ * located (first `{` to last `}`), never repaired beyond removing markdown backslashes; the first failure is the result.
  */
 fun parsePastedLookup(text: String, typedWord: String): PastedLookup = try {
     parseOrReject(text, typedWord)
@@ -57,7 +77,7 @@ private fun parseOrReject(text: String, typedWord: String): PastedLookup.Valid {
     val end = text.lastIndexOf('}')
     if (start < 0 || end < start) reject(NOT_JSON)
     val root = try {
-        Json.parseToJsonElement(text.substring(start, end + 1)) as? JsonObject
+        Json.parseToJsonElement(unescapeMarkdown(text.substring(start, end + 1))) as? JsonObject
     } catch (_: Exception) {
         null
     } ?: reject(NOT_JSON)

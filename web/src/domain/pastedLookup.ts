@@ -52,6 +52,23 @@ function escapeControlCharacters(json: string): string {
   return out;
 }
 
+// Chat apps that render markdown can copy a reply with a backslash before its brackets,
+// underscores and the like (\[ \] \_ \* \# \`). JSON has no such escape, so each one is
+// the chat's markdown, not the answer's; \\ and the real escapes are left alone.
+function unescapeMarkdown(json: string): string {
+  let out = "";
+  for (let i = 0; i < json.length; i++) {
+    const c = json.charAt(i);
+    if (c !== "\\") {
+      out += c;
+      continue;
+    }
+    const next = json.charAt(++i);
+    out += "[]_*#`".includes(next) && next !== "" ? next : c + next;
+  }
+  return out;
+}
+
 class Rejected extends Error {}
 
 function reject(message: string): never {
@@ -74,7 +91,7 @@ function items(value: Json): Json[] {
 
 /**
  * Validates a chat AI's reply to `lookupPrompt` and turns it into content. The JSON is
- * located (first `{` to last `}`), never repaired; the first failure is the result.
+ * located (first `{` to last `}`), never repaired beyond removing markdown backslashes; the first failure is the result.
  */
 export function parsePastedLookup(text: string, typedWord: string): PastedLookup {
   try {
@@ -92,7 +109,7 @@ function parseOrReject(text: string, typedWord: string): PastedLookup {
   if (start < 0 || end < start) reject(NOT_JSON);
   let root: Json;
   try {
-    root = JSON.parse(escapeControlCharacters(text.substring(start, end + 1)));
+    root = JSON.parse(escapeControlCharacters(unescapeMarkdown(text.substring(start, end + 1))));
   } catch {
     root = null;
   }

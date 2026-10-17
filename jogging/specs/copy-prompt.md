@@ -45,7 +45,9 @@ Goals it leans on:
 - **The JSON is located, not repaired.** The parser takes the text from the first `{` to
   the last `}`. That strips a code fence, as the doc asks, and also a line of prose such
   as "Here's the JSON:", which chat apps add often enough to matter. Nothing inside the
-  braces is repaired.
+  braces is repaired, with one exception: a backslash before `[`, `]`, `_`, `*`, `#` or a
+  backtick is removed. ChatGPT's copy button can put those in (`\[` for `[`), and JSON has
+  no such escape, so they are markdown, never part of the answer. `\\` is left alone.
 - **Validate as you paste, no separate Check button.** A paste is one change, so the
   result is there at once; the summary is the doc's "preview", and Use this / Cancel are
   its "save or cancel".
@@ -345,6 +347,7 @@ Tests (JVM):
     examples in order, parts of speech and labels kept, `renames` false, and `summary()`
     "2 definitions, 4 forms, 4 example sentences".
   - A ` ```json ` fence, and a line of prose before and after, both parse the same.
+  - Markdown backslashes before brackets (`\[ ... \]`) parse the same; `\\[` keeps its backslash.
   - One test per row of the table, asserting the exact message; definition numbering is
     1-based; a non-string `text` counts as missing.
   - Order: a bad example in definition 1 and a blank definition 2 report the example;
