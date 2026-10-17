@@ -385,3 +385,7 @@ Spec corrections: the headless shell refuses notifications whatever is granted (
 ## 2026-10-17 04:30 web-push/build-4 (sonnet)
 Wrote `.github/workflows/push.yml` (`check` runs typecheck, tests and smoke in `push/`; `deploy` skips with a notice when the Cloudflare secrets are empty, otherwise `wrangler deploy`, creates `VAPID_PRIVATE_JWK` once, and curls `/key`). Run 39002383538 passed, and its deploy job printed the "secrets aren't set" notice, so nothing is deployed.
 Blocked: needs Alan's Cloudflare account and the two repo secrets. `PUSH_SERVER`, the docs, the live checks and the phone's Chrome check haven't been done; the next session runs `gh workflow run push.yml` and carries on with steps 2 to 4.
+
+## 2026-10-17 04:45 web-push/build-4 (sonnet)
+The Cloudflare secrets are set now, so `push.yml` (run 39003194400) no longer skips, but `wrangler deploy` fails with "Authentication error [code: 10000]" on `/accounts/…/workers/services/tortoisespelling-push` and on `/accounts`; the VAPID step then fails too. Nothing is deployed, so `PUSH_SERVER`, the docs and the live and phone checks haven't been done.
+Blocked: the API token or account ID is wrong or under-scoped. The next session re-runs `gh workflow run push.yml` and carries on with steps 2 to 4.
