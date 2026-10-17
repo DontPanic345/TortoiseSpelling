@@ -656,7 +656,7 @@
       "dependsOn": [
         "web-ui"
       ],
-      "status": "blocked",
+      "status": "active",
       "spec": "jogging/specs/web-push.md",
       "steps": [
         {
@@ -703,7 +703,7 @@
           "title": "push.yml deploy (blocker if the Cloudflare secrets aren't set), live checks, PUSH_SERVER, PRIVACY.md and the other docs, the phone's Chrome check",
           "model": "sonnet",
           "effort": "medium",
-          "status": "blocked"
+          "status": "pending"
         },
         {
           "id": "review",
@@ -714,9 +714,7 @@
           "status": "pending"
         }
       ],
-      "blocker": "The web reminder needs a free Cloudflare account. Please sign up at dash.cloudflare.com, open Workers & Pages once so the account gets a workers.dev subdomain, create an API token from the 'Edit Cloudflare Workers' template, and add the token and your account id as the repo secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID. Reply when they're in.",
-      "blockerIssue": 24,
-      "blockedAt": "2026-10-17T04:25:08.459Z"
+      "userReply": "crack on with it"
     }
   ],
   "stuck": true
