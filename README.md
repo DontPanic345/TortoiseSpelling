@@ -78,7 +78,8 @@ still edit before saving. The app never contacts the chat AI itself.
 
 There is also a web app at <https://dontpanic345.github.io/TortoiseSpelling/>. Open it in
 Safari, tap Share, then **Add to Home Screen** (in Chrome, tap Install). It does everything
-the Android app does except the daily reminder, for now, and works offline once opened.
+the Android app does, including the daily reminder (on iPhone and iPad, add the app to the
+Home Screen first, then turn it on from Home), and works offline once opened.
 Words stay in that browser on that device, so export a backup now and then; backups move
 between the two apps.
 

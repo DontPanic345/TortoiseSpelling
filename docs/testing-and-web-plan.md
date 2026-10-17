@@ -118,8 +118,8 @@ checked by hand on a real iPhone.
 - **Reminder needs a server.** As far as I know a web app can't schedule a local
   notification the way a native app can, so something has to send the push at the right
   time. Keep it minimal: the app sends its push subscription and its next due dates, never
-  the words, and a small scheduled job sends the notification. Free serverless tiers
-  probably cover it **(unverified)**. This is the feature the app exists for, so it deserves
+  the words, and a small scheduled job sends the notification. Built as a Cloudflare Worker on the free plan
+  (`push/`; cron every 5 minutes, a SQLite Durable Object). This is the feature the app exists for, so it deserves
   its own design before any code. Android's "only when words are due" rule has to be
   re-expressed as "send only on days the app has said words are due".
 - **Privacy.** A push server stores subscription endpoints and due dates, which `PRIVACY.md`

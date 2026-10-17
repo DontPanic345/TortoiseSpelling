@@ -255,16 +255,25 @@ backup, with Preact screens, deployed to https://dontpanic345.github.io/Tortoise
   type-checks `src/sw/` with the WebWorker lib, so what it imports must not touch DOM
   globals. Keep `ignoreVary: true` on its `caches.match`.
 - The reminder's web half is in `src/push/` (`PushPlatform`, `pushApi.ts`, `reminderSync.ts`,
-  `server.ts` with `PUSH_SERVER`, empty until the server is deployed) and `src/sw/handlers.ts`.
+  `server.ts` with `PUSH_SERVER`, the deployed Worker's origin; empty hides every reminder control) and `src/sw/handlers.ts`.
   `main.tsx` calls `settleQuietDays()` before the first render. See `jogging/specs/web-push.md`.
 - The production `index.html` carries a CSP limiting everything to the app's own origin
-  (`build/csp.ts`). A new origin (such as `web-push`) must be added there deliberately, and
-  `PRIVACY.md` updated.
+  (`build/csp.ts`), plus `PUSH_SERVER` for the reminder. A new origin must be added there
+  deliberately, and `PRIVACY.md` updated.
 - Safari 16.4 is the minimum; `compat.js` shows a message on older browsers.
 - The review field is one element that is never remounted, with attributes that stop
   autocorrect: remounting it dismisses the iOS keyboard between words.
 - Home asks the browser for persistent storage once there is a word, and nudges to export
   when storage isn't persistent and no export is under 30 days old.
+- **Push server** (`push/`, Cloudflare Worker, free plan): a 5-minute cron and one SQLite
+  Durable Object holding each subscription's endpoint, keys, time zone, reminder time, next
+  due day and last sent day, never words or counts. `shouldSend` decides once a day per
+  subscription; the device sends `reminderDay` and writes the notification text, the push
+  only says `reminder` or `test`; every push shows a notification. The VAPID key lives in the
+  Worker as `VAPID_PRIVATE_JWK`. `push.yml` tests and deploys it (it skips the deploy when
+  the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets are empty). Tests:
+  `cd push && npm test` and `npm run smoke` (workerd via `wrangler dev`); CI has a `push` job.
+  Never drop its table.
 - `pages.yml` deploys `web/dist` to GitHub Pages on a push that touches the web app, after
   `web.yml` passes. It is a deploy, not a release: no tag, no version.
 

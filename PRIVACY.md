@@ -4,7 +4,8 @@ Tortoise Spelling has no accounts, no ads, no analytics and no tracking. Your wo
 stays on your phone. The app has no Internet permission, so it can't send anything
 anywhere itself. Your words leave your phone only when you choose: when you paste a prompt
 into a chat app, export a backup, or turn on Google backup. The web app is covered in
-[its own section](#the-web-app).
+[its own section](#the-web-app); its daily reminder uses a small server, which never
+receives your words.
 
 ## What the app keeps, and where
 
@@ -16,7 +17,7 @@ Everything is stored in the app's private storage on your device:
 - your settings: the reminder time, new words per day, and the days that count towards
   your streak.
 
-The developer has no server and never receives any of it.
+The Android app has no server, and the developer never receives any of it. (The web app's reminder server is described [below](#daily-reminder-on-the-web); it never receives words.)
 
 ## What leaves your device
 
@@ -39,8 +40,9 @@ wherever you choose.
 
 ## Notifications
 
-The daily reminder is scheduled on your phone and posted by your phone. There's no
-push service or server involved.
+On Android, the daily reminder is scheduled on your phone and posted by your phone. There's
+no push service or server involved. The web app's reminder comes from a server, as
+described [below](#daily-reminder-on-the-web).
 
 ## Permissions
 
@@ -54,13 +56,28 @@ The web app keeps the same things as the Android app, in the browser's storage f
 site on that device (IndexedDB), plus a cached copy of the app (a service worker). Clearing
 the site's data deletes them.
 
-Nothing is sent anywhere. The pages are served by GitHub Pages, so loading or updating the
+Apart from the reminder below, nothing is sent anywhere. The pages are served by GitHub Pages, so loading or updating the
 app is a request to GitHub, which sees your IP address as any website host does (GitHub's
 privacy statement covers it). The app makes no other requests, and its Content Security
-Policy stops it contacting any other site.
+Policy stops it contacting any other site except the reminder server, and only once you turn
+the reminder on.
 
 Copy prompt only writes to the clipboard, and the app never reads the clipboard. There are
 no cookies and no analytics.
+
+### Daily reminder on the web
+
+When you turn the reminder on, your browser creates a push subscription (an address at your
+browser maker's push service: Apple, Google, Mozilla or Microsoft, plus two keys that
+encrypt messages to it), and the app sends it to the reminder server, a Cloudflare Worker,
+with your time zone, your reminder time and the next day words are due. The server stores
+those and the last day it sent a reminder, never your words, their number, your answers or
+your progress. Each message is encrypted and says only "reminder" or "test"; your device
+writes the notification text. Turning the reminder off deletes the entry; so does the push
+service reporting it gone, or 180 days without an update. The server keeps no logs.
+Cloudflare sees your IP address as any host does
+([Cloudflare's privacy policy](https://www.cloudflare.com/privacypolicy/)), and the push
+service delivers the message under its own policy.
 
 ## Children
 

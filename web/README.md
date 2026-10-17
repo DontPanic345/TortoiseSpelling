@@ -31,6 +31,7 @@ build/        csp.ts: the Content Security Policy added to the production index.
 src/sw/       the service worker (cache-first, precaches every built file; push, click and
               subscription-change handlers), typechecked by tsconfig.sw.json
 src/push/     the reminder: PushPlatform, the server client, reminderSync and PUSH_SERVER
+              (fakes for the e2e build are in src/debug/fakePush*.ts)
 public/       compat.js (the unsupported-browser check), manifest.webmanifest and icons
 smoke/        Playwright specs; a console or page error fails any of them
 steps/        step definitions for the shared specs in ../specs
@@ -85,3 +86,6 @@ service worker or the manifest, check on a real iPhone:
 4. Review it: the keyboard stays up between words, with no autocorrect or suggestions.
 5. Export to Files and import it back.
 6. In airplane mode, it opens and works.
+7. Turn on the reminder from Home in the installed app and allow it: "Send a test
+   notification" arrives, a reminder arrives at the set time with the right count, tapping
+   it opens a session, and turning it off stops them.
