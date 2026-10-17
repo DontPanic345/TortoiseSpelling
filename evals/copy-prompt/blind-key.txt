@@ -1,0 +1,2 @@
+A=haiku-low
+B=sonnet-high

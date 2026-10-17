@@ -1,0 +1,61 @@
+{
+  "word": "receive",
+  "definitions": [
+    {
+      "text": "to be given, sent, or paid something by someone",
+      "partOfSpeech": "verb",
+      "forms": [
+        {
+          "text": "receive",
+          "label": "base form",
+          "examples": [
+            "Please let me know if you receive the package by Friday.",
+            "Every child should receive a good education."
+          ]
+        },
+        {
+          "text": "receives",
+          "label": "third-person singular present",
+          "examples": [
+            "The clinic receives dozens of calls every morning."
+          ]
+        },
+        {
+          "text": "received",
+          "label": "past tense",
+          "examples": [
+            "She received a letter from the university yesterday.",
+            "They received the award at a small ceremony."
+          ]
+        },
+        {
+          "text": "receiving",
+          "label": "present participle",
+          "examples": [
+            "He is receiving treatment for a minor injury."
+          ]
+        }
+      ]
+    },
+    {
+      "text": "to greet or welcome someone, such as a guest, at a place",
+      "partOfSpeech": "verb",
+      "forms": [
+        {
+          "text": "receive",
+          "label": "base form",
+          "examples": [
+            "The manager will receive the visitors in the lobby."
+          ]
+        },
+        {
+          "text": "received",
+          "label": "past tense",
+          "examples": [
+            "The mayor received the delegation at City Hall."
+          ]
+        }
+      ]
+    }
+  ]
+}
