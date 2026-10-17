@@ -703,7 +703,7 @@
           "title": "push.yml deploy (blocker if the Cloudflare secrets aren't set), live checks, PUSH_SERVER, PRIVACY.md and the other docs, the phone's Chrome check",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "review",
@@ -713,9 +713,7 @@
           "effort": "high",
           "status": "pending"
         }
-      ],
-      "userReply": "👟"
+      ]
     }
-  ],
-  "stuck": true
+  ]
 }
