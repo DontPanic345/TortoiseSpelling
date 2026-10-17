@@ -29,3 +29,6 @@ keystore.properties
 /web/test-results/
 /web/dist-e2e/
 /web/.features-gen/
+
+# Local Cloudflare credentials for wrangler (push/)
+.env
