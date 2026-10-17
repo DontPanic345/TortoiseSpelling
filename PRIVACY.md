@@ -71,8 +71,9 @@ When you turn the reminder on, your browser creates a push subscription (an addr
 browser maker's push service: Apple, Google, Mozilla or Microsoft, plus two keys that
 encrypt messages to it), and the app sends it to the reminder server, a Cloudflare Worker,
 with your time zone, your reminder time and the next day words are due. The server stores
-those and the last day it sent a reminder, never your words, their number, your answers or
-your progress. Each message is encrypted and says only "reminder" or "test"; your device
+those, the last day it sent a reminder, when you last asked for a test notification and
+when the entry was last updated, never your words, their number, your answers or your
+progress. Each message is encrypted and says only "reminder" or "test"; your device
 writes the notification text. Turning the reminder off deletes the entry; so does the push
 service reporting it gone, or 180 days without an update. The server keeps no logs.
 Cloudflare sees your IP address as any host does
