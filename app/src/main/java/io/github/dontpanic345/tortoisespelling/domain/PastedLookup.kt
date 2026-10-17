@@ -27,7 +27,9 @@ object PasteLimits {
 }
 
 private const val TOO_LONG = "That's too long to be one word's answer."
-private const val NOT_JSON = "That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again."
+private const val NO_JSON = "There's no JSON in that. Copy the chat's whole answer and paste it again."
+private const val BROKEN_JSON = "That JSON is broken, so Tortoise Spelling can't read it. A bracket or comma may be missing. Ask the chat to fix it, or copy its whole answer again."
+private const val WRONG_SHAPE = "That's valid JSON, but not what Tortoise Spelling needs."
 private const val PROMPT_PASTED = "That's the prompt, not the chat's answer. Paste the chat's reply instead."
 private const val OVER_LIMIT = "That answer is longer than a word needs. Ask the chat for a shorter one."
 
@@ -55,6 +57,9 @@ private class Rejected(override val message: String) : Exception(message)
 
 private fun reject(message: String): Nothing = throw Rejected(message)
 
+/** The reply is valid JSON, but not the shape the prompt asks for. */
+private fun wrong(message: String): Nothing = reject("$WRONG_SHAPE $message")
+
 /** The trimmed string, or "" when the value is missing or isn't a JSON string. */
 private fun JsonElement?.string(): String =
     (this as? JsonPrimitive)?.takeIf { it.isString }?.content?.trim().orEmpty()
@@ -75,27 +80,27 @@ private fun parseOrReject(text: String, typedWord: String): PastedLookup.Valid {
     if (text.length > PasteLimits.TEXT) reject(TOO_LONG)
     val start = text.indexOf('{')
     val end = text.lastIndexOf('}')
-    if (start < 0 || end < start) reject(NOT_JSON)
+    if (start < 0 || end < start) reject(NO_JSON)
     val root = try {
         Json.parseToJsonElement(unescapeMarkdown(text.substring(start, end + 1))) as? JsonObject
     } catch (_: Exception) {
         null
-    } ?: reject(NOT_JSON)
+    } ?: reject(BROKEN_JSON)
 
     val word = root["word"].string()
-    if (word.isEmpty()) reject("The answer has no \"word\".")
+    if (word.isEmpty()) wrong("The answer has no \"word\".")
     if (word.all { it == '.' || it == '…' }) reject(PROMPT_PASTED)
     val rawDefinitions = (root["definitions"] as? JsonArray)?.takeIf { it.isNotEmpty() }
-        ?: reject("The answer has no definitions.")
+        ?: wrong("The answer has no definitions.")
 
     var tooLong = rawDefinitions.size > PasteLimits.DEFINITIONS || word.length > PasteLimits.WORD
     val definitions = rawDefinitions.mapIndexed { index, element ->
         val n = index + 1
         val definition = element as? JsonObject
         val definitionText = definition?.get("text").string()
-        if (definitionText.isEmpty()) reject("Definition $n has no text.")
+        if (definitionText.isEmpty()) wrong("Definition $n has no text.")
         val rawForms = definition?.get("forms").items()
-        if (rawForms.isEmpty()) reject("Definition $n has no forms.")
+        if (rawForms.isEmpty()) wrong("Definition $n has no forms.")
         val partOfSpeech = definition?.get("partOfSpeech").string()
         tooLong = tooLong || rawForms.size > PasteLimits.FORMS ||
             definitionText.length > PasteLimits.DEFINITION ||
@@ -103,11 +108,11 @@ private fun parseOrReject(text: String, typedWord: String): PastedLookup.Valid {
         val forms = rawForms.map { rawForm ->
             val form = rawForm as? JsonObject
             val formText = form?.get("text").string()
-            if (formText.isEmpty()) reject("A form in definition $n has no text.")
+            if (formText.isEmpty()) wrong("A form in definition $n has no text.")
             val examples = form?.get("examples").items().map { it.string() }.filter { it.isNotEmpty() }
-            if (examples.isEmpty()) reject("“$formText” has no example sentence.")
+            if (examples.isEmpty()) wrong("“$formText” has no example sentence.")
             examples.firstOrNull { exampleMissesForm(it, formText) }?.let {
-                reject("“$it” doesn't contain “$formText”.")
+                wrong("“$it” doesn't contain “$formText”.")
             }
             val label = form?.get("label").string()
             tooLong = tooLong || formText.length > PasteLimits.WORD || label.length > PasteLimits.LABEL ||

@@ -69,18 +69,20 @@ class PastedLookupTest {
 
     @Test
     fun `text that is not an object is refused`() {
-        val message = "That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again."
-        assertEquals(message, invalid("no json here"))
-        assertEquals(message, invalid("} then {"))
-        assertEquals(message, invalid("""{"word": "a",}"""))
-        assertEquals(message, invalid("""{word: "a"}"""))
+        val none = "There's no JSON in that. Copy the chat's whole answer and paste it again."
+        assertEquals(none, invalid("no json here"))
+        assertEquals(none, invalid("} then {"))
+        val broken = "That JSON is broken, so Tortoise Spelling can't read it. A bracket or comma may be missing. Ask the chat to fix it, or copy its whole answer again."
+        assertEquals(broken, invalid("""{"word": "a",}"""))
+        assertEquals(broken, invalid("""{word: "a"}"""))
+        assertEquals(broken, invalid("""{"word": "a", "definitions": [{"text": "x", "forms": [{"text": "a", "examples": ["a b"}]}]}"""))
     }
 
     @Test
     fun `a missing word is refused`() {
-        assertEquals("The answer has no \"word\".", invalid("""{"definitions": []}"""))
-        assertEquals("The answer has no \"word\".", invalid("""{"word": "  ", "definitions": []}"""))
-        assertEquals("The answer has no \"word\".", invalid("""{"word": 5, "definitions": []}"""))
+        assertEquals("That's valid JSON, but not what Tortoise Spelling needs. The answer has no \"word\".", invalid("""{"definitions": []}"""))
+        assertEquals("That's valid JSON, but not what Tortoise Spelling needs. The answer has no \"word\".", invalid("""{"word": "  ", "definitions": []}"""))
+        assertEquals("That's valid JSON, but not what Tortoise Spelling needs. The answer has no \"word\".", invalid("""{"word": 5, "definitions": []}"""))
     }
 
     @Test
@@ -92,7 +94,7 @@ class PastedLookupTest {
 
     @Test
     fun `missing definitions are refused`() {
-        val message = "The answer has no definitions."
+        val message = "That's valid JSON, but not what Tortoise Spelling needs. The answer has no definitions."
         assertEquals(message, invalid("""{"word": "a"}"""))
         assertEquals(message, invalid("""{"word": "a", "definitions": "x"}"""))
         assertEquals(message, invalid("""{"word": "a", "definitions": []}"""))
@@ -102,37 +104,37 @@ class PastedLookupTest {
     fun `a definition without text names its number`() {
         val good = definition("ok", form("practice", "I practice."))
         assertEquals(
-            "Definition 2 has no text.",
+            "That's valid JSON, but not what Tortoise Spelling needs. Definition 2 has no text.",
             invalid(answer("practice", good, """{"text": " ", "forms": []}""")),
         )
         assertEquals(
-            "Definition 1 has no text.",
+            "That's valid JSON, but not what Tortoise Spelling needs. Definition 1 has no text.",
             invalid(answer("practice", """{"text": 4, "forms": [${form("practice", "I practice.")}]}""")),
         )
     }
 
     @Test
     fun `a definition without forms is refused`() {
-        assertEquals("Definition 1 has no forms.", invalid(answer("practice", """{"text": "x"}""")))
-        assertEquals("Definition 1 has no forms.", invalid(answer("practice", """{"text": "x", "forms": []}""")))
-        assertEquals("Definition 1 has no forms.", invalid(answer("practice", """{"text": "x", "forms": 3}""")))
+        assertEquals("That's valid JSON, but not what Tortoise Spelling needs. Definition 1 has no forms.", invalid(answer("practice", """{"text": "x"}""")))
+        assertEquals("That's valid JSON, but not what Tortoise Spelling needs. Definition 1 has no forms.", invalid(answer("practice", """{"text": "x", "forms": []}""")))
+        assertEquals("That's valid JSON, but not what Tortoise Spelling needs. Definition 1 has no forms.", invalid(answer("practice", """{"text": "x", "forms": 3}""")))
     }
 
     @Test
     fun `a form without text is refused`() {
         assertEquals(
-            "A form in definition 1 has no text.",
+            "That's valid JSON, but not what Tortoise Spelling needs. A form in definition 1 has no text.",
             invalid(answer("practice", definition("x", """{"label": "a", "examples": ["b"]}"""))),
         )
         assertEquals(
-            "A form in definition 1 has no text.",
+            "That's valid JSON, but not what Tortoise Spelling needs. A form in definition 1 has no text.",
             invalid(answer("practice", definition("x", """{"text": 7, "examples": ["b"]}"""))),
         )
     }
 
     @Test
     fun `a form without an example is refused`() {
-        val message = "“practices” has no example sentence."
+        val message = "That's valid JSON, but not what Tortoise Spelling needs. “practices” has no example sentence."
         assertEquals(message, invalid(answer("practice", definition("x", form("practices")))))
         assertEquals(message, invalid(answer("practice", definition("x", form("practices", "  ")))))
         assertEquals(
@@ -144,7 +146,7 @@ class PastedLookupTest {
     @Test
     fun `an example without its form is refused`() {
         assertEquals(
-            "“He runs two clinics.” doesn't contain “practices”.",
+            "That's valid JSON, but not what Tortoise Spelling needs. “He runs two clinics.” doesn't contain “practices”.",
             invalid(answer("practice", definition("x", form("practices", "He runs two clinics.")))),
         )
     }
@@ -154,12 +156,12 @@ class PastedLookupTest {
         val badExample = definition("one", form("practice", "Nothing here."))
         val blank = """{"text": "", "forms": []}"""
         assertEquals(
-            "“Nothing here.” doesn't contain “practice”.",
+            "That's valid JSON, but not what Tortoise Spelling needs. “Nothing here.” doesn't contain “practice”.",
             invalid(answer("practice", badExample, blank)),
         )
         val long = "I practice " + "x".repeat(PasteLimits.EXAMPLE)
         val missing = definition("one", form("practice", long), form("practices"))
-        assertEquals("“practices” has no example sentence.", invalid(answer("practice", missing)))
+        assertEquals("That's valid JSON, but not what Tortoise Spelling needs. “practices” has no example sentence.", invalid(answer("practice", missing)))
     }
 
     @Test

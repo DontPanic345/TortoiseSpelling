@@ -133,12 +133,13 @@ object PasteLimits { const val TEXT = 20_000; const val DEFINITIONS = 8; const v
 
 Rules, checked in this order; the first failure is the result. Every string is trimmed
 before it is checked or kept; a value that isn't a JSON string counts as missing.
-Definitions are numbered from 1 in messages.
+Definitions are numbered from 1 in messages. When the text is valid JSON but the wrong shape, the messages below (from "no word" to "doesn't contain") start with "That's valid JSON, but not what Tortoise Spelling needs."
 
 | Check | Message |
 |---|---|
 | `text.length > TEXT` | That's too long to be one word's answer. |
-| No `{` … `}`, it doesn't parse, or it isn't an object | That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again. |
+| No `{` … `}` | There's no JSON in that. Copy the chat's whole answer and paste it again. |
+| The text between them doesn't parse | That JSON is broken, so Tortoise Spelling can't read it. A bracket or comma may be missing. Ask the chat to fix it, or copy its whole answer again. |
 | `word` missing or blank | The answer has no "word". |
 | `word` is only dots or `…` (the prompt's placeholder, so the prompt itself was pasted back) | That's the prompt, not the chat's answer. Paste the chat's reply instead. |
 | `definitions` missing, not an array, or empty | The answer has no definitions. |

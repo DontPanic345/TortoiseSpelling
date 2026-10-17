@@ -204,7 +204,7 @@ describe("AddWordContent", () => {
   it("an invalid answer shows its message and cannot be used", () => {
     show(addPasteInvalid());
     expect(
-      screen.getByText("That isn't the JSON the prompt asks for. Copy the chat's whole answer and paste it again."),
+      screen.getByText("That JSON is broken, so Tortoise Spelling can't read it. A bracket or comma may be missing. Ask the chat to fix it, or copy its whole answer again."),
     ).toBeTruthy();
     expect((byId(TestIds.ADD_WORD_PASTE_USE) as HTMLButtonElement).disabled).toBe(true);
     expect(byId(TestIds.ADD_WORD_PASTE_TEXT).getAttribute("aria-invalid")).toBe("true");

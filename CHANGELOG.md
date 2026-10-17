@@ -16,6 +16,7 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ### Changed
 
+- **Clearer errors when pasting an answer**: the app now says whether the text has no JSON in it, the JSON is broken (a missing bracket or comma, say), or the JSON is fine but isn't the shape Tortoise Spelling needs.
 - **Pasting an answer copied from ChatGPT works** when it comes with backslashes before the brackets (`\[`), which its copy button can add.
 - **Copy prompt asks for plain language**, so the definitions and example sentences a chat AI writes use everyday words a learner will know.
 
