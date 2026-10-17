@@ -718,5 +718,6 @@
       "blockerIssue": 24,
       "blockedAt": "2026-10-17T04:25:08.459Z"
     }
-  ]
+  ],
+  "stuck": true
 }
