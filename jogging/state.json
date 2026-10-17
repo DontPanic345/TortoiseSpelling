@@ -656,7 +656,7 @@
       "dependsOn": [
         "web-ui"
       ],
-      "status": "active",
+      "status": "done",
       "spec": "jogging/specs/web-push.md",
       "steps": [
         {
@@ -711,7 +711,7 @@
           "title": "Review the piece against its spec and the goals: stored columns vs PRIVACY.md, send rules vs Android, permission in the tap, CSP; full checks, live checks and CI green (no version bump)",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "done"
         }
       ]
     }
