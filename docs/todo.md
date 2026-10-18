@@ -18,5 +18,5 @@
   up, but it makes audio, not images). Today the icon is drawn by `scripts/icon.mjs` and
   `icon.test.mjs` checks the committed files match, so decide how a bought-in image fits
   that pipeline, and keep the adaptive and monochrome layers and the notification icon.
-- [ ] Look at Matt Pocock's architecture skill (`mattpocock-skills:codebase-design` is the
-  closest one installed) and whether it suits this repo.
+- [ ] Look at Matt Pocock's `improve-codebase-architecture` skill (not installed here yet)
+  and whether it suits this repo.

@@ -726,6 +726,13 @@
       "spec": "jogging/specs/speak-word.md",
       "steps": [
         {
+          "id": "spec-review",
+          "phase": 1,
+          "model": "opus",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
           "id": "build-1",
           "phase": 2,
           "title": "The voice rule on both apps: chooseVoice, SPEECH_RATE, golden cases",
