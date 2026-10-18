@@ -76,12 +76,32 @@ still edit before saving. The app never contacts the chat AI itself.
 
 ## 🌐 Web app (iPhone, iPad and any browser)
 
-There is also a web app at <https://dontpanic345.github.io/TortoiseSpelling/>. Open it in
-Safari, tap Share, then **Add to Home Screen** (in Chrome, tap Install). It does everything
-the Android app does, including the daily reminder (on iPhone and iPad, add the app to the
-Home Screen first, then turn it on from Home), and works offline once opened.
+There is also a web app at <https://dontpanic345.github.io/TortoiseSpelling/>. It does
+everything the Android app does, including the daily reminder, and works offline once opened.
 Words stay in that browser on that device, so export a backup now and then; backups move
 between the two apps.
+
+### 📲 Saving it to the Home Screen on iPhone and iPad
+
+Saved to the Home Screen, it opens full screen like an app, and it can send the daily
+reminder, which Safari can't do from an ordinary tab. It needs iOS or iPadOS 16.4 or newer.
+
+1. Open <https://dontpanic345.github.io/TortoiseSpelling/> in **Safari**.
+2. Tap **Share** (the square with an arrow pointing up). On iPhone it's in the toolbar at the
+   bottom; on iPad, at the top right. In newer versions of Safari it may be behind the
+   **⋯** button next to the address bar.
+3. Scroll down and tap **Add to Home Screen**. If it isn't in the list, tap **Edit Actions**
+   at the bottom and add it.
+4. Leave **Open as Web App** on, if it's shown, and tap **Add**.
+5. Open Tortoise Spelling from the new icon on the Home Screen, and turn the reminder on from
+   Home or Settings.
+
+The Home Screen app keeps its own words, separate from the Safari tab. Add your words
+there, or if you started in Safari, export a backup from Safari's Settings and import it in
+the Home Screen app.
+
+On a Mac, Safari's **File → Add to Dock** does the same. In Chrome or Edge, use **Install**
+in the address bar or menu.
 
 ## 📦 Releases
 

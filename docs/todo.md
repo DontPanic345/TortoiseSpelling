@@ -11,6 +11,8 @@ Small items that don't have their own design doc yet. Larger ideas live in `docs
   `@live-api` scenarios, and the docs (`CLAUDE.md`, `PRIVACY.md`, `README.md`).
   See [copy-prompt-lookup.md](copy-prompt-lookup.md) for the replacement.
 - [x] Word forms and multiple definitions: see [word-forms.md](word-forms.md).
+- [ ] Copy prompt evals on local models, once the word forms have been tried by hand: see
+  [copy-prompt-evals.md](copy-prompt-evals.md).
 - [ ] Test layers and web app: see [testing-and-web-plan.md](testing-and-web-plan.md).
 - [x] Install Matt Pocock's skills with npm/npx; the marketplace plugin is out of date.
 - [ ] Use the writing-for-agents skill to tear apart `CLAUDE.md`.
