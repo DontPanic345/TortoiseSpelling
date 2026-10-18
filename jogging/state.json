@@ -773,6 +773,49 @@
           "status": "pending"
         }
       ]
+    },
+    {
+      "id": "review-outcome",
+      "title": "Apply a review in domain: one golden-tested rule for both apps, Android's review write in one transaction",
+      "docs": [
+        "jogging/specs/review-outcome.md"
+      ],
+      "dependsOn": [],
+      "status": "active",
+      "spec": "jogging/specs/review-outcome.md",
+      "steps": [
+        {
+          "id": "spec-review",
+          "phase": 1,
+          "model": "opus",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "The rule on both apps: reviewed() in domain, golden/review.json and both runners",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "Both repositories apply it; Android's recordReview by id in one Room transaction, deleted word records nothing; tests, CLAUDE.md, changelog",
+          "model": "opus",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the piece, full checks, CI green, patch bump",
+          "model": "opus",
+          "effort": "medium",
+          "status": "pending"
+        }
+      ]
     }
   ]
 }
