@@ -1,6 +1,6 @@
 # To do
 
-- [ ] Use the writing-for-agents skill to tear apart `CLAUDE.md`.
+- [x] Use the writing-for-agents skill to tear apart `CLAUDE.md`.
 - [ ] Auto-merge Dependabot's minor and patch PRs. On GitHub (owner): a ruleset on
   `main` requiring the CI checks, with Repository admin on the bypass list so direct
   pushes still work, and "Allow auto-merge" ticked; without required checks,
@@ -18,5 +18,5 @@
   up, but it makes audio, not images). Today the icon is drawn by `scripts/icon.mjs` and
   `icon.test.mjs` checks the committed files match, so decide how a bought-in image fits
   that pipeline, and keep the adaptive and monochrome layers and the notification icon.
-- [ ] Look at Matt Pocock's `improve-codebase-architecture` skill (not installed here yet)
-  and whether it suits this repo.
+- [x] Look at Matt Pocock's `improve-codebase-architecture` skill and whether it suits this
+  repo. It does: its first run's top candidate became the `review-outcome` Jogging piece.
