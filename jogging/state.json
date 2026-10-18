@@ -1,6 +1,6 @@
 {
   "enabled": false,
-  "done": true,
+  "done": false,
   "logIssue": 11,
   "pieces": [
     {
@@ -712,6 +712,58 @@
           "model": "sonnet",
           "effort": "high",
           "status": "done"
+        }
+      ]
+    },
+    {
+      "id": "speak-word",
+      "title": "Hear the word: speak the asked form on the review screen",
+      "docs": [
+        "jogging/specs/speak-word.md"
+      ],
+      "dependsOn": [],
+      "status": "active",
+      "spec": "jogging/specs/speak-word.md",
+      "steps": [
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "The voice rule on both apps: chooseVoice, SPEECH_RATE, golden cases",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "Android: TtsSpeaker, manifest queries, debug RecordingSpeaker, the review button and its tests",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-3",
+          "phase": 2,
+          "title": "Web: SpeechPlatform over speechSynthesis, the e2e fake, the review button and its tests",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "build-4",
+          "phase": 2,
+          "title": "The shared Hearing the word scenario, docs and changelog",
+          "model": "sonnet",
+          "effort": "medium",
+          "status": "pending"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the piece, full checks, CI green, minor bump",
+          "model": "sonnet",
+          "effort": "high",
+          "status": "pending"
         }
       ]
     }
