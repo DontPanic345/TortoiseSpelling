@@ -18,5 +18,7 @@
   up, but it makes audio, not images). Today the icon is drawn by `scripts/icon.mjs` and
   `icon.test.mjs` checks the committed files match, so decide how a bought-in image fits
   that pipeline, and keep the adaptive and monochrome layers and the notification icon.
+- [ ] After a review, the turtle emoji flashes briefly before changing to the tada 🎉.
+  Find where the result is shown (Android and web) and stop the turtle appearing first.
 - [x] Look at Matt Pocock's `improve-codebase-architecture` skill and whether it suits this
   repo. It does: its first run's top candidate became the `review-outcome` Jogging piece.
