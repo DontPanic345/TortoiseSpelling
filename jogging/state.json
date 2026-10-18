@@ -735,7 +735,7 @@
         {
           "id": "build-1",
           "phase": 2,
-          "title": "The voice rule on both apps: chooseVoice, SPEECH_RATE, golden cases",
+          "title": "The voice rule on both apps: chooseVoice, SPEECH_RATE, golden/speech.json",
           "model": "sonnet",
           "effort": "medium",
           "status": "pending"
@@ -743,7 +743,7 @@
         {
           "id": "build-2",
           "phase": 2,
-          "title": "Android: TtsSpeaker, manifest queries, debug RecordingSpeaker, the review button and its tests",
+          "title": "Android: TtsSpeaker, manifest queries, debug RecordingSpeaker, AppHarness fake, the review button and its tests",
           "model": "sonnet",
           "effort": "high",
           "status": "pending"
