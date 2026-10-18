@@ -41,10 +41,47 @@ test/ui/      router, test ids (checked against TestTags.kt) and common componen
 test/support/ testClock.ts, seeded.ts
 ```
 
-`src/domain/` mirrors Android's `domain/` file for file. Clock, fuzz and random are
-parameters, so tests pin them. Words are stored in IndexedDB with their content nested; every
-repository write is one transaction. Kotlin's whitespace rules are in `text.ts`. See
-[`../CLAUDE.md`](../CLAUDE.md) for the rules of the port.
+## Rules of the port
+
+- `src/domain/` mirrors Android's `domain/` file for file, same names in camelCase. A rule
+  change in Android's `domain/` or `Backup.kt` changes `../golden/` and the TypeScript in the
+  same commit. The Kotlin runner is the oracle: a case is right only once it passes on the
+  JVM; `../golden/README.md` lists the known differences.
+- Kotlin's whitespace rules, not JavaScript's: `ktTrim`/`ktIsBlank` (`text.ts`) wherever the
+  Kotlin calls `trim()`/`isBlank()`.
+- Clock, fuzz and random are parameters (`createRepository({ db, clock, fuzz, random })`);
+  only `clock.ts` and `random.ts` read the real time or `Math.random`. Golden cases never
+  expect a particular random outcome.
+- Words are one IndexedDB record each, content nested (the backup's tree); queries are pure
+  functions over every word (`domain/queries.ts`).
+- Every repository write is one `readwrite` transaction that does its checks and re-reads
+  inside it, awaiting only that transaction's requests (anything else lets it commit early).
+  `updateWord` writes only `text`, `normalizedText` and `content`, so it can't undo
+  scheduling; `markShown` stamps the example at the card's position only if its text still
+  matches.
+- IndexedDB versions (`src/data/db.ts`): every schema change bumps `DB_VERSION`, adds a
+  `case` to `upgrade` that migrates existing records and never rewrites an earlier case, and
+  adds a test that opens the previous version's database with records in it. No store is
+  deleted with its data.
+- Nothing in `src` makes a network call except the reminder's calls to `PUSH_SERVER`
+  (`src/push/server.ts`; empty hides every reminder control). The production CSP
+  (`build/csp.ts`) allows only the app's origin and `PUSH_SERVER`: a new origin is added
+  there deliberately, with `../PRIVACY.md` updated.
+- UI: `XScreen`/`XContent` and `<name>State.ts` mirror Android's split. Hash routes;
+  `back(fallback)` goes back only when the app pushed the entry. The copy is Android's, test
+  ids are `TestTags.kt`'s values as `data-testid` (`testIds.test.ts`), and UI rules shared
+  with Android live in `../golden/ui.json`.
+- The review field is one element, never remounted, with autocorrect off: remounting it
+  dismisses the iOS keyboard between words.
+- The service worker is bundled into one classic-script `sw.js` by a nested `vite build`
+  in `build/precache.ts`, versioned by a hash of the build. What `src/sw/` imports must not
+  touch DOM globals (`tsconfig.sw.json` uses the WebWorker lib). Keep `ignoreVary: true` on
+  its `caches.match`.
+- `main.tsx` calls `settleQuietDays()` before the first render. Home asks for persistent
+  storage once there is a word, and nudges to export when storage isn't persistent and no
+  export is under 30 days old.
+- Safari 16.4 is the minimum; `public/compat.js` shows a message on older browsers.
+- The reminder's design is in `../jogging/specs/web-push.md`.
 
 ## Smoke tests
 

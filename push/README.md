@@ -35,6 +35,13 @@ sent. A subscription is deleted when the push service says it is gone (404, 410,
 when the device deletes it, or when it hasn't been updated for 180 days. The Worker keeps
 no logs.
 
+## Deploying
+
+`.github/workflows/push.yml` tests and deploys it, and skips the deploy when the
+`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets are empty. The VAPID key lives in
+the Worker as the `VAPID_PRIVATE_JWK` secret. Never drop the Durable Object's table: it is
+every user's reminder.
+
 ## Commands
 
 ```bash
