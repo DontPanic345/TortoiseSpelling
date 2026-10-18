@@ -186,8 +186,11 @@ exits 0. Abbreviations:
 
 ### build-1: the voice rule on both apps (Sonnet, medium)
 
+Model: Sonnet, because it is one small pure function, and the golden cases hold the two apps
+to the same answers mechanically.
+
 `domain/Speech.kt`, `web/src/domain/speech.ts`, the `chooseVoice` and `speechRate`
-sections of `golden/ui.json` and both runners. No UI.
+cases in `golden/speech.json` and both runners. No UI.
 
 Acceptance:
 
@@ -202,6 +205,10 @@ Acceptance:
   `en-NZ-u-mu-celsius` case fails on both runners. Revert.
 
 ### build-2: Android (Sonnet, high)
+
+Model: Sonnet, because it is a contained change to one screen in a pattern the app already uses
+(`XContent` callbacks, a factory on `AppContainer`). It is high effort because it spans three
+test layers and a device-only API.
 
 Everything under "Android": `Speaker`, `TtsSpeaker`, the manifest entry,
 `AppContainer.speakerFactory`, the debug/release factory and `RecordingSpeaker`,
@@ -231,6 +238,9 @@ Acceptance:
 
 ### build-3: web (Sonnet, high)
 
+Model: Sonnet, because it mirrors build-2 in the web's existing `Platform` and fake pattern.
+It is high effort because the iOS keyboard rule (focus, never remount) is easy to break.
+
 Everything under "Web": `SpeechPlatform`, the browser implementation, the e2e fake, the
 button and `REVIEW_SPEAK` test id.
 Tests (jsdom, under `web/test/ui/`): a fake `SpeechPlatform`; the button shown when ready
@@ -249,6 +259,8 @@ Acceptance:
 
 ### build-4: the scenario, docs and changelog (Sonnet, medium)
 
+Model: Sonnet, because it is two new steps on existing patterns, plus prose.
+
 The scenario and its steps on both platforms, and everything under "Docs".
 
 Acceptance:
@@ -261,6 +273,10 @@ node scripts/check-specs.mjs
 ```
 
 ### review (Sonnet, high)
+
+Model: Sonnet, because it is a small piece of four steps with no data or reminder risk, and
+the agreement between the apps is held by golden cases and the shared scenario. It is high
+effort because it spans both apps and has a privacy rule (on-device voices only) to check.
 
 Review the piece against this spec and the goals, run the full checks including every
 e2e feature, fix substantive findings, watch `ci.yml` to green, then

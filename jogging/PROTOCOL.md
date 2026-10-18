@@ -32,9 +32,13 @@ is now. It must contain:
   only for a step that adds or changes a feature or its steps, or changes what the steps
   find or assert (test tags, text, the order of screens). Logic and data changes are
   proven by unit and instrumented tests, and the review step runs the whole suite.
-- The **model and effort** for each build step and for the final review step. Default
-  to Sonnet; use Haiku for mechanical work. Opus needs a one-line justification in the
-  spec, review steps included.
+- The **model and effort** for each build step and for the final review step, each with
+  a one-line reason in the spec. No model is the default: size each step to its work,
+  with the budget in mind. Opus fits a step, or the review of a piece, that touches
+  goals 1 or 2 (data, the reminder), must keep both apps in agreement, involves
+  concurrency or transactions, or is large (many build steps or layers at once). Sonnet
+  fits a contained step or a small piece's review. Haiku fits mechanical work with an
+  exact check.
 - What a later piece will rely on (for pieces listed as depending on this one).
 
 Then append the build steps and the review step to the piece's `steps` in `state.json`:
