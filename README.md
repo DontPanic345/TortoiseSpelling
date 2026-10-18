@@ -1,8 +1,8 @@
 # 🐢 Tortoise Spelling
 
-A native Android app for learning to spell words you don't already know. You build
-your own word list, and the app drills you with spaced repetition and a once-a-day
-reminder so the habit sticks. Slow and steady wins the race 🐢.
+An Android app and a web app (for iPhone, iPad and any browser) for learning to spell
+words you don't already know. You build your own word list, and the app drills you with
+spaced repetition and a once-a-day reminder so the habit sticks. Slow and steady wins the race 🐢.
 
 ## 🐇 How it works
 
