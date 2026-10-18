@@ -9,6 +9,8 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-18
+
 ### Added
 
 - **Tortoise Spelling for the web**, for iPhone, iPad and any browser, at https://dontpanic345.github.io/TortoiseSpelling/. It does everything the Android app does, works offline once opened, installs to the Home Screen, and reads and writes the same backup files, so your words can move between the two.
@@ -173,7 +175,8 @@ The first release.
 - Backup export and import as JSON. Importing adds new words and never overwrites the
   progress of words you already have.
 
-[unreleased]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.7.0...HEAD
+[unreleased]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.5.0...v0.6.0
 [0.5.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.4.1...v0.5.0
