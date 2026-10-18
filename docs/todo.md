@@ -11,3 +11,12 @@
   leaving `e2e/` npm updates manual.
 - [ ] Copy prompt evals on local models, once the word forms have been tried by hand: see
   [copy-prompt-evals.md](copy-prompt-evals.md).
+- [ ] Retro on some of the Jogging build steps' transcripts: what went well, what wasted
+  time, and what to change in `jogging/PROTOCOL.md`. The transcripts are workflow
+  artifacts kept for seven days, so pick the runs before they expire.
+- [ ] Rebuild the app icon with an external image service (to be chosen; ElevenLabs came
+  up, but it makes audio, not images). Today the icon is drawn by `scripts/icon.mjs` and
+  `icon.test.mjs` checks the committed files match, so decide how a bought-in image fits
+  that pipeline, and keep the adaptive and monochrome layers and the notification icon.
+- [ ] Look at Matt Pocock's architecture skill (`mattpocock-skills:codebase-design` is the
+  closest one installed) and whether it suits this repo.
