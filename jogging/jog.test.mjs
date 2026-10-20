@@ -4,21 +4,25 @@ import { test } from "node:test";
 import {
     acceptanceOf,
     applyCi,
+    applyModelCheck,
     applyReplies,
     applyResult,
     ciFailureText,
     ciVerdict,
     initProblem,
+    modelCheckBody,
     nextStep,
     pace,
     parseUsage,
     pieceLog,
+    queueRelease,
     readResult,
     redact,
     SECRETS,
     section,
     sessionPrompt,
     tokenProblem,
+    uncheckedPieces,
 } from "./jog.mjs";
 
 const resets = new Date("2026-10-17T09:00:00Z");
@@ -53,7 +57,7 @@ test("parseUsage reads the probe route's fractions", () => {
     assert.deepEqual([u.session, u.weekly], [30, 50]);
 });
 
-const piece = (id, dependsOn, steps, status = "active") => ({ id, dependsOn, status, steps });
+const piece = (id, dependsOn, steps, status = "active") => ({ id, dependsOn, status, steps, modelsChecked: true });
 const st = (id, phase, status = "pending") => ({ id, phase, status });
 
 test("every spec comes before any build", () => {
@@ -82,6 +86,70 @@ test("a build waits for its dependencies", () => {
 test("a dependency removed from state.json counts as done", () => {
     const s = { pieces: [piece("b", ["gone"], [st("spec", 1, "done"), st("build-1", 2)])] };
     assert.equal(nextStep(s).piece.id, "b");
+});
+
+test("builds wait for Alan's model check, which comes only once every spec is written", () => {
+    const a = { ...piece("a", [], [st("spec", 1, "done"), st("build-1", 2)]), modelsChecked: false };
+    const s = { pieces: [a, piece("b", [], [st("spec", 1)])] };
+    assert.deepEqual(uncheckedPieces(s), [], "b's spec is still to write");
+    s.pieces[1].steps[0].status = "done";
+    assert.deepEqual(uncheckedPieces(s), [a]);
+    assert.deepEqual(nextStep(s), { modelCheck: true });
+    s.pieces[1].steps.push(st("build-1", 2));
+    assert.equal(nextStep(s).piece.id, "b", "a checked piece builds while another waits");
+    a.modelsChecked = true;
+    assert.equal(nextStep(s).piece.id, "a");
+});
+
+const at = "2026-10-20T01:00:00Z";
+const reply = (body, login = "DontPanic345", created = "2026-10-20T02:00:00Z") => ({ user: { login }, created_at: created, body });
+const checkState = () => ({
+    modelCheck: { issue: 9, at, pieces: ["a"] },
+    pieces: [
+        {
+            ...piece("a", [], [st("spec", 1, "done"), { ...st("build-1", 2), model: "sonnet", effort: "medium", why: "small" }]),
+            modelsChecked: false,
+        },
+        { ...piece("b", [], [{ ...st("build-1", 2), model: "sonnet", effort: "low" }]), modelsChecked: false },
+    ],
+});
+
+test("the model check lists each pending build and review step", () => {
+    const body = modelCheckBody(checkState().pieces.slice(0, 1));
+    assert.match(body, /\| `a\/build-1` \| sonnet \| medium \| small \|/);
+    assert.doesNotMatch(body, /a\/spec/);
+});
+
+test("the model check waits for Alan, then applies his lines and lets the piece build", () => {
+    const s = checkState();
+    assert.equal(applyModelCheck(s, { state: "open" }, [reply("a/build-1 opus", "someone")]), null);
+    assert.equal(applyModelCheck(s, { state: "open" }, [reply("old", "DontPanic345", "2026-10-20T00:00:00Z")]), null);
+    const answer = applyModelCheck(s, { state: "open" }, [reply("Looks good, but:\n- `a/build-1` → opus / high\nb/build-1 haiku\na/build-9 opus")]);
+    assert.deepEqual(answer.changed, ["a/build-1: sonnet/medium → opus/high"]);
+    assert.deepEqual(answer.unread, ["b/build-1 haiku", "a/build-9 opus"]);
+    const step = s.pieces[0].steps[1];
+    assert.deepEqual([step.model, step.effort], ["opus", "high"]);
+    assert.match(step.why, /^Alan's choice \(the spec had sonnet\/medium\)\. small$/);
+    assert.equal(s.pieces[0].modelsChecked, true);
+    assert.equal(s.pieces[1].modelsChecked, false, "only the pieces the issue listed");
+    assert.equal(s.modelCheck, undefined);
+});
+
+test("closing the model check keeps every model", () => {
+    const s = checkState();
+    assert.deepEqual(applyModelCheck(s, { state: "closed" }, []), { changed: [], unread: [] });
+    assert.equal(s.pieces[0].steps[1].model, "sonnet");
+    assert.equal(s.pieces[0].modelsChecked, true);
+});
+
+test("releases wait for the end of the queue, and the larger one wins", () => {
+    const s = {};
+    queueRelease(s, { release: "patch" });
+    assert.equal(s.release, "patch");
+    queueRelease(s, { release: "minor" });
+    queueRelease(s, { release: "patch" });
+    queueRelease(s, {});
+    assert.equal(s.release, "minor");
 });
 
 test("all pieces done", () => {

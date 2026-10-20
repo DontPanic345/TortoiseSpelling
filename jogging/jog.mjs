@@ -8,7 +8,8 @@
 // The crew is the only writer of a step's or a piece's status in state.json: a session
 // reports how its step ended in jogging/runs/result.json, and a phase 2 step that reports
 // done counts only once its brief's Acceptance block passes and `ci.yml` is green on its
-// last push. A piece with a `release` gets its version bump once it's done. Sessions'
+// last push. Builds wait for Alan to check their models once the specs are written, and
+// the version is bumped once, when the whole queue is done. Sessions'
 // prompts are built from jogging/prompts/; jogging/README.md explains the whole loop.
 //
 // Environment: GH_TOKEN (the push token, also the sessions' `gh`), BOT_TOKEN (the
@@ -67,7 +68,21 @@ const pendingIn = (piece, phase) => {
     return step && !step.awaitingCi ? step : undefined;
 };
 
-// Every spec is written before any build starts. Builds wait for their dependencies.
+const MODELS = ["opus", "sonnet", "haiku"];
+const EFFORTS = ["low", "medium", "high", "xhigh", "max"];
+const RELEASES = ["patch", "minor"];
+
+// Pieces whose specs are written and whose builds wait for Alan to check their models.
+// None until every spec is written.
+export const uncheckedPieces = (state) => {
+    if (state.pieces.some((p) => p.steps.some((s) => s.phase === 1 && s.status === "pending"))) return [];
+    return state.pieces.filter(
+        (p) => p.status === "active" && !p.modelsChecked && p.steps.some((s) => s.phase === 2 && s.status === "pending"),
+    );
+};
+
+// Every spec is written before any build starts. Builds wait for their dependencies and
+// for Alan's model check.
 export const nextStep = (state) => {
     const active = state.pieces.filter((p) => p.status === "active");
     if (state.pieces.every((p) => p.status === "done")) return { allDone: true };
@@ -81,9 +96,11 @@ export const nextStep = (state) => {
         const unfinished = new Set(state.pieces.filter((p) => p.status !== "done").map((p) => p.id));
         for (const piece of active) {
             if ((piece.dependsOn ?? []).some((d) => unfinished.has(d))) continue;
+            if (!piece.modelsChecked) continue;
             const step = pendingIn(piece, 2);
             if (step) return { piece, step };
         }
+        if (uncheckedPieces(state).length > 0) return { modelCheck: true };
     }
     return { stuck: true };
 };
@@ -372,6 +389,64 @@ export const applyReplies = (piece, issue, comments) => {
     return true;
 };
 
+// The issue that asks Alan to check the build and review steps' models before they run.
+export const modelCheckBody = (pieces) => {
+    const rows = pieces.flatMap((p) =>
+        p.steps
+            .filter((s) => s.phase === 2 && s.status === "pending")
+            .map((s) => `| \`${p.id}/${s.id}\` | ${s.model} | ${s.effort} | ${(s.why ?? s.title ?? "").replaceAll("|", "\\|")} |`),
+    );
+    return [
+        "Every spec is written. Check the models before the builds start.",
+        "",
+        "| Step | Model | Effort | Why |",
+        "|---|---|---|---|",
+        ...rows,
+        "",
+        `To change one, reply with a line per step, such as \`${pieces[0].id}/review opus high\` ` +
+            `(models: ${MODELS.join(", ")}; efforts: ${EFFORTS.join(", ")}). ` +
+            "Close the issue, or reply without changes, to keep them all.",
+    ].join("\n");
+};
+
+// Alan's reply to the model check, or his closing it, applies his changes and lets the
+// checked pieces build. Returns null while there's no answer, else what was changed and
+// the lines that name a step but couldn't be read.
+export const applyModelCheck = (state, issue, comments) => {
+    const check = state.modelCheck;
+    const replies = comments.filter((c) => c.user.login === GH_USER && new Date(c.created_at) > new Date(check.at));
+    if (replies.length === 0 && issue.state === "open") return null;
+    const pieces = state.pieces.filter((p) => check.pieces.includes(p.id));
+    const changed = [];
+    const unread = [];
+    for (const line of replies.flatMap((c) => c.body.split("\n"))) {
+        const ref = /([\w-]+)\/([\w-]+)/.exec(line);
+        if (!ref) continue;
+        const step = pieces.find((p) => p.id === ref[1])?.steps.find((s) => s.id === ref[2] && s.phase === 2);
+        const words = line.slice(ref.index + ref[0].length).toLowerCase().split(/[^a-z]+/);
+        const model = words.findLast((w) => MODELS.includes(w));
+        const effort = words.findLast((w) => EFFORTS.includes(w));
+        if (!step || (!model && !effort)) {
+            unread.push(line.trim());
+            continue;
+        }
+        const was = `${step.model}/${step.effort}`;
+        step.model = model ?? step.model;
+        step.effort = effort ?? step.effort;
+        step.why = `Alan's choice (the spec had ${was}).${step.why ? ` ${step.why}` : ""}`;
+        changed.push(`${ref[0]}: ${was} → ${step.model}/${step.effort}`);
+    }
+    for (const p of pieces) p.modelsChecked = true;
+    delete state.modelCheck;
+    return { changed, unread };
+};
+
+// A finished piece's `release` waits for the end of the queue; the larger one wins.
+export const queueRelease = (state, piece) => {
+    if (!piece.release) return;
+    if (RELEASES.indexOf(piece.release) > RELEASES.indexOf(state.release ?? "")) state.release = piece.release;
+};
+
 export const redact = (text, secrets) => secrets.filter((s) => s && s.length >= 8).reduce((t, s) => t.split(s).join("***"), text);
 
 // ---- Side effects ----
@@ -459,6 +534,35 @@ const checkReplies = async (state) => {
             await github("PATCH", `/issues/${n}`, { state: "closed" });
         }
     }
+};
+
+const checkModelCheck = async (state) => {
+    if (!state.modelCheck) return;
+    const n = state.modelCheck.issue;
+    const issue = await github("GET", `/issues/${n}`);
+    const comments = await github("GET", `/issues/${n}/comments?per_page=100`);
+    const answer = applyModelCheck(state, issue, comments);
+    if (!answer) return;
+    log(`model check #${n} answered: ${answer.changed.length} changed`);
+    const lines = [
+        answer.changed.length ? `Changed:\n${answer.changed.map((c) => `- ${c}`).join("\n")}` : "No changes.",
+        answer.unread.length ? `\nCouldn't read these, so they're unchanged:\n${answer.unread.map((u) => `- ${u}`).join("\n")}` : "",
+        "\nThe builds start on the next Jogging run.",
+    ];
+    await comment(n, lines.join("\n"));
+    if (issue.state === "open") await github("PATCH", `/issues/${n}`, { state: "closed" });
+};
+
+// Once every spec is written, Alan gets one issue to check the builds' models.
+const raiseModelCheck = async (state) => {
+    if (state.modelCheck) return;
+    const pieces = uncheckedPieces(state);
+    if (pieces.length === 0) return;
+    const issue = await openIssue("Jogging: check the build models", modelCheckBody(pieces));
+    state.modelCheck = { issue, at: new Date().toISOString(), pieces: pieces.map((p) => p.id) };
+    writeState(state);
+    commitState(`ask Alan to check the build models (#${issue})`);
+    log(`model check -> issue #${issue}`);
 };
 
 // Pieces that have just been blocked get an issue each.
@@ -604,24 +708,34 @@ const runAcceptance = (piece, step) => {
     return `${logTail(r.stdout ?? "", 60)}\n(${why})`;
 };
 
-// A finished piece is announced, and one with a `release` gets its version bump, which
-// release.yml publishes. A bump that fails is left to Alan.
-const pieceDone = async (piece, logIssue) => {
+// A finished piece is announced, and its `release` waits for the end of the queue.
+const pieceDone = async (state, piece, logIssue) => {
     await comment(logIssue, `✅ ${piece.id} is done: ${piece.title}`);
     if (!piece.release) return;
+    queueRelease(state, piece);
+    writeState(state);
+    commitState(`${piece.id}'s ${piece.release} release waits for the end of the queue`);
+};
+
+// The queue's one version bump, which release.yml publishes. A bump that fails is left to
+// Alan, and state.json keeps the release.
+const releaseQueue = async (state, logIssue) => {
+    const level = state.release;
+    if (!level) return;
     try {
-        sh("node", ["scripts/bump-version.mjs", piece.release]);
+        sh("node", ["scripts/bump-version.mjs", level]);
         git("add", "-A");
-        git("commit", "-m", `release: ${piece.release} bump for ${piece.id}`);
+        git("commit", "-m", `release: ${level} bump at the end of the Jogging queue`);
         push();
-        log(`bumped the ${piece.release} version for ${piece.id}`);
-        await comment(logIssue, `📦 Bumped the ${piece.release} version for ${piece.id}; release.yml publishes it.`);
+        delete state.release;
+        log(`bumped the ${level} version`);
+        await comment(logIssue, `📦 Bumped the ${level} version for the whole queue; release.yml publishes it.`);
     } catch (e) {
-        log(`could not bump the version for ${piece.id}: ${e.message}`);
+        log(`could not bump the version: ${e.message}`);
         git("reset", "--hard", "@{u}");
         await comment(
             logIssue,
-            `⚠️ Couldn't bump the version for ${piece.id}: ${e.message}\n\nRun \`node scripts/bump-version.mjs ${piece.release}\` by hand.`,
+            `⚠️ Couldn't bump the version: ${e.message}\n\nRun \`node scripts/bump-version.mjs ${level}\` by hand.`,
         );
     }
 };
@@ -685,7 +799,7 @@ const settleCi = async (state, logIssue) => {
             await raiseBlockers(state);
             writeState(state);
             commitState(`${piece.id}/${step.id} ${outcome}`);
-            if (piece.status === "done") await pieceDone(piece, logIssue);
+            if (piece.status === "done") await pieceDone(state, piece, logIssue);
         }
     }
     return true;
@@ -708,8 +822,10 @@ const runSteps = async (logIssue, ran) => {
         if (!(await settleCi(state, logIssue))) return "deadline: still waiting on CI";
         if (!state.enabled) return "paused in state.json";
         if (Date.now() - STARTED > DEADLINE_MS) return "deadline: no time for another step in this job";
+        await raiseModelCheck(state);
         const next = nextStep(state);
         if (next.allDone) {
+            await releaseQueue(state, logIssue);
             state.done = true;
             state.enabled = false;
             writeState(state);
@@ -718,6 +834,7 @@ const runSteps = async (logIssue, ran) => {
             await disableWorkflow();
             return "all done";
         }
+        if (next.modelCheck) return `waiting on Alan's model check (#${state.modelCheck.issue})`;
         if (next.stuck) {
             if (!state.stuck) {
                 state.stuck = true;
@@ -775,7 +892,7 @@ const runSteps = async (logIssue, ran) => {
         writeState(state);
         commitState(`${piece.id}/${step.id} ${outcome}`);
         const p = state.pieces.find((x) => x.id === piece.id);
-        if (p.status === "done") await pieceDone(p, logIssue);
+        if (p.status === "done") await pieceDone(state, p, logIssue);
     }
 };
 
@@ -787,6 +904,7 @@ const run = async () => {
     if (badToken) throw new Error(badToken);
     const logIssue = await ensureLogIssue(state);
     await checkReplies(state);
+    await checkModelCheck(state);
     writeState(state);
     commitState("pick up replies");
 

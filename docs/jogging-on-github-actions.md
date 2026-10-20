@@ -72,9 +72,16 @@ What's lost: the real Samsung. Keep the S23 for manual checks.
   `ci.yml` can't run (a release build, the release smoke, a grep). The crew runs it after
   a session reports `done` and before the CI wait, so a session's word is never the
   check.
-- **The crew bumps the version.** A piece's `release` (`minor` or `patch`) is set by its
-  spec; once the piece is done the crew runs `bump-version.mjs` and pushes. The bump had
-  been the review session's last chore, which pulled the session towards finishing.
+- **The crew bumps the version, once per queue.** A piece's `release` (`minor` or
+  `patch`) is set by its spec. A finished piece's release waits in `state.json`, and once
+  every piece is done the crew runs `bump-version.mjs` once, at the largest level queued,
+  and pushes. The bump had been the review session's last chore, which pulled the session
+  towards finishing; and a release per piece shipped more often than Alan wanted
+  (20/10/2026).
+- **Alan checks the models before the builds.** Once every spec is written the crew opens
+  an issue listing each build and review step's model, effort and `why`, and builds wait
+  for his reply or for him closing it (20/10/2026). The spec step sizes the models, but
+  the budget is Alan's.
 - **Claude Code is pinned** (`@anthropic-ai/claude-code@2.1.301`): the crew reads its
   stream-json output (the `init` frame's model and permission mode), and model aliases
   move between versions: in 2.1.292 `haiku` meant Haiku 4.5, which gets no auto mode.
@@ -82,14 +89,15 @@ What's lost: the real Samsung. Keep the S23 for manual checks.
 
 ## Controls
 
-| To                           | Do                                                                               |
-| ---------------------------- | -------------------------------------------------------------------------------- |
-| Pause after the current step | Push `"enabled": false` in `jogging/state.json`                                  |
-| Stop now                     | Cancel the run in the Actions tab; the step stays pending and is redone next run |
-| Stop the schedule            | Disable the Jogging workflow (Actions tab)                                       |
-| Restart                      | `"enabled": true`, enable the workflow, then dispatch it or wait                 |
-| Check without running        | Dispatch with `command: status`                                                  |
-| Unblock a piece              | Comment on its blocker issue, or close it                                        |
+| To                           | Do                                                                                   |
+| ---------------------------- | ------------------------------------------------------------------------------------ |
+| Pause after the current step | Push `"enabled": false` in `jogging/state.json`                                      |
+| Stop now                     | Cancel the run in the Actions tab; the step stays pending and is redone next run     |
+| Stop the schedule            | Disable the Jogging workflow (Actions tab)                                           |
+| Restart                      | `"enabled": true`, enable the workflow, then dispatch it or wait                     |
+| Check without running        | Dispatch with `command: status`                                                      |
+| Unblock a piece              | Comment on its blocker issue, or close it                                            |
+| Approve the build models     | Reply to the model check issue (`piece/step model effort`, a line each), or close it |
 
 ## Secrets
 

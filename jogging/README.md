@@ -22,8 +22,12 @@ A **piece** is one item of The Work. It goes through these steps:
 | `build-N` | 2 | Builds what its brief says |
 | `review` | 2 | Reviews the whole piece's diff, fixes what's substantive |
 
-Every spec is written before any build starts. Builds wait for the pieces they depend on.
-A finished piece is removed from `state.json`, and its spec and briefs from `specs/`. Git
+Every spec is written before any build starts. Then the crew opens one issue listing
+every pending build and review step's model and effort, and those pieces' builds wait
+until Alan answers it: a line per change, such as `speak-word/build-2 opus high`, or
+closing the issue to keep them all. The crew applies the lines, says what it changed and
+what it couldn't read, and marks the pieces `modelsChecked`. Builds also wait for the
+pieces they depend on. A finished piece is removed from `state.json`, and its spec and briefs from `specs/`. Git
 history keeps them.
 
 ## What a session gets
@@ -56,15 +60,17 @@ A session commits and pushes its work and a `LOG.md` entry, then reports `done`,
 - Two unfinished attempts block the step. A `blocked` result, or a brief that's missing,
   blocks the piece. The crew opens an issue for it, and Alan's reply or closing the issue
   unblocks it.
-- When a piece with a `release` (`minor` or `patch`) is done, the crew runs
-  `scripts/bump-version.mjs` and pushes, and `release.yml` publishes the build.
+- When a piece with a `release` (`minor` or `patch`) is done, the crew records it in
+  `state.json`'s `release`, the larger level winning. Once the whole queue is done it runs
+  `scripts/bump-version.mjs` once with that level and pushes, and `release.yml` publishes
+  the build.
 
 ## Files
 
 | File | Written by |
 |---|---|
 | `GOALS.md` | Alan. Sessions read it. |
-| `state.json` | The crew: statuses, attempts, failures, blockers, replies, `baseSha`. Spec and spec-review sessions write their piece's `steps` and `release`. Alan sets `enabled`. |
+| `state.json` | The crew: statuses, attempts, failures, blockers, replies, `baseSha`, the model check, `modelsChecked` and the queued `release`. Spec and spec-review sessions write their piece's `steps` and `release`. Alan sets `enabled`. |
 | `LOG.md` | Every session appends one entry. Rolled when finished pieces are removed; earlier entries are in git history. |
 | `specs/<piece>.md`, `specs/<piece>/<step>.md` | Phase 1 sessions. Build sessions correct them when they turn out wrong. |
 | `prompts/*.md` | Alan. The rules sessions follow. |

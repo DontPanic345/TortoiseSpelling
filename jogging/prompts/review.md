@@ -8,7 +8,7 @@ Fix what is substantive yourself, each fix with a test that fails without it, an
 nits. CI runs every suite on your push, so locally run the tests for what you change and
 the brief's Acceptance block.
 
-When the piece is done the crew bumps the version from `CHANGELOG.md`'s `[Unreleased]`
+When the queue is done the crew bumps the version from `CHANGELOG.md`'s `[Unreleased]`
 notes, so check they cover every user-visible change in the piece.
 
 Then finish as "Finishing" says.

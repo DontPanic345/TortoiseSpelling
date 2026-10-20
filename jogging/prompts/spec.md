@@ -55,4 +55,5 @@ one-line reason in `why`:
 
 Set the piece's `release` to `"minor"` when it changes the Android app for users, or to
 `"patch"` for a piece that only fixes the Android app. Test-only and web-only pieces have
-no `release`. The crew bumps the version once the piece is done.
+no `release`. The crew bumps the version once the whole queue is done, and Alan checks
+every step's model and effort before the builds start.
