@@ -4,6 +4,7 @@ import path from 'node:path';
 import { SevereServiceError } from 'webdriverio';
 import { compileApp } from './support/app.ts';
 import { APK_PATH, APP_ID, DEFAULT_TAGS, LOG_DIR } from './support/config.ts';
+import { prepareKeyboardHelper } from './support/device.ts';
 
 // Appium's UiAutomator2 driver needs the Android SDK and a JDK. Default to where
 // Android Studio installs them; set ANDROID_HOME / JAVA_HOME yourself to override.
@@ -63,6 +64,10 @@ export const config: WebdriverIO.Config = {
     ],
 
     logLevel: 'warn',
+    // WebdriverIO 10 made `$` throw when a selector matches more than one element. The
+    // suite was written for the first match (e.g. "anything of the app's on screen" in
+    // screens/home.ts), so keep that.
+    strictSelectors: false,
     waitforTimeout: 10_000,
     // The default 500 ms poll made every wait that wasn't already true cost half a second.
     waitforInterval: 100,
@@ -99,12 +104,13 @@ export const config: WebdriverIO.Config = {
         await compileApp();
     },
 
-    onPrepare: () => {
+    onPrepare: async () => {
         if (!fs.existsSync(APK_PATH)) {
             throw new SevereServiceError(
                 `No APK at ${APK_PATH}. Build one first with ./gradlew assembleDebug ` +
                     'from the repo root, or point APK at an existing build.',
             );
         }
+        await prepareKeyboardHelper();
     },
 };

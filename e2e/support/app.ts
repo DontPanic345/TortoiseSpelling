@@ -1,6 +1,13 @@
 import { APK_PATH, APP_ID } from './config.ts';
+import { byTextInApp } from './selectors.ts';
 
 const POST_NOTIFICATIONS = 'android.permission.POST_NOTIFICATIONS';
+
+/**
+ * The first launch after a fresh install on a just-booted emulator has taken over the
+ * suite's 10 s wait to draw Home; later launches take about a second.
+ */
+const COLD_START_TIMEOUT_MILLIS = 30_000;
 
 /** The runtime notification permission only exists from Android 13 (API 33). */
 const hasNotificationPermission = async (): Promise<boolean> => {
@@ -23,7 +30,7 @@ export const compileApp = async (): Promise<void> => {
 /**
  * Clean slate for a scenario: app data wiped (which also drops WorkManager's scheduled
  * reminders), notifications pre-allowed so the permission prompt does not interrupt
- * scenarios that are not about it, then the app launched on Home.
+ * scenarios that are not about it, then the app launched and Home drawn.
  *
  * Runs before every scenario (support/hooks.ts). Scenarios about the permission prompt
  * itself need a pristine permission state, which only a reinstall gives: freshInstall().
@@ -38,6 +45,8 @@ export const resetApp = async (): Promise<void> => {
         });
     }
     await driver.activateApp(APP_ID);
+    // Home's title, scoped to the app: the launcher labels the icon the same.
+    await byTextInApp('Tortoise Spelling').waitForDisplayed({ timeout: COLD_START_TIMEOUT_MILLIS });
 };
 
 /**
