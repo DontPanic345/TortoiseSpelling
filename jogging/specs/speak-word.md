@@ -186,6 +186,8 @@ exits 0. Abbreviations:
 
 ### build-1: the voice rule on both apps (Sonnet, medium)
 
+Reads: Design › Choosing the voice
+
 Model: Sonnet, because it is one small pure function, and the golden cases hold the two apps
 to the same answers mechanically.
 
@@ -205,6 +207,8 @@ Acceptance:
   `en-NZ-u-mu-celsius` case fails on both runners. Revert.
 
 ### build-2: Android (Sonnet, high)
+
+Reads: Design › Choosing the voice, Design › Android
 
 Model: Sonnet, because it is a contained change to one screen in a pattern the app already uses
 (`XContent` callbacks, a factory on `AppContainer`). It is high effort because it spans three
@@ -238,6 +242,8 @@ Acceptance:
 
 ### build-3: web (Sonnet, high)
 
+Reads: Design › Choosing the voice, Design › Web
+
 Model: Sonnet, because it mirrors build-2 in the web's existing `Platform` and fake pattern.
 It is high effort because the iOS keyboard rule (focus, never remount) is easy to break.
 
@@ -259,6 +265,8 @@ Acceptance:
 
 ### build-4: the scenario, docs and changelog (Sonnet, medium)
 
+Reads: Design › e2e, Design › Docs
+
 Model: Sonnet, because it is two new steps on existing patterns, plus prose.
 
 The scenario and its steps on both platforms, and everything under "Docs".
@@ -278,9 +286,9 @@ Model: Sonnet, because it is a small piece of four steps with no data or reminde
 the agreement between the apps is held by golden cases and the shared scenario. It is high
 effort because it spans both apps and has a privacy rule (on-device voices only) to check.
 
-Review the piece against this spec and the goals, run the full checks including every
-e2e feature, fix substantive findings, watch `ci.yml` to green, then
-`node scripts/bump-version.mjs minor`, commit and push. Try the button on a release
+Review the piece against this spec and the goals, fix substantive findings, run the
+release smoke on a release build (CI runs every other suite), then
+`node scripts/bump-version.mjs minor`, commit and push. Try the button on the release
 build on the emulator too (R8 and the `<queries>` entry).
 
 ## What later pieces rely on

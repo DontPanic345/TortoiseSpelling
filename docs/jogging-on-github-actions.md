@@ -57,6 +57,18 @@ What's lost: the real Samsung. Keep the S23 for manual checks.
 - **Secrets are redacted from transcripts** (the artifact is readable by anyone signed in).
 - **No identity checks.** They guarded against the work account on the same PC. A runner
   only has the secrets put there.
+- **The crew checks CI, not the sessions.** A phase 2 step that reports `done` after
+  pushing waits (`awaitingCi`) until `ci.yml` finishes on its last push; green finishes
+  it, red sends it back with the failed jobs and their log tails (`ciFailure`) as an
+  attempt. Sessions had been polling CI themselves, with blocked `sleep`s and dozens of
+  Monitor timers, and some builds never looked.
+- **Phase 2 prompts are curated.** The crew builds each session's whole prompt (on stdin,
+  saved as `runs/*.prompt.md`): a build gets its spec section, the Design subsections its
+  `Reads:` line names, the spec's build-step abbreviations, its piece's log and the
+  `PROTOCOL.md` sections for its step; a review gets the whole spec, `GOALS.md`,
+  `CODING_STANDARDS.md` and the diff stat since `baseSha`, recorded when the piece's first
+  build step starts. A spec that can't brief a step blocks its piece. Phase 1 keeps the
+  reading-list prompt.
 - **Claude Code is pinned** (`@anthropic-ai/claude-code@2.1.301`): the crew reads its
   stream-json output (the `init` frame's model and permission mode), and model aliases
   move between versions: in 2.1.292 `haiku` meant Haiku 4.5, which gets no auto mode.
@@ -79,7 +91,7 @@ What's lost: the real Samsung. Keep the S23 for manual checks.
   falloonalan@gmail.com. A long-lived token for the subscription, so steps draw on the
   same 5-hour and weekly windows. Anyone holding it can use the subscription.
 - `JOGGING_GH_TOKEN`: a fine-grained token for `DontPanic345/TortoiseSpelling` with
-  Contents read/write and Actions read (so a review step can watch CI). Pushes made with
+  Contents read/write and Actions read (so a session can read a failed CI run). Pushes made with
   the workflow's own `GITHUB_TOKEN` wouldn't trigger `ci.yml` or `release.yml`.
 
 ## Unverified
@@ -97,11 +109,3 @@ What's lost: the real Samsung. Keep the S23 for manual checks.
    an issue. Reply to it from the phone.
 4. The next run (dispatch, or wait) picks up the reply, finishes the PoC and goes on to
    `drop-api-key/review`.
-
-## Later
-
-- **Curated phase 2 prompts.** Give each session its spec section and only the material it
-  needs instead of a reading list. Measure first: do it once a few steps have run on CI
-  with today's prompt, so a change in quality has one cause.
-- **The crew checks CI itself** before marking a step done, instead of asking the review
-  step to watch it.

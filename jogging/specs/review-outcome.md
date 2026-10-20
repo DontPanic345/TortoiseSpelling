@@ -190,10 +190,12 @@ then the same two writes. Its imports of `Grade`, `sm2Scheduler`, `RESET_BELOW_Q
 ## Build steps
 
 Each step follows `CLAUDE.md`'s Workflow and `PROTOCOL.md`. "Passing" means every command
-exits 0. No step names e2e features: no screen, tag, text or screen order changes, and the
-review step runs the whole suite.
+exits 0. No step names e2e features: no screen, tag, text or screen order changes, and CI
+runs the whole suite on every push.
 
 ### build-1: the rule and its golden cases on both apps (Sonnet, high)
+
+Reads: Design › The rule, Design › Golden cases, Design › Tests, Design › Docs
 
 Model: Sonnet, because it is one pure function lifted from existing code on each side, and
 the golden cases hold the two apps to the same answers mechanically. High effort because
@@ -216,6 +218,8 @@ Acceptance:
 - Temporarily pass the old `intervalDays` to `fuzz`: case 4 fails on each runner. Revert.
 
 ### build-2: both repositories apply it; Android in one transaction (Opus, medium)
+
+Reads: Design › The rule, Design › Android, Design › Web, Design › Tests, Design › Docs
 
 Model: Opus, because it changes how the review is written on Android (goal 1), adds a
 Room transaction, and changes a repository signature the review screen calls.
@@ -247,10 +251,10 @@ must keep both apps in agreement. Medium effort because it is two build steps wi
 
 Review the piece against this spec and the goals: the golden cases match the code that was
 removed, the DAO method's read and both writes are inside one transaction, the web
-transaction still awaits only its own requests, and no scheduling outcome changed. Run the
-full checks, including every instrumented layer and every e2e feature on both apps, fix
-substantive findings, watch `ci.yml` to green, then `node scripts/bump-version.mjs patch`
-(it changes the Android app for users, fixes only), commit and push.
+transaction still awaits only its own requests, and no scheduling outcome changed. Fix
+substantive findings, run the release smoke on a release build (CI runs every other suite),
+then `node scripts/bump-version.mjs patch` (it changes the Android app for users, fixes
+only), commit and push.
 
 ## What later pieces rely on
 

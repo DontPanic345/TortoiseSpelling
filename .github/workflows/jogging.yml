@@ -82,6 +82,20 @@ jobs:
         working-directory: e2e
         run: npm ci
 
+      # A throwaway key, as in release-smoke.yml, so `./gradlew assembleRelease` works in a
+      # session as it is: the release smoke needs a signed release APK. Never the release secrets.
+      - name: Release signing key for sessions
+        if: inputs.command != 'status'
+        run: |
+          keytool -genkeypair -keystore "$RUNNER_TEMP/session.keystore" -storepass android -keypass android \
+            -alias session -keyalg RSA -keysize 2048 -validity 1 -dname CN=session
+          {
+            echo "RELEASE_KEYSTORE_PATH=$RUNNER_TEMP/session.keystore"
+            echo "RELEASE_KEYSTORE_PASSWORD=android"
+            echo "RELEASE_KEY_ALIAS=session"
+            echo "RELEASE_KEY_PASSWORD=android"
+          } >> "$GITHUB_ENV"
+
       - name: Run the crew
         if: inputs.command != 'status'
         uses: reactivecircus/android-emulator-runner@v2

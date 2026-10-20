@@ -7,8 +7,7 @@
   auto-merge merges before CI finishes. In the repo: a `dependabot-automerge.yml`
   workflow that runs `dependabot/fetch-metadata` and `gh pr merge --auto --squash`
   unless the update is a semver major. Merges made with `GITHUB_TOKEN` don't trigger
-  the `push` workflows on `main`, and CI doesn't run the Appium suite, so consider
-  leaving `e2e/` npm updates manual.
+  the `push` workflows on `main`.
 - [ ] Copy prompt evals on local models, once the word forms have been tried by hand: see
   [copy-prompt-evals.md](copy-prompt-evals.md).
 - [ ] Retro on some of the Jogging build steps' transcripts: what went well, what wasted

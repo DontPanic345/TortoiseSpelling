@@ -45,7 +45,9 @@ Start an emulator (Android Studio's Device Manager, or `emulator -avd <name>`) s
 | `npm run typecheck` | TypeScript check |
 
 To test a release (R8-minified) build instead, sign one with the debug key and point `APK`
-at it; R8 bugs only show up there:
+at it; R8 bugs only show up there. In a Jogging session the four `RELEASE_*` variables are
+already set to a throwaway key, so `./gradlew assembleRelease` is enough. Locally, the debug
+key is at `~/.android/debug.keystore` once a debug build has run:
 
 ```bash
 RELEASE_KEYSTORE_PATH=~/.android/debug.keystore RELEASE_KEYSTORE_PASSWORD=android RELEASE_KEY_ALIAS=androiddebugkey RELEASE_KEY_PASSWORD=android ./gradlew assembleRelease

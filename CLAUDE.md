@@ -29,7 +29,7 @@ Gherkin features both apps run, Android through [`e2e/`](e2e/README.md), web thr
 ./gradlew validateDebugScreenshotTest         # JVM; after a deliberate UI change: updateDebugScreenshotTest, look, commit
 ./gradlew connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.package=io.github.dontpanic345.tortoisespelling.<layer>
                                               # <layer>: data, component, integration, accessibility (emulator)
-node --test 'scripts/*.test.mjs'              # script tests (quote the glob)
+node --test 'scripts/*.test.mjs' 'jogging/*.test.mjs'   # script and Jogging crew tests (quote the globs)
 node scripts/check-specs.mjs                  # tags on specs/*.feature
 ```
 

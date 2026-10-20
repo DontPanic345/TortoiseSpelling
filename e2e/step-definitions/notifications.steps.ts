@@ -10,8 +10,7 @@ const PERMISSION_PROMPT = 'Allow Tortoise Spelling to send you notifications?';
 const ALLOW_BUTTON = 'com.android.permissioncontroller:id/permission_allow_button';
 const DENY_BUTTON_PATTERN = '.*:id/permission_deny.*';
 
-// Reinstalls the APK: minutes over a Tailscale relay, so well past the default step timeout.
-Given('the app is freshly installed', { timeout: 900_000 }, async () => {
+Given('the app is freshly installed', async () => {
     await freshInstall();
 });
 
