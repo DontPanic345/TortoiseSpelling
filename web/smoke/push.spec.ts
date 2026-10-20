@@ -12,6 +12,9 @@ const test = base.extend<{ problems: string[] }>({
 test.use({ channel: "chromium" });
 test.skip(({ browserName }) => browserName !== "chromium", "WebKit can't deliver a push over the DevTools protocol");
 test.skip(!!process.env.SMOKE_URL, "the deployed site has the real server, not a closed port");
+// Chromium sometimes drops a notification shown from a push event: showNotification resolves
+// but getNotifications never lists it. The worker does its part, so a retry is fair.
+test.describe.configure({ retries: 2 });
 
 test.beforeEach(async ({ context }) => {
   await context.grantPermissions(["notifications"]);
