@@ -1,6 +1,6 @@
 # Copy-prompt lookup instead of the API button (idea, not yet implemented)
 
-Status: **implemented**. See `jogging/specs/copy-prompt.md` for the full design.
+Status: **implemented**. See [the copy-prompt spec](https://github.com/DontPanic345/TortoiseSpelling/blob/58f39f6192806b92431713675234b268fceb1633/jogging/specs/copy-prompt.md) for the full design.
 
 As built:
 

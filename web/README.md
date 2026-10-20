@@ -81,7 +81,7 @@ test/support/ testClock.ts, seeded.ts
   storage once there is a word, and nudges to export when storage isn't persistent and no
   export is under 30 days old.
 - Safari 16.4 is the minimum; `public/compat.js` shows a message on older browsers.
-- The reminder's design is in `../jogging/specs/web-push.md`.
+- The reminder's design is in [the web-push spec](https://github.com/DontPanic345/TortoiseSpelling/blob/58f39f6192806b92431713675234b268fceb1633/jogging/specs/web-push.md).
 
 ## Smoke tests
 
