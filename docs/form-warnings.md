@@ -31,10 +31,8 @@ form, a form identical to another) can join it in the same function.
 - **Word list:** a word with any warning shows a small "Check forms" marker on its row,
   computed from its saved content. Tapping the row opens the edit screen as now, with the
   same marks. This catches words already saved, like "curious".
-- **Lookup prompt:** one line added to `lookupPrompt`'s forms rule: each form is a single
-  word, so leave out forms made with another word, such as "more"/"most" comparisons. It
-  prevents most cases; the warning catches the rest. `golden/prompt.json` is updated with
-  it, on both apps.
+- **The lookup prompt is unchanged.** The bad reply came from an older version of it, which
+  may already have been fixed; the warning is the safety net either way.
 
 ## Decisions
 
@@ -49,11 +47,11 @@ form, a form identical to another) can join it in the same function.
 - Android: `domain/` (the rule and its unit tests), `ui/add/AddWordScreen.kt` and
   `AddWordViewModel.kt` (warnings after paste, marks on fields),
   `ui/words/WordListScreen.kt` and `WordListViewModel.kt` (the marker),
-  `domain/LookupPrompt.kt`, `ui/TestTags.kt` and `e2e/support/testIds.ts`.
+  `ui/TestTags.kt` and `e2e/support/testIds.ts`.
 - Web: the mirrors in `web/src/domain/`, `web/src/ui/add/`, `web/src/ui/words/`,
   `web/src/ui/testIds.ts`.
 - Golden: `golden/warnings.json` with runners on both apps, a row in
-  `golden/README.md`, and `golden/prompt.json`.
+  `golden/README.md`.
 - Specs: a scenario in `specs/copy_prompt.feature` (paste a reply with a two-word form, see
   the warning, fix it, save) and one in `specs/word_list.feature` (a saved word with a
   two-word form shows the marker).
