@@ -170,6 +170,33 @@
         }
       ],
       "release": "minor"
+    },
+    {
+      "id": "form-warnings",
+      "title": "Warn about suspect forms (a space in a one-word root's form) after a paste and in the word list",
+      "docs": [
+        "docs/form-warnings.md"
+      ],
+      "dependsOn": [],
+      "status": "active",
+      "spec": "jogging/specs/form-warnings.md",
+      "steps": [
+        {
+          "id": "spec",
+          "phase": 1,
+          "model": "opus",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "spec-review",
+          "phase": 1,
+          "model": "opus",
+          "effort": "medium",
+          "status": "pending"
+        }
+      ],
+      "release": "minor"
     }
   ]
 }
