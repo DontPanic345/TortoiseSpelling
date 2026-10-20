@@ -1,7 +1,7 @@
 # Coding standards
 
-Read at review time, by a reviewer with the diff in front of it. These are the judgement
-calls no check can make; lint, typecheck, `check-steps`, `check-specs`, `testIds.test.ts`
+Every change meets these: build sessions write to them, and the reviewer checks the diff
+against them. They are the judgement calls no check can make; lint, typecheck, `check-steps`, `check-specs`, `testIds.test.ts`
 and the golden runners already enforce the mechanical rules. `CLAUDE.md` holds the
 architecture, and its "Data safety" rules apply to every review.
 
@@ -25,8 +25,7 @@ architecture, and its "Data safety" rules apply to every review.
 ## Code reads like its neighbours
 
 - Names, structure and comment density match the surrounding code.
-- Comments say why, in a line or two. They describe the code as it is: no history,
-  no "used to", no "fixed a bug where".
+- Comments say why, in a line or two, and describe the code as it is now.
 - NZ spelling in copy, comments and docs.
 - A new dependency earns its place: the spec or the log says why the platform or an
   existing one won't do.

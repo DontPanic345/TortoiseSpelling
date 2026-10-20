@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+    acceptanceOf,
     applyCi,
     applyReplies,
     applyResult,
@@ -10,12 +11,11 @@ import {
     nextStep,
     pace,
     parseUsage,
-    phase2Prompt,
     pieceLog,
     readResult,
-    readsOf,
     redact,
     section,
+    sessionPrompt,
     tokenProblem,
 } from "./jog.mjs";
 
@@ -75,6 +75,11 @@ test("a build waits for its dependencies", () => {
     assert.equal(nextStep(s).piece.id, "c");
     s.pieces[2].status = "done";
     assert.deepEqual(nextStep(s), { stuck: true });
+});
+
+test("a dependency removed from state.json counts as done", () => {
+    const s = { pieces: [piece("b", ["gone"], [st("spec", 1, "done"), st("build-1", 2)])] };
+    assert.equal(nextStep(s).piece.id, "b");
 });
 
 test("all pieces done", () => {
@@ -188,7 +193,7 @@ test("green CI finishes the step; red sends it back with the failure, then block
     applyResult(s, "p", "build-2", { status: "done" }, true, "abc123");
     assert.equal(applyCi(s, "p", "build-2", "red", "lint failed"), "pending (CI red)");
     const step = s.pieces[0].steps[1];
-    assert.deepEqual([step.status, step.attempts, step.ciFailure, step.awaitingCi], ["pending", 1, "lint failed", undefined]);
+    assert.deepEqual([step.status, step.attempts, step.failure, step.awaitingCi], ["pending", 1, "lint failed", undefined]);
     assert.equal(nextStep(s).step.id, "build-2", "the step runs again");
 
     applyResult(s, "p", "build-2", { status: "done" }, true, "def456");
@@ -197,9 +202,18 @@ test("green CI finishes the step; red sends it back with the failure, then block
 
     const t = twoSteps();
     applyResult(t, "p", "build-2", { status: "done" }, true, "abc123");
-    t.pieces[0].steps[1].ciFailure = "old";
+    t.pieces[0].steps[1].failure = "old";
     assert.equal(applyCi(t, "p", "build-2", "green"), "done (CI green)");
-    assert.deepEqual([t.pieces[0].status, t.pieces[0].steps[1].ciFailure], ["done", undefined]);
+    assert.deepEqual([t.pieces[0].status, t.pieces[0].steps[1].failure], ["done", undefined]);
+});
+
+test("a done step whose Acceptance block failed goes back with its output, then blocks", () => {
+    const s = twoSteps();
+    assert.equal(applyResult(s, "p", "build-2", { status: "done" }, true, "abc123", "smoke failed"), "pending (acceptance check failed)");
+    const step = s.pieces[0].steps[1];
+    assert.deepEqual([step.status, step.attempts, step.awaitingCi], ["pending", 1, undefined]);
+    assert.match(step.failure, /Acceptance block[\s\S]*smoke failed/);
+    assert.equal(applyResult(s, "p", "build-2", { status: "done" }, true, "def456", "still"), "blocked (acceptance check failed)");
 });
 
 test("ciVerdict waits for every run and takes the newest", () => {
@@ -226,122 +240,90 @@ test("ciFailureText names the failed jobs and steps, with their log tails", () =
     assert.doesNotMatch(text, /Web checks/);
 });
 
-const spec = `# Piece: p
-
-## What it delivers
-
-Words.
-
-## Design
-
-### Android
-
-Android design.
-
-### Web (shared bits)
-
-Web design.
-
-## Build steps
-
-Abbreviations: <web> is npm test.
-
-### build-1: Android (Sonnet, high)
-
-Reads: Design › Android
+const brief = `# p/build-1: Android
 
 Do the Android part.
 
-\`\`\`bash
+\`\`\`kotlin
 # not a heading
-./gradlew testDebugUnitTest
+fun x() = 1
 \`\`\`
 
-### build-2: Web (Sonnet, medium)
+## Acceptance
 
-Do the web part.
-
-### review (Sonnet, high)
-
-Review it.
+\`\`\`bash
+./gradlew assembleRelease
+adb logcat -d | grep spoke
+\`\`\`
 `;
 
-const protocol = `# Jogging protocol
-
-## Phase 2: build
-
-### Build step
-
-Build rules.
-
-### Review step
-
-Review rules.
-
-## In CI
-
-CI rules.
-
-## Finishing a step
-
-Finish rules.
-
-## Blockers
-
-Blocker rules.
-`;
+const prompts = {
+    spec: "# Spec step\n\nSpec rules.",
+    "spec-review": "# Spec-review step\n\nSpec-review rules.",
+    build: "# Build step\n\nBuild rules.",
+    review: "# Review step\n\nReview rules.",
+    session: "# Every Jogging session\n\n## Finishing\n\nFinish rules.",
+};
 
 const files = {
-    spec,
-    protocol,
+    spec: "# Piece: p\n\n## Design\n\nWhole design.",
+    brief,
     log: "# Log\n\n## 2026-10-18 10:00 p/spec (opus)\nSpec written.\n\n## 2026-10-18 11:00 q/build-1 (sonnet)\nOther piece.\n",
-    goals: "# Goals\n\nGoal text.",
+    goals: "# Goals\n\nIntro.\n\n## Goals, in priority order\n\n1. Goal text.\n\n## Decisions already made\n\nDecision text.",
     standards: "# Coding standards\n\nStandard text.",
+    prompts,
 };
-const specPiece = { id: "p", title: "The piece", spec: "jogging/specs/p.md" };
+const specPiece = { id: "p", title: "The piece", spec: "jogging/specs/p.md", docs: ["docs/p.md"] };
 
-test("section finds headings by name, prefix or parenthesis, and ignores code fences", () => {
-    assert.match(section(spec, ["Build steps", "build-1"]), /^### build-1: Android[\s\S]*not a heading[\s\S]*testDebugUnitTest\n```$/);
-    assert.equal(section(spec, ["Design", "Web"]), "### Web (shared bits)\n\nWeb design.");
-    assert.equal(section(spec, ["Design", "iOS"]), null);
-    assert.deepEqual(readsOf("Reads: Design › Android, `Design > Web`."), [["Design", "Android"], ["Design", "Web"]]);
-    assert.equal(readsOf("No reads here"), null);
+const inOrder = (prompt, order) => {
+    const at = order.map((t) => prompt.indexOf(t));
+    assert.ok(at.every((i, k) => i >= 0 && (k === 0 || i > at[k - 1])), `in order: ${at}`);
+};
+
+test("section finds headings by name or prefix, and ignores code fences", () => {
+    assert.equal(section(files.goals, ["Goals, in priority"]), "## Goals, in priority order\n\n1. Goal text.");
+    assert.equal(section(brief, ["not a heading"]), null);
+    assert.equal(section(brief, ["iOS"]), null);
+});
+
+test("acceptanceOf reads the brief's Acceptance bash block", () => {
+    assert.equal(acceptanceOf(brief), "./gradlew assembleRelease\nadb logcat -d | grep spoke");
+    assert.equal(acceptanceOf("# p/build-2: Web\n\nCI covers it."), null);
 });
 
 test("pieceLog keeps only the piece's entries", () => {
     assert.equal(pieceLog(files.log, "p"), "## 2026-10-18 10:00 p/spec (opus)\nSpec written.");
 });
 
-test("a build prompt starts with the step and holds only what it reads", () => {
-    const prompt = phase2Prompt(specPiece, { id: "build-1", phase: 2 }, files);
-    const order = ["# Your step: p/build-1", "Do the Android part.", "Abbreviations", "Android design.", "Spec written.", "Build rules.", "CI rules.", "Finish rules.", "Blocker rules."];
-    const at = order.map((t) => prompt.indexOf(t));
-    assert.ok(at.every((i, k) => i >= 0 && (k === 0 || i > at[k - 1])), `in order: ${at}`);
-    for (const absent of ["Web design.", "Do the web part.", "Review rules.", "Goal text.", "Other piece.", "Words."]) {
+test("a build prompt starts with its brief and holds only what a build needs", () => {
+    const prompt = sessionPrompt(specPiece, { id: "build-1", phase: 2 }, files);
+    inOrder(prompt, ["The piece", "# p/build-1: Android", "Do the Android part.", "Goal text.", "Standard text.", "Spec written.", "# Build step", "# Every Jogging session", "Finish rules."]);
+    for (const absent of ["Decision text.", "Whole design.", "Other piece.", "Review rules.", "Spec rules."]) {
         assert.ok(!prompt.includes(absent), `no "${absent}"`);
     }
     assert.match(prompt, /\n# not a heading\n/, "code is quoted as it is");
-    assert.match(prompt, /^## build-1: Android/m);
 });
 
-test("a build prompt carries the last CI failure and Alan's reply", () => {
-    const prompt = phase2Prompt({ ...specPiece, userReply: "Use en-NZ" }, { id: "build-1", phase: 2, ciFailure: "lint failed" }, files);
-    assert.match(prompt, /# CI failed on the last attempt[\s\S]*lint failed/);
+test("a prompt carries the last failure and Alan's reply", () => {
+    const prompt = sessionPrompt({ ...specPiece, userReply: "Use en-NZ" }, { id: "build-1", phase: 2, failure: "lint failed" }, files);
+    assert.match(prompt, /# The last attempt failed[\s\S]*lint failed/);
     assert.match(prompt, /Use en-NZ/);
 });
 
-test("a spec that can't brief a build step fails loudly", () => {
-    assert.throws(() => phase2Prompt(specPiece, { id: "build-2", phase: 2 }, files), /no "Reads:" line/);
-    assert.throws(() => phase2Prompt(specPiece, { id: "build-9", phase: 2 }, files), /no "### build-9"/);
-    const badRead = { ...files, spec: spec.replace("Reads: Design › Android", "Reads: Design › iOS") };
-    assert.throws(() => phase2Prompt(specPiece, { id: "build-1", phase: 2 }, badRead), /isn't a heading/);
+test("a build or review step without a brief fails loudly", () => {
+    assert.throws(() => sessionPrompt(specPiece, { id: "build-2", phase: 2 }, { ...files, brief: null }), /p\/build-2\.md is missing/);
 });
 
 test("a review prompt has the diff, the whole spec, the goals and the standards", () => {
-    const prompt = phase2Prompt({ ...specPiece, baseSha: "abc1234" }, { id: "review", phase: 2 }, files, " app/A.kt | 2 +-");
-    for (const present of ["# Your step: p/review", "abc1234", "app/A.kt | 2 +-", "Do the web part.", "Goal text.", "Standard text.", "Review rules."]) {
-        assert.ok(prompt.includes(present), `has "${present}"`);
-    }
+    const prompt = sessionPrompt({ ...specPiece, baseSha: "abc1234" }, { id: "review", phase: 2 }, { ...files, brief: "# p/review\n\nLook hard at X." }, " app/A.kt | 2 +-");
+    inOrder(prompt, ["Look hard at X.", "Decision text.", "Standard text.", "abc1234", "app/A.kt | 2 +-", "Whole design.", "# Review step", "Finish rules."]);
     assert.ok(!prompt.includes("Build rules."));
-    assert.ok(prompt.indexOf("Review it.") < prompt.indexOf("abc1234"), "the goal comes first");
+});
+
+test("spec prompts list the docs and carry the spec rules; spec-review gets both rule sets", () => {
+    const spec = sessionPrompt(specPiece, { id: "spec", phase: 1 }, { ...files, brief: null });
+    inOrder(spec, ["# Your step: p/spec", "docs/p.md", "Decision text.", "Spec rules.", "Finish rules."]);
+    assert.ok(!spec.includes("Standard text."));
+    const review = sessionPrompt(specPiece, { id: "spec-review", phase: 1 }, { ...files, brief: null });
+    inOrder(review, ["jogging/specs/p/", "Spec-review rules.", "Spec rules.", "Finish rules."]);
 });

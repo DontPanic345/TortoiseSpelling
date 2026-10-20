@@ -2,7 +2,7 @@
 
 The Work is everything in `docs/todo.md` and the design docs it links. Use these goals to
 settle open questions and roadblocks without asking Alan. Ask only when no goal decides
-it (see Blockers in `PROTOCOL.md`).
+it, as a blocker.
 
 ## Goals, in priority order
 
@@ -19,8 +19,8 @@ it (see Blockers in `PROTOCOL.md`).
    except where the platform forbids it, and the shared Gherkin specs prove it.
 6. **Free to run.** No paid services. A free tier that needs an account Alan has to
    create is a blocker for that piece only.
-7. **Simple over clever.** Follow `CLAUDE.md` and the existing code's idiom: NZ spelling,
-   no war-story comments, minimal dependencies, the testing pyramid.
+7. **Simple over clever.** Follow `CLAUDE.md`, `CODING_STANDARDS.md` and the existing
+   code's idiom.
 
 ## Decisions already made
 
@@ -51,9 +51,6 @@ a goal above requires it, and must say which.
   chooses. The server stores only push subscriptions and due dates, never words, and
   `PRIVACY.md` says so before push ships. Until push lands, the web app shows "due
   today" on Home.
-- **Releases.** Each finished piece that changes the Android app for users ends with
-  `node scripts/bump-version.mjs minor` (`patch` for fix-only pieces), committed and
-  pushed, which publishes a GitHub Release. Test-only and web-only pieces don't bump.
 - **Jogging on Actions.** Jogging runs as a scheduled GitHub Actions workflow beside an
   emulator (`.github/workflows/jogging.yml`). It's infrastructure, not a piece; the
   `jogging-poc` piece only proves it works.

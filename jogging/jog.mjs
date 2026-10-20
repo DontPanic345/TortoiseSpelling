@@ -7,13 +7,15 @@
 //
 // The crew is the only writer of a step's or a piece's status in state.json: a session
 // reports how its step ended in jogging/runs/result.json, and a phase 2 step that reports
-// done counts only once `ci.yml` is green on its last push. See jogging/PROTOCOL.md.
+// done counts only once its brief's Acceptance block passes and `ci.yml` is green on its
+// last push. A piece with a `release` gets its version bump once it's done. Sessions'
+// prompts are built from jogging/prompts/; jogging/README.md explains the whole loop.
 //
 // Environment: GH_TOKEN (the push token, also the sessions' `gh`), BOT_TOKEN (the
 // workflow's own token: issues and comments come from github-actions[bot], so GitHub
 // notifies Alan), CLAUDE_CODE_OAUTH_TOKEN, ANDROID_SERIAL.
 
-import { execFileSync, spawn } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -39,6 +41,8 @@ const SECRETS = ["CLAUDE_CODE_OAUTH_TOKEN", "GH_TOKEN", "BOT_TOKEN"];
 const CI_TIMEOUT_MS = 75 * 60_000;
 const CI_POLL_MS = 30_000;
 const CI_GRACE_MS = 5 * 60_000;
+// An Acceptance block gets this long, and never runs past the job's time limit.
+const CHECK_TIMEOUT_MS = 45 * 60_000;
 // The job's own limit (jogging.yml), less a margin to record the outcome.
 const JOB_END_MS = 335 * 60_000;
 
@@ -73,9 +77,10 @@ export const nextStep = (state) => {
     }
     const anySpecPending = state.pieces.some((p) => p.steps.some((s) => s.phase === 1 && s.status === "pending"));
     if (!anySpecPending) {
-        const done = new Set(state.pieces.filter((p) => p.status === "done").map((p) => p.id));
+        // A finished piece is removed from state.json, so a missing dependency is a done one.
+        const unfinished = new Set(state.pieces.filter((p) => p.status !== "done").map((p) => p.id));
         for (const piece of active) {
-            if (!piece.dependsOn.every((d) => done.has(d))) continue;
+            if ((piece.dependsOn ?? []).some((d) => unfinished.has(d))) continue;
             const step = pendingIn(piece, 2);
             if (step) return { piece, step };
         }
@@ -117,19 +122,6 @@ export const parseUsage = (raw) => {
     throw new Error("no session/weekly windows in the usage payload");
 };
 
-// Phase 1 runs on Opus, which reads everything anyway, so its prompt is a reading list.
-export const phase1Prompt = (piece, step) =>
-    [
-        `You are a Jogging session for Tortoise Spelling, running in GitHub Actions with no other context.`,
-        `Read jogging/PROTOCOL.md, jogging/GOALS.md, piece "${piece.id}" in jogging/state.json, and the end of jogging/LOG.md.`,
-        `Do step "${step.id}" of piece "${piece.id}" (${piece.title}) exactly as PROTOCOL.md describes, and nothing else.`,
-        step.title ? `The step: ${step.title}. Its details are in ${piece.spec}.` : "",
-        piece.userReply ? `Alan replied to this piece's blocker: """${piece.userReply}"""` : "",
-        `Finish as PROTOCOL.md's "Finishing a step" says: commit and push your work and the log entry, then write jogging/runs/result.json.`,
-    ]
-        .filter(Boolean)
-        .join("\n");
-
 // Markdown headings outside code fences, each with the lines it spans (up to the next
 // heading at its level or above).
 const headings = (md) => {
@@ -148,14 +140,6 @@ const headings = (md) => {
     return { lines, found };
 };
 
-// "build-2" matches "build-2: Android (Sonnet, high)", "Android" matches "Android", and
-// "Choosing the voice" matches "Choosing the voice (pure, shared)".
-const titleMatches = (title, name) => {
-    const t = title.toLowerCase();
-    const n = name.trim().toLowerCase();
-    return t === n || t.startsWith(`${n}:`) || t.startsWith(`${n} (`);
-};
-
 // Moves every heading outside code fences so the first one sits at `level`, so quoted
 // material nests under the prompt's own top-level sections.
 const atLevel = (md, level = 2) => {
@@ -172,36 +156,19 @@ const atLevel = (md, level = 2) => {
         .join("\n");
 };
 
-// The text under a heading path, e.g. ["Design", "Android"], or null.
+// The text under a heading path, e.g. ["Goals, in priority order"], or null. A name
+// matches a heading that equals it or starts with it.
 export const section = (md, path) => {
     const { lines, found } = headings(md);
     let range = { start: -1, end: lines.length };
     let hit = null;
     for (const name of path) {
-        hit = found.find((h) => h.start > range.start && h.start < range.end && titleMatches(h.title, name));
+        const n = name.toLowerCase();
+        hit = found.find((h) => h.start > range.start && h.start < range.end && h.title.toLowerCase().startsWith(n));
         if (!hit) return null;
         range = hit;
     }
     return lines.slice(hit.start, hit.end).join("\n").trim();
-};
-
-// What sits between a heading and its first subheading: a spec's shared abbreviations.
-const preamble = (md, name) => {
-    const text = section(md, [name]);
-    if (!text) return null;
-    const body = text.split("\n");
-    const sub = body.findIndex((l, i) => i > 0 && /^#{1,6}\s/.test(l));
-    return body.slice(0, sub < 0 ? body.length : sub).join("\n").trim();
-};
-
-// A build step's `Reads: Design › Android, Design › Docs` line, as heading paths.
-export const readsOf = (stepText) => {
-    const m = /^Reads:\s*(.+)$/m.exec(stepText);
-    if (!m) return null;
-    return m[1]
-        .replace(/\.$/, "")
-        .split(/,\s*/)
-        .map((ref) => ref.split(/\s*(?:›|>)\s*/).map((s) => s.replace(/`/g, "").trim()));
 };
 
 // LOG.md entries for one piece, oldest first.
@@ -212,54 +179,69 @@ export const pieceLog = (log, pieceId) =>
         .map((entry) => entry.trim())
         .join("\n\n");
 
-const PROTOCOL_FOR = {
-    build: [["Phase 2: build", "Build step"], ["In CI"], ["Finishing a step"], ["Blockers"]],
-    review: [["Phase 2: build", "Review step"], ["In CI"], ["Finishing a step"], ["Blockers"]],
+// Where the spec step writes a step's brief: `jogging/specs/<piece>/<step>.md`.
+export const briefPath = (piece, step) => piece.spec.replace(/\.md$/, `/${step.id}.md`);
+
+// The commands in a brief's `## Acceptance` bash block, or null when it has none.
+export const acceptanceOf = (brief) => {
+    const text = section(brief, ["Acceptance"]);
+    const m = text && /^```(?:bash|sh)\n([\s\S]*?)^```/m.exec(text);
+    return m && m[1].trim() ? m[1].trim() : null;
 };
 
-// A phase 2 session's whole prompt: its goal first, then only the material that serves it.
-// Throws when the spec can't supply what the step needs; the crew blocks the piece on that.
-// `files` holds the contents of the spec, PROTOCOL.md, LOG.md, GOALS.md and
-// CODING_STANDARDS.md, and `diffStat` the piece's changes since its base (review only).
-export const phase2Prompt = (piece, step, files, diffStat = "") => {
-    const kind = step.id === "review" ? "review" : "build";
-    const stepText = section(files.spec, ["Build steps", step.id]);
-    if (!stepText) throw new Error(`${piece.spec} has no "### ${step.id}" under "## Build steps"`);
+export const stepKind = (step) => (["spec", "spec-review", "review"].includes(step.id) ? step.id : "build");
+
+// The `jogging/prompts/` files each kind of step is told to follow, besides `session.md`.
+export const PROMPTS_FOR = {
+    spec: ["spec"],
+    "spec-review": ["spec-review", "spec"],
+    build: ["build"],
+    review: ["review"],
+};
+
+// A session's whole prompt: its step first, then only the material that serves it, then
+// the rules for its kind of step. Throws when a build or review step has no brief; the
+// crew blocks the piece on that.
+// `files` holds `goals`, `standards`, `log`, `prompts` (name → text), `brief` and `spec`
+// (null when missing), and `diffStat` the piece's changes since its base (review only).
+export const sessionPrompt = (piece, step, files, diffStat = "") => {
+    const kind = stepKind(step);
     const parts = [
-        `You are a Jogging session for Tortoise Spelling, running in GitHub Actions with no other context. ` +
-            `\`CLAUDE.md\` is loaded. This prompt holds everything your step needs; read code, not Jogging's files.`,
-        `# Your step: ${piece.id}/${step.id}\n\nPiece: ${piece.title} (spec: \`${piece.spec}\`).\n\n${atLevel(stepText)}`,
+        `You are a Jogging session for Tortoise Spelling, in GitHub Actions with no other context: one cold ` +
+            `session doing one step of the piece "${piece.title}" (spec: \`${piece.spec}\`). \`CLAUDE.md\` is loaded; ` +
+            `this prompt holds Jogging's rules, and the code holds the rest.`,
     ];
-    if (step.ciFailure) parts.push(`# CI failed on the last attempt\n\nFix this first.\n\n${step.ciFailure}`);
-    if (piece.userReply) parts.push(`# Alan replied to this piece's blocker\n\n"""${piece.userReply}"""`);
-    if (kind === "build") {
-        const reads = readsOf(stepText);
-        if (!reads) throw new Error(`${piece.spec}: step ${step.id} has no "Reads:" line`);
-        const shared = preamble(files.spec, "Build steps");
-        if (shared) parts.push(`# From the spec's build steps\n\n${shared.replace(/^#+.*\n*/, "")}`);
-        const design = reads.map((ref) => {
-            const text = section(files.spec, ref);
-            if (!text) throw new Error(`${piece.spec}: step ${step.id} reads "${ref.join(" › ")}", which isn't a heading`);
-            return text;
-        });
-        parts.push(`# The design you need\n\n${design.map((d) => atLevel(d)).join("\n\n")}`);
+    if (step.phase === 2) {
+        if (!files.brief) throw new Error(`${briefPath(piece, step)} is missing`);
+        parts.push(atLevel(files.brief.trim(), 1));
+    } else if (kind === "spec") {
+        const docs = (piece.docs ?? []).map((d) => `- \`${d}\``).join("\n");
+        parts.push(`# Your step: ${piece.id}/spec\n\nWrite the spec and briefs for this piece from:\n\n${docs}`);
     } else {
+        parts.push(
+            `# Your step: ${piece.id}/${step.id}\n\nThe spec is \`${piece.spec}\` and the briefs are in ` +
+                `\`${piece.spec.replace(/\.md$/, "/")}\`.`,
+        );
+    }
+    if (step.failure) parts.push(`# The last attempt failed\n\nFix this first.\n\n${step.failure}`);
+    if (piece.userReply) parts.push(`# Alan's reply to this piece's blocker\n\nAct on it.\n\n"""${piece.userReply}"""`);
+    if (kind === "build") {
+        parts.push(`# The goals\n\n${atLevel(section(files.goals, ["Goals, in priority order"]) ?? files.goals.trim())}`);
+    } else {
+        parts.push(`# GOALS.md\n\n${atLevel(files.goals.trim())}`);
+    }
+    if (kind === "build" || kind === "review") parts.push(`# CODING_STANDARDS.md\n\n${atLevel(files.standards.trim())}`);
+    if (kind === "review") {
         const base = piece.baseSha
             ? `The piece starts after \`${piece.baseSha}\`. Its changes since then:\n\n\`\`\`\n${diffStat.trim()}\n\`\`\``
             : "No base commit was recorded for this piece: find its first build commit in `git log`.";
         parts.push(`# The diff to review\n\n${base}`);
         parts.push(`# The whole spec\n\n${atLevel(files.spec.trim())}`);
-        parts.push(`# GOALS.md\n\n${atLevel(files.goals.trim())}`);
-        parts.push(`# CODING_STANDARDS.md\n\n${atLevel(files.standards.trim())}`);
     }
     const log = pieceLog(files.log, piece.id);
     if (log) parts.push(`# This piece's log so far\n\n${atLevel(log)}`);
-    const rules = PROTOCOL_FOR[kind].map((ref) => section(files.protocol, ref));
-    if (rules.some((r) => !r)) throw new Error("PROTOCOL.md is missing a section the phase 2 prompt needs");
-    parts.push(`# Rules (from jogging/PROTOCOL.md)\n\n${rules.map((r) => atLevel(r)).join("\n\n")}`);
-    parts.push(
-        `Do only this step. Finish as "Finishing a step" says: commit and push your work and the log entry, then write jogging/runs/result.json.`,
-    );
+    for (const name of [...PROMPTS_FOR[kind], "session"]) parts.push(atLevel(files.prompts[name].trim(), 1));
+    parts.push(`Do this one step, then finish as "Finishing" says.`);
     return parts.join("\n\n") + "\n";
 };
 
@@ -320,18 +302,24 @@ const retryOrBlock = (piece, step, why) => {
 
 const finish = (piece, step) => {
     step.status = "done";
-    delete step.ciFailure;
+    delete step.failure;
     if (piece.steps.every((s) => s.status === "done")) piece.status = "done";
 };
 
 // Applies one session's outcome to the state. Returns what happened, for the run report.
-// A `done` that pushed `ciSha` waits for CI (see applyCi) before it counts.
-export const applyResult = (state, pieceId, stepId, result, exitOk, ciSha = null) => {
+// A `done` whose Acceptance block failed (`checkFailure`, its output) goes back for another
+// attempt; one that pushed `ciSha` waits for CI (see applyCi) before it counts.
+export const applyResult = (state, pieceId, stepId, result, exitOk, ciSha = null, checkFailure = null) => {
     const piece = state.pieces.find((p) => p.id === pieceId);
     const step = piece.steps.find((s) => s.id === stepId);
     // A session that crashed may not have read the reply, so the next one gets it again.
     if (exitOk) delete piece.userReply;
     const status = exitOk ? result?.status ?? "pending" : "pending";
+    if (status === "done" && checkFailure) {
+        step.failure = `The crew ran the brief's Acceptance block after your push, and it failed:\n\n\`\`\`\n${checkFailure.trim()}\n\`\`\``;
+        if (retryOrBlock(piece, step, "acceptance check failed")) return "blocked (acceptance check failed)";
+        return "pending (acceptance check failed)";
+    }
     if (status === "done" && ciSha) {
         step.awaitingCi = ciSha;
         return "done, waiting on CI";
@@ -360,7 +348,7 @@ export const applyCi = (state, pieceId, stepId, verdict, failure = "") => {
         finish(piece, step);
         return verdict === "green" ? "done (CI green)" : "done (no CI run found)";
     }
-    step.ciFailure = failure;
+    step.failure = failure;
     if (retryOrBlock(piece, step, "CI red")) return "blocked (CI red)";
     return "pending (CI red)";
 };
@@ -485,22 +473,26 @@ const raiseBlockers = async (state) => {
     }
 };
 
-// The files a phase 2 prompt draws on, and the piece's changes for a review.
+const readRepo = (f) => (fs.existsSync(path.join(REPO, f)) ? fs.readFileSync(path.join(REPO, f), "utf8") : null);
+
+// The files a session's prompt draws on, and the piece's changes for a review.
 const stepPrompt = (piece, step) => {
-    if (step.phase === 1) return phase1Prompt(piece, step);
-    const read = (f) => fs.readFileSync(path.join(REPO, f), "utf8");
+    const prompts = Object.fromEntries(
+        [...PROMPTS_FOR[stepKind(step)], "session"].map((n) => [n, readRepo(`jogging/prompts/${n}.md`)]),
+    );
     const files = {
-        spec: read(piece.spec),
-        protocol: read("jogging/PROTOCOL.md"),
-        log: read("jogging/LOG.md"),
-        goals: read("jogging/GOALS.md"),
-        standards: read("CODING_STANDARDS.md"),
+        spec: readRepo(piece.spec),
+        brief: readRepo(briefPath(piece, step)),
+        log: readRepo("jogging/LOG.md"),
+        goals: readRepo("jogging/GOALS.md"),
+        standards: readRepo("CODING_STANDARDS.md"),
+        prompts,
     };
     const diffStat =
         step.id === "review" && piece.baseSha
             ? git("diff", "--stat=120", `${piece.baseSha}..HEAD`, "--", ".", ":!jogging/LOG.md", ":!jogging/state.json")
             : "";
-    return phase2Prompt(piece, step, files, diffStat);
+    return sessionPrompt(piece, step, files, diffStat);
 };
 
 // The prompt goes on stdin (a whole spec is too long for an argument) and is saved beside
@@ -588,6 +580,52 @@ const tidyUp = () => {
     return head;
 };
 
+// Runs a step's Acceptance block as the session left it. Returns null when it passes, or
+// the end of its output when it fails or runs out of time.
+const runAcceptance = (piece, step) => {
+    const brief = readRepo(briefPath(piece, step));
+    const script = brief && acceptanceOf(brief);
+    if (!script) return null;
+    const timeout = Math.max(60_000, Math.min(CHECK_TIMEOUT_MS, STARTED + JOB_END_MS - Date.now() - 5 * 60_000));
+    log(`running ${piece.id}/${step.id}'s Acceptance block`);
+    const r = spawnSync("bash", ["-eo", "pipefail", "-c", `exec 2>&1\n${script}`], {
+        cwd: REPO,
+        encoding: "utf8",
+        timeout,
+        maxBuffer: 64 * 1024 * 1024,
+    });
+    // The check's own leftovers (logs, reports) mustn't stop the next pull.
+    if (git("status", "--porcelain")) {
+        git("reset", "--hard");
+        git("clean", "-fdq", "-e", "jogging/runs/");
+    }
+    if (r.status === 0) return null;
+    const why = r.error ? `stopped after ${Math.round(timeout / 60_000)} minutes` : `exit ${r.status}`;
+    return `${logTail(r.stdout ?? "", 60)}\n(${why})`;
+};
+
+// A finished piece is announced, and one with a `release` gets its version bump, which
+// release.yml publishes. A bump that fails is left to Alan.
+const pieceDone = async (piece, logIssue) => {
+    await comment(logIssue, `✅ ${piece.id} is done: ${piece.title}`);
+    if (!piece.release) return;
+    try {
+        sh("node", ["scripts/bump-version.mjs", piece.release]);
+        git("add", "-A");
+        git("commit", "-m", `release: ${piece.release} bump for ${piece.id}`);
+        push();
+        log(`bumped the ${piece.release} version for ${piece.id}`);
+        await comment(logIssue, `📦 Bumped the ${piece.release} version for ${piece.id}; release.yml publishes it.`);
+    } catch (e) {
+        log(`could not bump the version for ${piece.id}: ${e.message}`);
+        git("reset", "--hard", "@{u}");
+        await comment(
+            logIssue,
+            `⚠️ Couldn't bump the version for ${piece.id}: ${e.message}\n\nRun \`node scripts/bump-version.mjs ${piece.release}\` by hand.`,
+        );
+    }
+};
+
 // Fetches text (a job's log) the GitHub API redirects to.
 const githubText = async (route) => {
     const res = await fetch(`https://api.github.com/repos/${GH_REPO}${route}`, {
@@ -636,7 +674,7 @@ const waitForCi = async (sha) => {
 
 // Settles every step waiting on CI. Returns false when one is still running at the end of
 // the time this job has.
-const settleCi = async (state) => {
+const settleCi = async (state, logIssue) => {
     for (const piece of state.pieces) {
         for (const step of piece.steps.filter((s) => s.awaitingCi)) {
             log(`waiting for ci.yml on ${step.awaitingCi.slice(0, 7)} (${piece.id}/${step.id})`);
@@ -647,9 +685,7 @@ const settleCi = async (state) => {
             await raiseBlockers(state);
             writeState(state);
             commitState(`${piece.id}/${step.id} ${outcome}`);
-            if (state.pieces.find((p) => p.id === piece.id).status === "done") {
-                await comment(state.logIssue, `✅ ${piece.id} is done: ${piece.title}`);
-            }
+            if (piece.status === "done") await pieceDone(piece, logIssue);
         }
     }
     return true;
@@ -669,7 +705,7 @@ const runSteps = async (logIssue, ran) => {
     for (;;) {
         git("pull", "--rebase");
         let state = readState();
-        if (!(await settleCi(state))) return "deadline: still waiting on CI";
+        if (!(await settleCi(state, logIssue))) return "deadline: still waiting on CI";
         if (!state.enabled) return "paused in state.json";
         if (Date.now() - STARTED > DEADLINE_MS) return "deadline: no time for another step in this job";
         const next = nextStep(state);
@@ -727,17 +763,19 @@ const runSteps = async (logIssue, ran) => {
         log(`end ${piece.id}/${step.id}: exit ${code}, model ${model}, result ${JSON.stringify(result)}`);
 
         const head = tidyUp();
+        // Phase 2 work is checked by the crew; a spec step's docs don't need it.
+        const checking = step.phase === 2 && exitOk && result?.status === "done";
+        const checkFailure = checking ? runAcceptance(piece, step) : null;
         state = readState();
         delete state.stuck;
-        // Phase 2 pushes wait for CI; a spec step's docs don't need to.
         const ciSha = step.phase === 2 && head !== before ? head : null;
-        const outcome = applyResult(state, piece.id, step.id, result, exitOk, ciSha);
+        const outcome = applyResult(state, piece.id, step.id, result, exitOk, ciSha, checkFailure);
         ran.push(`${piece.id}/${step.id}: ${outcome}`);
-        const p = state.pieces.find((x) => x.id === piece.id);
-        if (p.status === "done") await comment(logIssue, `✅ ${p.id} is done: ${p.title}`);
         await raiseBlockers(state);
         writeState(state);
         commitState(`${piece.id}/${step.id} ${outcome}`);
+        const p = state.pieces.find((x) => x.id === piece.id);
+        if (p.status === "done") await pieceDone(p, logIssue);
     }
 };
 

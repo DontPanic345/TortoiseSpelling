@@ -13,8 +13,8 @@ Gherkin features both apps run, Android through [`e2e/`](e2e/README.md), web thr
 
 ## Where you are running
 
-- **A Jogging session** (GitHub Actions, Ubuntu): [`jogging/PROTOCOL.md`](jogging/PROTOCOL.md)
-  governs, and its "In CI" section describes the runner. Do only your step; use `./gradlew`.
+- **A Jogging session** (GitHub Actions, Ubuntu): your prompt governs and describes the
+  runner. Do only your step; use `./gradlew`. How Jogging works: [`jogging/README.md`](jogging/README.md).
 - **Alan's PC, Windows**: Gradle needs `JAVA_HOME` set to Android Studio's JBR
   (`C:\Program Files\Android\Android Studio\jbr`); `gradlew.bat` in PowerShell, `./gradlew`
   in Git Bash.
@@ -35,10 +35,11 @@ node scripts/check-specs.mjs                  # tags on specs/*.feature
 
 Web, e2e and push commands are in their READMEs and `package.json`s.
 
-**Done** means the checks for what you touched pass: Android unit tests and lint for any
-app change; the instrumented layer covering it; `cd web && npm test && npm run typecheck`
-for web or `golden/`; the e2e features a change touches (Android and web both, for a
-shared feature, with both `check-steps` passing).
+**Done** means the change meets [`CODING_STANDARDS.md`](CODING_STANDARDS.md) and the
+checks for what you touched pass: Android unit tests and lint for any app change; the
+instrumented layer covering it; `cd web && npm test && npm run typecheck` for web or
+`golden/`; the e2e features a change touches (Android and web both, for a shared feature,
+with both `check-steps` passing).
 
 - **Connected tests and e2e wipe the app's data** on every attached device. Point
   `ANDROID_SERIAL` at an emulator, never at a phone with real data.

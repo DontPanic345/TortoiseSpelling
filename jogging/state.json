@@ -738,7 +738,8 @@
           "title": "The voice rule on both apps: chooseVoice, SPEECH_RATE, golden/speech.json",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "pending",
+          "why": "Sonnet: one small pure function, and the golden cases hold the two apps to the same answers mechanically."
         },
         {
           "id": "build-2",
@@ -746,7 +747,8 @@
           "title": "Android: TtsSpeaker, manifest queries, debug RecordingSpeaker, AppHarness fake, the review button and its tests",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "pending",
+          "why": "Sonnet: a contained change to one screen in a pattern the app already uses; high effort because it spans three test layers and a device-only API."
         },
         {
           "id": "build-3",
@@ -754,7 +756,8 @@
           "title": "Web: SpeechPlatform over speechSynthesis, the e2e fake, the review button and its tests",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "pending",
+          "why": "Sonnet: mirrors build-2 in the web's Platform and fake pattern; high effort because the iOS keyboard rule (focus, never remount) is easy to break."
         },
         {
           "id": "build-4",
@@ -762,17 +765,20 @@
           "title": "The shared Hearing the word scenario, docs and changelog",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending"
+          "status": "pending",
+          "why": "Sonnet: two new steps on existing patterns, plus prose."
         },
         {
           "id": "review",
           "phase": 2,
-          "title": "Review the piece, full checks, CI green, minor bump",
+          "title": "Review the whole piece",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "pending",
+          "why": "Sonnet: a small piece with no data or reminder risk, held together by golden cases and a shared scenario; high effort for both apps and the on-device-voices privacy rule."
         }
-      ]
+      ],
+      "release": "minor"
     },
     {
       "id": "review-outcome",
@@ -797,7 +803,8 @@
           "title": "The rule on both apps: reviewed() in domain, golden/review.json and both runners",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending"
+          "status": "pending",
+          "why": "Sonnet: one pure function lifted from existing code on each side; high effort because the cases must pin today's behaviour exactly (goal 4) on two runners."
         },
         {
           "id": "build-2",
@@ -805,17 +812,20 @@
           "title": "Both repositories apply it; Android's recordReview by id in one Room transaction, deleted word records nothing; tests, CLAUDE.md, changelog",
           "model": "opus",
           "effort": "medium",
-          "status": "pending"
+          "status": "pending",
+          "why": "Opus: changes how Android writes a review (goal 1), adds a Room transaction, and changes a repository signature the review screen calls."
         },
         {
           "id": "review",
           "phase": 2,
-          "title": "Review the piece, full checks, CI green, patch bump",
+          "title": "Review the whole piece",
           "model": "opus",
           "effort": "medium",
-          "status": "pending"
+          "status": "pending",
+          "why": "Opus: the piece touches goal 1 (a transaction around the review write) and must keep both apps in agreement; medium effort for two build steps with no UI."
         }
-      ]
+      ],
+      "release": "patch"
     }
   ]
 }

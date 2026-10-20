@@ -1,8 +1,8 @@
 # Jogging on GitHub Actions
 
-Status: **built, proof of concept pending**, 16/10/2026. The `jogging-poc` piece
-(`jogging/specs/jogging-poc.md`) runs first and proves it on the runner. Items marked
-**(unverified)** haven't run on GitHub yet.
+Status: **built and running**; the `jogging-poc` piece proved it on the runner. Items
+marked **(unverified)** haven't run on GitHub yet. How pieces, steps and prompts work:
+[`jogging/README.md`](../jogging/README.md).
 
 Jogging runs from a scheduled workflow, `.github/workflows/jogging.yml`, with an Android
 emulator in the same job. The Cloud Routine (which drove the spare Galaxy S23 over
@@ -62,13 +62,19 @@ What's lost: the real Samsung. Keep the S23 for manual checks.
   it, red sends it back with the failed jobs and their log tails (`ciFailure`) as an
   attempt. Sessions had been polling CI themselves, with blocked `sleep`s and dozens of
   Monitor timers, and some builds never looked.
-- **Phase 2 prompts are curated.** The crew builds each session's whole prompt (on stdin,
-  saved as `runs/*.prompt.md`): a build gets its spec section, the Design subsections its
-  `Reads:` line names, the spec's build-step abbreviations, its piece's log and the
-  `PROTOCOL.md` sections for its step; a review gets the whole spec, `GOALS.md`,
-  `CODING_STANDARDS.md` and the diff stat since `baseSha`, recorded when the piece's first
-  build step starts. A spec that can't brief a step blocks its piece. Phase 1 keeps the
-  reading-list prompt.
+- **The crew writes every prompt.** It builds each session's whole prompt (on stdin, saved
+  as `runs/*.prompt.md`) from the step's brief and the `jogging/prompts/` files for its
+  kind of step. Sessions had been loading 50–80KB of protocol, spec and log to get
+  started; a build prompt is now 9–13KB. Briefs are written by the spec step and checked
+  by spec-review, so what is reviewed is what a session reads. They replaced the crew
+  cutting spec sections out by a `Reads:` line.
+- **The crew runs the Acceptance block.** A brief's `## Acceptance` holds only what
+  `ci.yml` can't run (a release build, the release smoke, a grep). The crew runs it after
+  a session reports `done` and before the CI wait, so a session's word is never the
+  check.
+- **The crew bumps the version.** A piece's `release` (`minor` or `patch`) is set by its
+  spec; once the piece is done the crew runs `bump-version.mjs` and pushes. The bump had
+  been the review session's last chore, which pulled the session towards finishing.
 - **Claude Code is pinned** (`@anthropic-ai/claude-code@2.1.301`): the crew reads its
   stream-json output (the `init` frame's model and permission mode), and model aliases
   move between versions: in 2.1.292 `haiku` meant Haiku 4.5, which gets no auto mode.
