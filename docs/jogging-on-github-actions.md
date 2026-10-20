@@ -99,6 +99,11 @@ What's lost: the real Samsung. Keep the S23 for manual checks.
 - `JOGGING_GH_TOKEN`: a fine-grained token for `DontPanic345/TortoiseSpelling` with
   Contents read/write and Actions read (so a session can read a failed CI run). Pushes made with
   the workflow's own `GITHUB_TOKEN` wouldn't trigger `ci.yml` or `release.yml`.
+- `RECRAFT_API_TOKEN`: Recraft's API token, for the `icon-redraw` piece's image
+  generation ([`icon-redraw.md`](icon-redraw.md)). Paid by API units.
+
+Every secret the workflow passes to sessions is in `SECRETS` in `jog.mjs`, so it is
+redacted from transcripts; a test in `jog.test.mjs` holds the two lists together.
 
 ## Unverified
 

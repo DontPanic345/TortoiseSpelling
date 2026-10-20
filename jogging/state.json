@@ -114,6 +114,33 @@
         }
       ],
       "release": "patch"
+    },
+    {
+      "id": "icon-redraw",
+      "title": "Design the app icon in house with Recraft: explore styles, Alan picks a direction and a final, rebuild it as the generated icons",
+      "docs": [
+        "docs/icon-redraw.md"
+      ],
+      "dependsOn": [],
+      "status": "active",
+      "spec": "jogging/specs/icon-redraw.md",
+      "steps": [
+        {
+          "id": "spec",
+          "phase": 1,
+          "model": "opus",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "spec-review",
+          "phase": 1,
+          "model": "opus",
+          "effort": "medium",
+          "status": "pending"
+        }
+      ],
+      "release": "minor"
     }
   ]
 }

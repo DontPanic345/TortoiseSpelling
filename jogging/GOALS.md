@@ -51,6 +51,9 @@ a goal above requires it, and must say which.
   chooses. The server stores only push subscriptions and due dates, never words, and
   `PRIVACY.md` says so before push ships. Until push lands, the web app shows "due
   today" on Home.
+- **Icon design is paid.** An exception to goal 6 that Alan approved on 20/10/2026: the
+  `icon-redraw` piece may spend Recraft API units, up to the 10,000 bought for it.
+  Nothing in either app calls Recraft.
 - **Jogging on Actions.** Jogging runs as a scheduled GitHub Actions workflow beside an
   emulator (`.github/workflows/jogging.yml`). It's infrastructure, not a piece; the
   `jogging-poc` piece only proves it works.

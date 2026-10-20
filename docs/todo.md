@@ -13,10 +13,8 @@
 - [ ] Retro on some of the Jogging build steps' transcripts: what went well, what wasted
   time, and what to change in `jogging/prompts/`. The transcripts are workflow
   artifacts kept for seven days, so pick the runs before they expire.
-- [ ] Rebuild the app icon with an external image service (to be chosen; ElevenLabs came
-  up, but it makes audio, not images). Today the icon is drawn by `scripts/icon.mjs` and
-  `icon.test.mjs` checks the committed files match, so decide how a bought-in image fits
-  that pipeline, and keep the adaptive and monochrome layers and the notification icon.
+- [ ] Redesign the app icon in house with Recraft, keeping the adaptive and monochrome
+  layers and the notification icon: see [icon-redraw.md](icon-redraw.md).
 - [ ] After a review, the turtle emoji flashes briefly before changing to the tada 🎉.
   Find where the result is shown (Android and web) and stop the turtle appearing first.
 - [x] Look at Matt Pocock's `improve-codebase-architecture` skill and whether it suits this

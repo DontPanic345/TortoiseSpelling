@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { test } from "node:test";
 import {
     acceptanceOf,
@@ -14,6 +15,7 @@ import {
     pieceLog,
     readResult,
     redact,
+    SECRETS,
     section,
     sessionPrompt,
     tokenProblem,
@@ -168,6 +170,13 @@ test("closing the issue without a comment unblocks too", () => {
 
 test("redact hides secrets and leaves short values alone", () => {
     assert.equal(redact("token sk-ant-oat01-abcdef here", ["sk-ant-oat01-abcdef", undefined, "ab"]), "token *** here");
+});
+
+test("every secret jogging.yml passes to sessions is redacted", () => {
+    const yml = fs.readFileSync(new URL("../.github/workflows/jogging.yml", import.meta.url), "utf8");
+    const passed = [...yml.matchAll(/^ {2}(\w+): \$\{\{ (?:secrets\.\w+|github\.token) \}\}$/gm)].map((m) => m[1]);
+    assert.ok(passed.includes("RECRAFT_API_TOKEN"));
+    assert.deepEqual(passed.filter((k) => !SECRETS.includes(k)), []);
 });
 
 test("a session must get its model and auto mode", () => {

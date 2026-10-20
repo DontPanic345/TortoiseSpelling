@@ -35,7 +35,7 @@ const STARTED = Date.now();
 const DEADLINE_MS = Number(process.env.JOGGING_DEADLINE_MIN ?? 250) * 60_000;
 const SESSION_TIMEOUT_MS = Number(process.env.JOGGING_SESSION_MIN ?? 90) * 60_000;
 // Written into transcripts, which become a workflow artifact anyone signed in can read.
-const SECRETS = ["CLAUDE_CODE_OAUTH_TOKEN", "GH_TOKEN", "BOT_TOKEN"];
+export const SECRETS = ["CLAUDE_CODE_OAUTH_TOKEN", "GH_TOKEN", "BOT_TOKEN", "RECRAFT_API_TOKEN"];
 // The crew waits this long for `ci.yml` on a step's last push, polling every 30 s. A run
 // that hasn't appeared after five minutes isn't coming.
 const CI_TIMEOUT_MS = 75 * 60_000;
