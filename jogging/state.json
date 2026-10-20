@@ -1,7 +1,7 @@
 {
-  "enabled": false,
+  "enabled": true,
   "done": false,
-  "logIssue": 11,
+  "logIssue": 30,
   "pieces": [
     {
       "id": "speak-word",
@@ -129,7 +129,7 @@
           "id": "spec",
           "phase": 1,
           "model": "opus",
-          "effort": "high",
+          "effort": "medium",
           "status": "pending"
         },
         {
@@ -158,7 +158,7 @@
           "id": "spec",
           "phase": 1,
           "model": "opus",
-          "effort": "high",
+          "effort": "medium",
           "status": "pending"
         },
         {
@@ -185,7 +185,7 @@
           "id": "spec",
           "phase": 1,
           "model": "opus",
-          "effort": "high",
+          "effort": "medium",
           "status": "pending"
         },
         {
