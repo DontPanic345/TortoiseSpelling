@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  allCorrectIntervals,
   fuzzedDueDay,
   Grade,
   MAX_INTERVAL_DAYS,
@@ -15,7 +16,7 @@ const file = loadGolden("sm2");
 
 describe("sm2 golden cases", () => {
   it("has a runner for every function", () => {
-    expectFunctions(file, ["constants", "next", "sequence", "fuzzedDueDay"]);
+    expectFunctions(file, ["constants", "next", "sequence", "allCorrectIntervals", "fuzzedDueDay"]);
   });
 
   describe.each(cases(file, "constants"))("constants: $name", (c) => {
@@ -37,6 +38,10 @@ describe("sm2 golden cases", () => {
       for (const quality of c.qualities as number[]) state = sm2Scheduler.next(state, quality);
       expectSame(state, c.out);
     });
+  });
+
+  describe.each(cases(file, "allCorrectIntervals"))("allCorrectIntervals: $name", (c) => {
+    it("matches", () => expect(allCorrectIntervals()).toEqual(c.out));
   });
 
   describe.each(cases(file, "fuzzedDueDay"))("fuzzedDueDay: $name", (c) => {

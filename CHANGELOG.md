@@ -9,6 +9,10 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+### Added
+
+- **How it works** on Home, on Android and the web: the ⓘ button in the top bar explains a day's practice and spaced repetition, including how many days each review is from the last if you spell the word right every time (1, 6, 17, 49 and 147 days, then once a year).
+
 ## [0.8.0] - 2026-10-18
 
 ### Added

@@ -68,6 +68,16 @@ describe("HomeContent", () => {
     expect(calls).toEqual(["add"]);
   });
 
+  it("the info button explains the review gaps until dismissed", () => {
+    show(withWords({ due: 2 }));
+    expect(screen.queryByText("How Tortoise Spelling works")).toBeNull();
+    fireEvent.click(screen.getByLabelText("How it works"));
+    expect(screen.getByText("How Tortoise Spelling works")).toBeTruthy();
+    expect(screen.getByText(/after 1 day, then 6 days, 17 days, 49 days, 147 days, and then once a year/)).toBeTruthy();
+    fireEvent.click(screen.getByText("Got it"));
+    expect(screen.queryByText("How Tortoise Spelling works")).toBeNull();
+  });
+
   it("the add word button calls onAddWord", () => {
     const calls = show(noWords);
     fireEvent.click(screen.getByTestId(TestIds.HOME_ADD_WORD));

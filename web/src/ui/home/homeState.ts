@@ -2,6 +2,7 @@ import type { Repository, TodayPlan } from "../../data/repository";
 import type { Clock } from "../../domain/clock";
 import { today as todayOf, hourOf } from "../../domain/days";
 import { greeting, type MarkedDay, type WordProgress } from "../../domain/progress";
+import { allCorrectIntervals } from "../../domain/srs";
 import type { AppContainer } from "../container";
 import type { Platform } from "../platform";
 
@@ -107,4 +108,23 @@ export async function loadHome(
     showBackupNudge: shouldNudgeBackup(totalWords, await platform.storagePersisted(), lastExportedAt, clock.millis()),
     showReminderCard,
   };
+}
+
+/** The info dialog's copy, as `howItWorksParagraphs`; the gaps come from the scheduler. */
+export function howItWorksParagraphs(): string[] {
+  const gaps = allCorrectIntervals()
+    .slice(0, -1)
+    .map((days) => (days === 1 ? "1 day" : `${days} days`));
+  return [
+    "Each day you get the words that are due, plus a few new ones (choose how many in " +
+      "Settings). Spell each one from its definition and an example.",
+    "Spaced repetition brings a word back just before you'd forget it. Each time you " +
+      "spell it right first try, the gap before you see it again grows.",
+    `Right first try every time, a word comes back after ${gaps[0]}, then ` +
+      `${gaps.slice(1).join(", ")}, and then once a year.`,
+    "Get it wrong, even if you then retype it correctly, and it comes back tomorrow and " +
+      "climbs again from the start, a little more slowly than before.",
+    "Longer gaps move a day or so either way, so words added together don't all come " +
+      "due at once. A word counts as known once its gap reaches three weeks.",
+  ];
 }

@@ -6,6 +6,7 @@ import io.github.dontpanic345.tortoisespelling.domain.NewWordState
 import io.github.dontpanic345.tortoisespelling.domain.RESET_BELOW_QUALITY
 import io.github.dontpanic345.tortoisespelling.domain.Sm2Scheduler
 import io.github.dontpanic345.tortoisespelling.domain.SrsState
+import io.github.dontpanic345.tortoisespelling.domain.allCorrectIntervals as computeAllCorrectIntervals
 import io.github.dontpanic345.tortoisespelling.domain.fuzzedDueDay
 import io.github.dontpanic345.tortoisespelling.golden.Golden.assertState
 import io.github.dontpanic345.tortoisespelling.golden.Golden.forEachCase
@@ -21,7 +22,7 @@ class Sm2GoldenTest {
 
     @Test
     fun everyFunctionHasARunner() =
-        Golden.assertFunctions(file, setOf("constants", "next", "sequence", "fuzzedDueDay"))
+        Golden.assertFunctions(file, setOf("constants", "next", "sequence", "allCorrectIntervals", "fuzzedDueDay"))
 
     @Test
     fun constants() = forEachCase(file, "constants") { c ->
@@ -47,6 +48,11 @@ class Sm2GoldenTest {
             state = Sm2Scheduler.next(state, quality)
         }
         assertState(srsStateFrom(c.getValue("out")), state)
+    }
+
+    @Test
+    fun allCorrectIntervals() = forEachCase(file, "allCorrectIntervals") { c ->
+        assertEquals(c.ints("out"), computeAllCorrectIntervals())
     }
 
     @Test

@@ -1,5 +1,6 @@
 package io.github.dontpanic345.tortoisespelling.domain
 
+import io.github.dontpanic345.tortoisespelling.data.Grade
 import kotlin.math.roundToInt
 import kotlin.random.Random
 
@@ -46,6 +47,21 @@ object Sm2Scheduler : Scheduler {
             intervalDays = interval.coerceAtMost(MAX_INTERVAL_DAYS),
         )
     }
+}
+
+/**
+ * The gaps, in days, between the reviews of a word spelled right first time at every
+ * review, up to [MAX_INTERVAL_DAYS], after which it comes back yearly. Home's info
+ * dialog shows these, so the copy can't drift from the scheduler. Unfuzzed.
+ */
+fun allCorrectIntervals(scheduler: Scheduler = Sm2Scheduler): List<Int> {
+    val intervals = mutableListOf<Int>()
+    var state = NewWordState
+    while (state.intervalDays < MAX_INTERVAL_DAYS) {
+        state = scheduler.next(state, Grade.FIRST_TRY)
+        intervals += state.intervalDays
+    }
+    return intervals
 }
 
 /**

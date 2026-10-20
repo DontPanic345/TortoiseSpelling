@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { canSave, applying, newAddWordState } from "../../src/ui/add/addWordState";
 import { completionHeadline } from "../../src/ui/complete/completionState";
+import { howItWorksParagraphs } from "../../src/ui/home/homeState";
 import { blankedExample } from "../../src/ui/review/reviewState";
 import { importMessage } from "../../src/ui/settings/settingsState";
 import { filterRows, noMatchesBody, statusLabel } from "../../src/ui/words/wordListState";
@@ -15,6 +16,7 @@ describe("ui golden cases", () => {
       "noMatchesBody",
       "filterRows",
       "completionHeadline",
+      "howItWorksParagraphs",
       "importMessage",
       "blankedExample",
       "canSave",
@@ -40,6 +42,10 @@ describe("ui golden cases", () => {
 
   describe.each(cases(file, "completionHeadline"))("completionHeadline: $name", (c) => {
     it("matches", () => expect(completionHeadline(c.nextDueDay, c.today)).toBe(c.out));
+  });
+
+  describe.each(cases(file, "howItWorksParagraphs"))("howItWorksParagraphs: $name", (c) => {
+    it("matches", () => expect(howItWorksParagraphs()).toEqual(c.out));
   });
 
   describe.each(cases(file, "importMessage"))("importMessage: $name", (c) => {

@@ -1,10 +1,11 @@
 import { useState } from "preact/hooks";
 import type { MarkedDay, WordProgress } from "../../domain/progress";
 import { CompletionPanel } from "../complete/CompletionPanel";
-import { AddIcon, CheckIcon, MoreIcon } from "../common/icons";
+import { Dialog } from "../common/Dialog";
+import { AddIcon, CheckIcon, InfoIcon, MoreIcon } from "../common/icons";
 import { TopBar } from "../common/TopBar";
 import { TestIds } from "../testIds";
-import { allDone, hasWords, planTotal, type HomeUiState } from "./homeState";
+import { allDone, hasWords, howItWorksParagraphs, planTotal, type HomeUiState } from "./homeState";
 
 export interface HomeContentProps {
   state: HomeUiState;
@@ -33,6 +34,7 @@ export function HomeContent({
   locale,
 }: HomeContentProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [infoOpen, setInfoOpen] = useState(false);
   const choose = (action: () => void) => () => {
     setMenuOpen(false);
     action();
@@ -43,31 +45,36 @@ export function HomeContent({
       <TopBar
         title="Tortoise Spelling"
         actions={
-          <div class="menu-anchor">
-            <button
-              type="button"
-              class="icon-button"
-              aria-label="More"
-              aria-haspopup="menu"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen(!menuOpen)}
-            >
-              <MoreIcon />
+          <>
+            <button type="button" class="icon-button" aria-label="How it works" onClick={() => setInfoOpen(true)}>
+              <InfoIcon />
             </button>
-            {menuOpen && (
-              <div class="menu" role="menu">
-                <button type="button" role="menuitem" onClick={choose(onAddWord)}>
-                  Add word
-                </button>
-                <button type="button" role="menuitem" onClick={choose(onOpenWords)}>
-                  All words
-                </button>
-                <button type="button" role="menuitem" onClick={choose(onOpenSettings)}>
-                  Settings
-                </button>
-              </div>
-            )}
-          </div>
+            <div class="menu-anchor">
+              <button
+                type="button"
+                class="icon-button"
+                aria-label="More"
+                aria-haspopup="menu"
+                aria-expanded={menuOpen}
+                onClick={() => setMenuOpen(!menuOpen)}
+              >
+                <MoreIcon />
+              </button>
+              {menuOpen && (
+                <div class="menu" role="menu">
+                  <button type="button" role="menuitem" onClick={choose(onAddWord)}>
+                    Add word
+                  </button>
+                  <button type="button" role="menuitem" onClick={choose(onOpenWords)}>
+                    All words
+                  </button>
+                  <button type="button" role="menuitem" onClick={choose(onOpenSettings)}>
+                    Settings
+                  </button>
+                </div>
+              )}
+            </div>
+          </>
         }
       />
 
@@ -128,11 +135,32 @@ export function HomeContent({
         </>
       )}
 
+      {infoOpen && <HowItWorksDialog onDismiss={() => setInfoOpen(false)} />}
+
       <button type="button" class="fab" data-testid={TestIds.HOME_ADD_WORD} onClick={onAddWord}>
         <AddIcon />
         Add word
       </button>
     </main>
+  );
+}
+
+/** The top bar's info button: how a session works and how far apart reviews get. */
+function HowItWorksDialog({ onDismiss }: { onDismiss: () => void }) {
+  return (
+    <Dialog
+      title="How Tortoise Spelling works"
+      onDismiss={onDismiss}
+      actions={
+        <button type="button" class="text-button" onClick={onDismiss}>
+          Got it
+        </button>
+      }
+    >
+      {howItWorksParagraphs().map((paragraph) => (
+        <p key={paragraph}>{paragraph}</p>
+      ))}
+    </Dialog>
   );
 }
 

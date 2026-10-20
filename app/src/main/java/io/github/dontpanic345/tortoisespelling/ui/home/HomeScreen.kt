@@ -21,6 +21,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,6 +41,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,6 +63,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.dontpanic345.tortoisespelling.domain.DayMark
 import io.github.dontpanic345.tortoisespelling.domain.MarkedDay
 import io.github.dontpanic345.tortoisespelling.domain.WordProgress
+import io.github.dontpanic345.tortoisespelling.domain.allCorrectIntervals
 import io.github.dontpanic345.tortoisespelling.ui.RequestNotificationPermissionIfNeeded
 import io.github.dontpanic345.tortoisespelling.ui.TestTags
 import io.github.dontpanic345.tortoisespelling.ui.complete.CompletionPanel
@@ -107,12 +111,18 @@ fun HomeContent(
     onOpenSettings: () -> Unit,
 ) {
     var menuOpen by remember { mutableStateOf(false) }
+    var infoOpen by rememberSaveable { mutableStateOf(false) }
+
+    if (infoOpen) HowItWorksDialog(onDismiss = { infoOpen = false })
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Tortoise Spelling") },
                 actions = {
+                    IconButton(onClick = { infoOpen = true }) {
+                        Icon(Icons.Outlined.Info, contentDescription = "How it works")
+                    }
                     IconButton(onClick = { menuOpen = true }) {
                         Icon(Icons.Default.MoreVert, contentDescription = "More")
                     }
@@ -529,4 +539,46 @@ private fun HowItWorksStep(emoji: String, text: String) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
+}
+
+/**
+ * The top bar's info button: how a session works and how far apart reviews get. The gaps
+ * come from the scheduler itself, so the copy stays true if SM-2's numbers change.
+ */
+@Composable
+private fun HowItWorksDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("How Tortoise Spelling works") },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                howItWorksParagraphs().forEach {
+                    Text(it, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Got it") }
+        },
+    )
+}
+
+/** Shared word for word with the web app's Home. */
+internal fun howItWorksParagraphs(): List<String> {
+    val gaps = allCorrectIntervals().dropLast(1).map { if (it == 1) "1 day" else "$it days" }
+    return listOf(
+        "Each day you get the words that are due, plus a few new ones (choose how many in " +
+            "Settings). Spell each one from its definition and an example.",
+        "Spaced repetition brings a word back just before you'd forget it. Each time you " +
+            "spell it right first try, the gap before you see it again grows.",
+        "Right first try every time, a word comes back after ${gaps.first()}, then " +
+            "${gaps.drop(1).joinToString(", ")}, and then once a year.",
+        "Get it wrong, even if you then retype it correctly, and it comes back tomorrow and " +
+            "climbs again from the start, a little more slowly than before.",
+        "Longer gaps move a day or so either way, so words added together don't all come " +
+            "due at once. A word counts as known once its gap reaches three weeks.",
+    )
 }
