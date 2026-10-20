@@ -15,6 +15,8 @@
   artifacts kept for seven days, so pick the runs before they expire.
 - [ ] Redesign the app icon in house with Recraft, keeping the adaptive and monochrome
   layers and the notification icon: see [icon-redraw.md](icon-redraw.md).
+- [ ] Edit a word from review after a miss, so a bad entry's miss doesn't count: see
+  [edit-after-miss.md](edit-after-miss.md).
 - [ ] After a review, the turtle emoji flashes briefly before changing to the tada 🎉.
   Find where the result is shown (Android and web) and stop the turtle appearing first.
 - [x] Look at Matt Pocock's `improve-codebase-architecture` skill and whether it suits this

@@ -141,6 +141,35 @@
         }
       ],
       "release": "minor"
+    },
+    {
+      "id": "edit-after-miss",
+      "title": "Edit a word from review after a miss: a saved edit undoes the miss and the word is asked again",
+      "docs": [
+        "docs/edit-after-miss.md"
+      ],
+      "dependsOn": [
+        "review-outcome"
+      ],
+      "status": "active",
+      "spec": "jogging/specs/edit-after-miss.md",
+      "steps": [
+        {
+          "id": "spec",
+          "phase": 1,
+          "model": "opus",
+          "effort": "high",
+          "status": "pending"
+        },
+        {
+          "id": "spec-review",
+          "phase": 1,
+          "model": "opus",
+          "effort": "medium",
+          "status": "pending"
+        }
+      ],
+      "release": "minor"
     }
   ]
 }
