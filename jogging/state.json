@@ -36,7 +36,8 @@
           "model": "sonnet",
           "effort": "high",
           "status": "pending",
-          "why": "Sonnet: a contained change to one screen in a pattern the app already uses; high effort because it spans three test layers and a device-only API."
+          "why": "Sonnet: a contained change to one screen in a pattern the app already uses; high effort because it spans three test layers and a device-only API.",
+          "awaitingCi": "fc000a1db47ba1a8972e0bcd7a863e34a5208a11"
         },
         {
           "id": "build-3",
