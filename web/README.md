@@ -31,7 +31,7 @@ build/        csp.ts: the Content Security Policy added to the production index.
 src/sw/       the service worker (cache-first, precaches every built file; push, click and
               subscription-change handlers), typechecked by tsconfig.sw.json
 src/push/     the reminder: PushPlatform, the server client, reminderSync and PUSH_SERVER
-              (fakes for the e2e build are in src/debug/fakePush*.ts)
+              (fakes for the e2e build are in src/debug/fakePush*.ts and fakeSpeech.ts)
 public/       compat.js (the unsupported-browser check), manifest.webmanifest and icons
 smoke/        Playwright specs; a console or page error fails any of them
 steps/        step definitions for the shared specs in ../specs
@@ -98,7 +98,8 @@ width. `playwright-bdd` turns them into Playwright tests (`.features-gen/`, igno
 config is `playwright.specs.config.ts`. They run against `dist-e2e/`, the production build
 made with `vite build --mode e2e`: same CSP and service worker, plus `window.__tortoiseSpellingSeed`
 (`src/debug/seedHook.ts`), which the Given steps call to add words as `SeedWordsActivity` does
-on Android. The production bundle doesn't contain it. A console or page error fails a scenario.
+on Android, and a fake voice (`src/debug/fakeSpeech.ts`) that appends each spoken text to
+`window.__tortoiseSpellingSpoken`. The production bundle contains neither. A console or page error fails a scenario.
 
 `npm run check-steps` needs no browser: it fails on a feature step with no definition here and
 on a definition no feature uses.
