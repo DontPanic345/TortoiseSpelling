@@ -266,7 +266,8 @@
           "model": "opus",
           "effort": "medium",
           "why": "Opus: the piece deletes review rows and rewrites scheduling (goal 1) on both apps, which must agree; medium effort for four build steps on existing patterns.",
-          "status": "pending"
+          "status": "pending",
+          "awaitingCi": "ce8ec36e9c1f8e289c14fd64c80739a8be3a4c30"
         }
       ],
       "release": "minor",
