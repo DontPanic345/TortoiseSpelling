@@ -90,8 +90,10 @@ recorded by Home and the reminder worker; they bridge a streak.
 
 **Lookup.** Copy prompt puts `lookupPrompt(word)` on the clipboard for any chat AI;
 `parsePastedLookup` validates the pasted reply (JSON between the outer braces, exact error
-messages, `PasteLimits`, an example containing the exact form). The app calls no AI API
-and has no Internet permission.
+messages, `PasteLimits`, an example containing the exact form). After a valid paste, and in
+the editor and the word list, `formWarnings` (`domain/FormWarnings.kt`, golden `warnings.json`)
+flags a spaced form on a one-word root; warnings never reject and are never stored. The app
+calls no AI API and has no Internet permission.
 
 **Data safety.** Users' word lists and progress are the thing to protect.
 - Room exports schemas to `app/schemas/` and has no destructive fallback. An entity change

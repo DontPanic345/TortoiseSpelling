@@ -1,5 +1,5 @@
 import { expect, type Page } from "@playwright/test";
-import { TestIds, wordFilter, wordRow, wordRowStatus } from "../../../src/ui/testIds";
+import { TestIds, wordFilter, wordRow, wordRowCheckForms, wordRowStatus } from "../../../src/ui/testIds";
 import { normalizeWord } from "../normalizeWord";
 import { byTestId } from "../selectors";
 import { addWord } from "./addWord";
@@ -12,6 +12,7 @@ export const wordList = {
   row: (page: Page, word: string) => byTestId(page, wordRow(normalizeWord(word))),
   suspendButton: (page: Page, word: string) => wordList.row(page, word).getByRole("button", { name: "Suspend word" }),
   deleteButton: (page: Page, word: string) => wordList.row(page, word).getByRole("button", { name: "Delete word" }),
+  rowCheckForms: (page: Page, word: string) => byTestId(page, wordRowCheckForms(normalizeWord(word))),
   rowStatus: (page: Page, word: string) => byTestId(page, wordRowStatus(normalizeWord(word))),
 
   /** Opens the word list from any screen, or stays put if it is already open. */

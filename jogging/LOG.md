@@ -102,3 +102,7 @@ CI run 39655691396 was red from the runner, not the code: the data and accessibi
 
 ## 2026-10-21 19:30 form-warnings/build-3 (sonnet)
 Web shows `formWarnings` live on the add screen's form fields, in the paste dialog, and as a "Check forms" badge beside the status badge in the word list (`WordRow.checkForms`, error-container colours, `.word-row-badges`). The `filterRows` golden runner now compares `checkForms`. Added add-screen, paste-dialog and word-row tests; `npm test` and `npm run typecheck` pass.
+
+## 2026-10-21 20:00 form-warnings/build-4 (sonnet)
+Added the `curious` fixture, a form-warnings scenario each in `copy_prompt.feature` and `word_list.feature`, and four steps (`the editor warns`, `I remove the form`, `is marked / is not marked Check forms`) on Android and web, plus the `CLAUDE.md` Lookup sentence. The changelog line from build-2 is there and still true.
+`check-specs`, both `check-steps`, e2e typecheck, `npm run specs` (web, 36 passed) and both features on the emulator (24 and 43 steps passing) all pass.

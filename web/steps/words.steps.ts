@@ -105,6 +105,24 @@ When(
   },
 );
 
+Then("the editor warns {string}", async ({ page }, warning: string) => {
+  await expect(byText(page, warning)).toBeVisible();
+});
+
+When("I remove the form {string}", async ({ page }, form: string) => {
+  await addWord.removeForm(page, form);
+});
+
+Then("{string} is marked Check forms", async ({ page }, word: string) => {
+  await expect(wordList.row(page, word)).toBeVisible();
+  await expect(wordList.rowCheckForms(page, word)).toBeVisible();
+});
+
+Then("{string} is not marked Check forms", async ({ page }, word: string) => {
+  await expect(wordList.row(page, word)).toBeVisible();
+  await expect(wordList.rowCheckForms(page, word)).toHaveCount(0);
+});
+
 When("I save the changes", async ({ page }) => {
   await addWord.save(page);
 });

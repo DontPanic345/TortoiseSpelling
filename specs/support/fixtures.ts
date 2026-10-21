@@ -25,8 +25,24 @@ const practice = {
     ],
 };
 
+/** Its second form is two words, which the form warnings flag. */
+const curious = {
+    word: 'curious',
+    definitions: [
+        {
+            text: 'eager to know or learn something',
+            partOfSpeech: 'adjective',
+            forms: [
+                { text: 'curious', label: 'base', examples: ['A curious cat looked in.'] },
+                { text: 'most curious', label: 'superlative', examples: ['She is the most curious child in the class.'] },
+            ],
+        },
+    ],
+};
+
 export const lookupAnswers: Record<string, string> = {
     practice: '```json ' + JSON.stringify(practice) + ' ```',
+    curious: JSON.stringify(curious),
 };
 
 export interface BackupWordSpec {
