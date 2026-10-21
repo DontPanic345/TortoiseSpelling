@@ -248,7 +248,8 @@
           "model": "opus",
           "effort": "medium",
           "why": "Opus: async ordering across a route change, and it must match Android's behaviour exactly (goal 5); medium effort on the web's existing reducer pattern.",
-          "status": "pending"
+          "status": "pending",
+          "awaitingCi": "e8de9f7230d605708a812dba55fa7c2930369257"
         },
         {
           "id": "build-4",
