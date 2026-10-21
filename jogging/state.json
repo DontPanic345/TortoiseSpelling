@@ -304,7 +304,8 @@
           "model": "sonnet",
           "effort": "medium",
           "why": "Sonnet: one small pure function per app, and the golden cases hold the two apps to the same answers mechanically.",
-          "status": "pending"
+          "status": "pending",
+          "awaitingCi": "1dcbbe59d7da88023b8905ff198517eaf2c84f71"
         },
         {
           "id": "build-2",
