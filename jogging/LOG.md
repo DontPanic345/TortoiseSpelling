@@ -106,3 +106,7 @@ Web shows `formWarnings` live on the add screen's form fields, in the paste dial
 ## 2026-10-21 20:00 form-warnings/build-4 (sonnet)
 Added the `curious` fixture, a form-warnings scenario each in `copy_prompt.feature` and `word_list.feature`, and four steps (`the editor warns`, `I remove the form`, `is marked / is not marked Check forms`) on Android and web, plus the `CLAUDE.md` Lookup sentence. The changelog line from build-2 is there and still true.
 `check-specs`, both `check-steps`, e2e typecheck, `npm run specs` (web, 36 passed) and both features on the emulator (24 and 43 steps passing) all pass.
+
+## 2026-10-21 20:30 form-warnings/review (sonnet)
+Reviewed the whole piece against the spec, goals and standards: the rule and its golden cases agree on both apps (Kotlin whitespace and trim, `ktHasWhitespace`), marks are computed live from the editor's state, `canSave` and every entity, migration and backup file are untouched, the tag is mirrored in all three places, the scenarios and four steps match on both runners, and `CLAUDE.md` and the changelog line are accurate. Nothing substantive to fix.
+Web `npm test` (953) and typecheck, `check-specs` and `assembleRelease` pass; release e2e (`npm run e2e:release`, 20 steps) passes.
