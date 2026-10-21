@@ -57,3 +57,6 @@ a goal above requires it, and must say which.
 - **Jogging on Actions.** Jogging runs as a scheduled GitHub Actions workflow beside an
   emulator (`.github/workflows/jogging.yml`). It's infrastructure, not a piece; the
   `jogging-poc` piece only proves it works.
+- **Edit after a miss.** A miss undone by a saved edit from review's Edit word is the one
+  exception to "a miss is recorded at the first attempt" (goal 4); grading and SM-2 are
+  unchanged. Approved by Alan on 20/10/2026 (`docs/edit-after-miss.md`).

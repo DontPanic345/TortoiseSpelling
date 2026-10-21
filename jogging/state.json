@@ -212,6 +212,51 @@
           "model": "opus",
           "effort": "medium",
           "status": "pending"
+        },
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "undone() in domain with golden cases; recordReview returns a ReviewUndo, undoReview and cardFor on both repositories; data tests",
+          "model": "opus",
+          "effort": "medium",
+          "why": "Opus: writes and deletes review data in one transaction on both apps (goal 1) and must keep them in agreement; medium effort for small functions on an existing pattern.",
+          "status": "pending"
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "Android: the edit screen's outcome, nav hand-back, ReviewViewModel undo and re-present, the Edit word button, tags, component, integration and screenshot tests",
+          "model": "opus",
+          "effort": "medium",
+          "why": "Opus: the ordering between the miss's write, the edit's save and the undo is where a review could be lost or clobbered (goal 1); medium effort as the screens already exist.",
+          "status": "pending"
+        },
+        {
+          "id": "build-3",
+          "phase": 2,
+          "title": "Web: the review edit sub-route and screenKey, the edit screen's outcome, the reducer transitions, ReviewScreen's undo and re-present, the button and its tests",
+          "model": "opus",
+          "effort": "medium",
+          "why": "Opus: async ordering across a route change, and it must match Android's behaviour exactly (goal 5); medium effort on the web's existing reducer pattern.",
+          "status": "pending"
+        },
+        {
+          "id": "build-4",
+          "phase": 2,
+          "title": "The shared Edit word scenario on both apps, CLAUDE.md, README.md and the changelog",
+          "model": "sonnet",
+          "effort": "medium",
+          "why": "Sonnet: one scenario from existing steps plus prose.",
+          "status": "pending"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the whole piece",
+          "model": "opus",
+          "effort": "medium",
+          "why": "Opus: the piece deletes review rows and rewrites scheduling (goal 1) on both apps, which must agree; medium effort for four build steps on existing patterns.",
+          "status": "pending"
         }
       ],
       "release": "minor"

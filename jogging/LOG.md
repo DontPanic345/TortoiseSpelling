@@ -18,3 +18,7 @@ The generator moves to a plain SVG source, `scripts/icon-source.svg` (`M L H V C
 ## 2026-10-21 15:10 icon-redraw/spec-review (opus)
 Briefs hold up against the code and the crew's blocker round trip; models, efforts and `release: minor` stand.
 Fixed build-4's backwards `GAP` advice (it must be ≥ the notification set's larger dimension ÷ 20), made the `final` sheet's 24 dp cell the notification set rather than `docs/icon.svg`, and gave the review brief checks for the fallback path.
+
+## 2026-10-21 16:00 edit-after-miss/spec (opus)
+Wrote the spec and five briefs: build-1 adds `undone` (golden cases) and `recordReview` → `ReviewUndo`, `undoReview`, `cardFor` on both repositories; build-2 (Android) hands the edit screen's `SAVED`/`DELETED` back through the review entry's `SavedStateHandle` and joins the miss's write before opening the editor; build-3 (web) keeps review mounted under `#/review/edit/<id>` via `screenKey`; build-4 adds a shared scenario from existing steps and the docs.
+Recorded the approved goal 4 exception in `GOALS.md`. Delete removes the card from the queue so the title stays truthful; the e2e can't show the grade for a new word, so integration and web journey tests assert it. `release` stays `minor`.
