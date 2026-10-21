@@ -48,7 +48,7 @@ output, and a `name` saying what it checks (the Kotlin test it came from, in wor
 | `blank.json` | `blankWordIn`, `hideWordInDefinition` |
 | `diff.json` | `spellingDiff` |
 | `sm2.json` | `Sm2Scheduler.next`, `fuzzedDueDay`, the constants and `Grade` |
-| `review.json` | `reviewed`: one review's word and log row |
+| `review.json` | `reviewed`, `undone`: one review's word and log row, and taking it back |
 | `days.json` | `today`, `dayOf` (in `Pacific/Auckland` and `America/Los_Angeles`), `relativeLabel`, `currentStreak` |
 | `progress.json` | `learningStage`, `wordProgress`, `WordFilter.matches`, `wordFilterCounts`, `recentDays`, `greeting` |
 | `session.json` | `remainingNewToday`, `interleaveSession` |
@@ -63,7 +63,8 @@ output, and a `name` saying what it checks (the Kotlin test it came from, in wor
 Not golden: the DAO's SQL queries and the repositories' reads and writes. They have no pure
 Kotlin twin, so the web's queries (`domain/queries.ts`) and repository (`data/repository.ts`)
 are tested in `web/test/`, and Android's in `app/src/androidTest/.../data/` and `integration/`.
-The rule a review applies (`reviewed`) is golden, in `review.json`.
+The rule a review applies (`reviewed`) and the one that takes it back (`undone`) are golden,
+in `review.json`.
 
 ## Known differences
 

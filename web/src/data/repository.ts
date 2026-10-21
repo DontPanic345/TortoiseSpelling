@@ -18,7 +18,7 @@ import { fuzzedDueDay, NEW_WORD_STATE } from "../domain/srs";
 import { ktTrim, normalizeWord } from "../domain/text";
 import { preparedFor, type WordContent } from "../domain/wordContent";
 import { pickCard, type ReviewCard } from "../domain/cardPick";
-import { reviewed } from "../domain/review";
+import { reviewed, undone } from "../domain/review";
 import { exportBackup, parseBackup, toImport } from "./backup";
 import type { Db, PushRegistration, SettingName, SettingValue } from "./db";
 import type { ReviewLog, StoredWord, Word } from "./model";
@@ -27,6 +27,13 @@ import type { ReviewLog, StoredWord, Word } from "./model";
 export interface TodayPlan {
   dueCount: number;
   newCount: number;
+}
+
+/** What it takes to undo one review: its log row, and the word as it was before. */
+export interface ReviewUndo {
+  wordId: number;
+  logId: number;
+  before: Word;
 }
 
 export type AddResult =
@@ -276,8 +283,10 @@ export function createRepository({
      *
      * A missed word is not re-queued into this session: the mandatory retype is the
      * corrective repetition.
+     *
+     * Resolves to what `undoReview` needs to take it back, or null if the word is gone.
      */
-    async recordReview(wordId: number, correctFirstTry: boolean, typedAnswer: string): Promise<void> {
+    async recordReview(wordId: number, correctFirstTry: boolean, typedAnswer: string): Promise<ReviewUndo | null> {
       const today = todayOf(clock);
       const now = clock.millis();
 
@@ -285,15 +294,42 @@ export function createRepository({
       const current = await tx.objectStore("words").get(wordId);
       if (!current) {
         await tx.done;
-        return;
+        return null;
       }
       const { word, log } = reviewed(current, correctFirstTry, typedAnswer, today, now, fuzz);
-      await Promise.all([
+      const [, logId] = await Promise.all([
         tx.objectStore("words").put(word),
         tx.objectStore("reviewLog").add(log as ReviewLog),
       ]);
       await tx.done;
       notify();
+      return { wordId, logId, before: scheduling(current) };
+    },
+
+    /**
+     * Takes back the review `recordReview` returned `undo` for, in one transaction: the
+     * word's scheduling as it was and its log row gone. The word is read inside, as the edit
+     * just saved may have changed its content; a deleted word records nothing.
+     */
+    async undoReview(undo: ReviewUndo): Promise<void> {
+      const tx = db.transaction(["words", "reviewLog"], "readwrite");
+      const current = await tx.objectStore("words").get(undo.wordId);
+      if (!current) {
+        await tx.done;
+        return;
+      }
+      await Promise.all([
+        tx.objectStore("words").put(undone(current, undo.before)),
+        tx.objectStore("reviewLog").delete(undo.logId),
+      ]);
+      await tx.done;
+      notify();
+    },
+
+    /** The card `buildSession` would pick for one word, from its content now; null if it's gone. */
+    async cardFor(wordId: number): Promise<ReviewCard | null> {
+      const word = await db.get("words", wordId);
+      return word ? pickCard(scheduling(word), word.content, random) : null;
     },
 
     async reviewedToday(): Promise<number> {

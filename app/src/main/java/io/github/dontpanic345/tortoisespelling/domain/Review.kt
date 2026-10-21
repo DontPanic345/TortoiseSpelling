@@ -43,3 +43,19 @@ fun reviewed(
         ),
     )
 }
+
+/**
+ * [current] with its scheduling put back to [before]'s, to take one review back. Content
+ * and everything else ([Word.id], [Word.text], [Word.normalizedText], [Word.createdAt],
+ * [Word.suspended]) come from [current], so an edit saved since is kept.
+ */
+fun undone(current: Word, before: Word): Word = current.copy(
+    repetitions = before.repetitions,
+    easeFactor = before.easeFactor,
+    intervalDays = before.intervalDays,
+    dueOn = before.dueOn,
+    lapses = before.lapses,
+    lastReviewedAt = before.lastReviewedAt,
+    firstReviewedOn = before.firstReviewedOn,
+    isNew = before.isNew,
+)

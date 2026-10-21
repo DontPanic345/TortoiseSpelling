@@ -15,6 +15,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -171,6 +172,83 @@ class WordRepositoryTest {
 
         assertEquals(0, dao.reviewedCountOn(Days.today(DeviceClock)))
         assertEquals(1, dao.wordCount())
+    }
+
+    @Test
+    fun anEditedMissIsUndone() = runTest {
+        val today = Days.today(DeviceClock)
+        repo.addWord("rhythm", "A pattern.", "The rhythm held.", null)
+        val seed = dao.wordByNormalizedText("rhythm")!!.copy(
+            repetitions = 2,
+            easeFactor = 2.6,
+            intervalDays = 6,
+            dueOn = today,
+            lastReviewedAt = 1_000,
+            firstReviewedOn = today - 7,
+            isNew = false,
+        )
+        dao.updateWord(seed)
+
+        val undo = repo.recordReview(seed.id, correctFirstTry = false, typedAnswer = "rythm")!!
+        val missed = dao.wordById(seed.id)!!
+        repo.updateWord(
+            missed.copy(text = "rhythms"),
+            dao.contentById(seed.id)!!.toContent().apply(ContentEdit.DefinitionText(0, "Beats.")),
+        )
+        repo.undoReview(undo)
+
+        val saved = dao.wordById(seed.id)!!
+        assertEquals(seed.copy(text = "rhythms", normalizedText = "rhythms"), saved)
+        assertEquals("Beats.", dao.contentById(seed.id)!!.toContent().definitions[0].text)
+        assertEquals(0, dao.reviewedCountOn(today))
+        assertEquals(emptyList<Long>(), dao.recentStudyDays(10))
+    }
+
+    @Test
+    fun undoingANewWordsMissLeavesItNew() = runTest {
+        val today = Days.today(DeviceClock)
+        repo.addWord("rhythm", "A pattern.", "The rhythm held.", null)
+        val word = dao.wordByNormalizedText("rhythm")!!
+
+        val undo = repo.recordReview(word.id, correctFirstTry = false, typedAnswer = "rythm")!!
+        assertEquals(1, dao.introducedOn(today))
+        repo.undoReview(undo)
+
+        assertEquals(word, dao.wordById(word.id))
+        assertEquals(0, dao.introducedOn(today))
+        assertEquals(1, repo.todayPlan().newCount)
+        assertEquals(listOf(word.id), repo.buildSession().map { it.word.id })
+    }
+
+    @Test
+    fun undoForADeletedWordWritesNothing() = runTest {
+        repo.addWord("rhythm", "A definition.", "An example.", null)
+        repo.addWord("gone", "A definition.", "An example.", null)
+        val gone = dao.wordByNormalizedText("gone")!!
+        val undo = repo.recordReview(gone.id, correctFirstTry = false, typedAnswer = "gon")!!
+        repo.deleteWord(dao.wordById(gone.id)!!)
+
+        repo.undoReview(undo)
+
+        assertEquals(1, dao.wordCount())
+        assertNull(dao.wordById(gone.id))
+    }
+
+    @Test
+    fun cardForPicksFromTheWordsContentNow() = runTest {
+        repo.addWord("recieve", "To get.", "I recieve mail.", null)
+        val word = dao.wordByNormalizedText("recieve")!!
+        repo.updateWord(
+            word.copy(text = "receive"),
+            dao.contentById(word.id)!!.toContent().apply(ContentEdit.DefinitionText(0, "To be given.")),
+        )
+
+        val card = repo.cardFor(word.id)!!
+
+        assertEquals("receive", card.word.text)
+        assertEquals("receive", card.answer)
+        assertEquals("To be given.", card.definition)
+        assertNull(repo.cardFor(404))
     }
 
     @Test

@@ -69,3 +69,7 @@ Reviewed the whole piece: the nine golden cases match the removed `recordReview`
 ## 2026-10-21 14:30 icon-redraw/build-1 (opus)
 Built `scripts/recraft.mjs` (ledger, cap and balance refusal, V4.1 vector at 80 units; the API is `external.api.recraft.ai/v1`, balance from `/users/me` `credits`) with `recraft.test.mjs`, and `web/scripts/icon-sheet.mjs`. Added an optional `--colors` flag (Recraft's `controls.colors`, kept as `colors` in the ledger) and noted it in the spec and build-2's brief.
 Explore round: six directions a–f, 24 images, 1,920 of 10,000 units; dropped a-01, a-02, c-01, c-04. Sheet and prompts in `docs/icon-concepts/`. Blocked for Alan to pick a direction.
+
+## 2026-10-21 14:40 edit-after-miss/build-1 (opus)
+Added `undone` on both apps with three `undone` golden cases, `recordReview` returning `ReviewUndo` (null for a gone word), and `undoReview` and `cardFor` on both repositories, with the brief's DAO, repository and web tests; screens untouched.
+The DAO test reads `review_log` ids through `db.openHelper` rather than adding a query. The emulator held a release-signed install that made `connectedDebugAndroidTest` skip silently while reporting success; uninstalled it, and the data layer then ran 47/47.

@@ -1,5 +1,5 @@
 {
-  "about": "One review applied to a word: its new scheduling fields and the log row (Review.kt, WordRepository.recordReview). Every case's fuzz is today + intervalDays.",
+  "about": "One review applied to a word: its new scheduling fields and the log row (Review.kt, WordRepository.recordReview). Every case's fuzz is today + intervalDays. undone puts one review back: before's scheduling, current's everything else (WordRepository.undoReview).",
   "reviewed": [
     { "name": "a new word answered first try is due tomorrow and leaves the new pile",
       "word": {}, "correctFirstTry": true, "typedAnswer": "cat", "today": 20000, "now": 1728000000000,
@@ -60,5 +60,28 @@
         "word": { "repetitions": 0, "easeFactor": 2.28, "intervalDays": 1, "dueOn": 20001, "lapses": 1,
           "lastReviewedAt": 1728000000000, "firstReviewedOn": 19999, "isNew": false },
         "log": { "wordId": 0, "reviewedAt": 1728000000000, "reviewedOn": 20000, "grade": 2, "correct": false, "typedAnswer": "kat" } } }
+  ],
+  "undone": [
+    { "name": "a new word's miss undone is new again, nulls included",
+      "current": { "repetitions": 0, "easeFactor": 2.18, "intervalDays": 1, "dueOn": 20001, "lapses": 1,
+        "lastReviewedAt": 1728000000000, "firstReviewedOn": 20000, "isNew": false },
+      "before": {},
+      "out": { "repetitions": 0, "easeFactor": 2.5, "intervalDays": 0, "dueOn": 0, "lapses": 0,
+        "lastReviewedAt": null, "firstReviewedOn": null, "isNew": true } },
+    { "name": "a reviewed word's lapse undone gets every scheduling field back",
+      "current": { "repetitions": 0, "easeFactor": 2.28, "intervalDays": 1, "dueOn": 20001, "lapses": 3,
+        "lastReviewedAt": 1728000000000, "firstReviewedOn": 19900, "isNew": false },
+      "before": { "repetitions": 4, "easeFactor": 2.6, "intervalDays": 40, "dueOn": 20000, "lapses": 2,
+        "lastReviewedAt": 1724544000000, "firstReviewedOn": 19900, "isNew": false },
+      "out": { "repetitions": 4, "easeFactor": 2.6, "intervalDays": 40, "dueOn": 20000, "lapses": 2,
+        "lastReviewedAt": 1724544000000, "firstReviewedOn": 19900, "isNew": false } },
+    { "name": "an edit saved since keeps its text, id, creation and suspension",
+      "current": { "id": 7, "text": "Colour", "createdAt": 1700000000000, "suspended": true,
+        "repetitions": 0, "easeFactor": 2.18, "intervalDays": 1, "dueOn": 20001, "lapses": 1,
+        "lastReviewedAt": 1728000000000, "firstReviewedOn": 20000, "isNew": false },
+      "before": { "id": 7, "text": "color", "createdAt": 1700000000000 },
+      "out": { "id": 7, "text": "Colour", "normalizedText": "colour", "createdAt": 1700000000000, "suspended": true,
+        "repetitions": 0, "easeFactor": 2.5, "intervalDays": 0, "dueOn": 0, "lapses": 0,
+        "lastReviewedAt": null, "firstReviewedOn": null, "isNew": true } }
   ]
 }

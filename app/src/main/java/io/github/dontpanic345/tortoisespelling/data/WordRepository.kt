@@ -137,6 +137,9 @@ class WordRepository(
     suspend fun markShown(example: ExampleSentence) = dao.markShown(example.id, clock.millis())
 
     /** One card per word (its least recently shown example), in the words' order. */
+    /** The card [cardsFor] would pick for one word, from its content now; null if it's gone. */
+    suspend fun cardFor(wordId: Long): ReviewCard? = dao.contentById(wordId)?.let(::pickCard)
+
     private suspend fun cardsFor(words: List<Word>): List<ReviewCard> {
         val content = dao.contentFor(words.map { it.id }).associateBy { it.word.id }
         return words.map { word -> pickCard(content[word.id] ?: WordWithContent(word, emptyList())) }
@@ -148,12 +151,22 @@ class WordRepository(
      * A missed word is not re-queued into this session: the mandatory retype is the
      * corrective repetition, and an open-ended session undermines the clear stopping
      * point the whole app is built around.
+     *
+     * Returns what [undoReview] needs to take it back, or null if the word is gone.
      */
-    suspend fun recordReview(wordId: Long, correctFirstTry: Boolean, typedAnswer: String) {
+    suspend fun recordReview(wordId: Long, correctFirstTry: Boolean, typedAnswer: String): ReviewUndo? {
         val today = Days.today(clock)
         val now = clock.millis()
         // A word deleted mid-session records nothing.
-        dao.recordReview(wordId) { reviewed(it, correctFirstTry, typedAnswer, today, now, fuzz, scheduler) }
+        return dao.recordReview(wordId) { reviewed(it, correctFirstTry, typedAnswer, today, now, fuzz, scheduler) }
+    }
+
+    /**
+     * Take back the review [recordReview] returned [undo] for. Content is untouched; a
+     * deleted word records nothing.
+     */
+    suspend fun undoReview(undo: ReviewUndo) {
+        dao.undoReview(undo)
     }
 
     suspend fun reviewedToday(): Int = dao.reviewedCountOn(Days.today(clock))

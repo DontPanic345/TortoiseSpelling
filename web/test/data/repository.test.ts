@@ -1,6 +1,7 @@
 import { describe, expect, test, vi } from "vitest";
 import { BackupFormatError, exportBackup } from "../../src/data/backup";
 import type { StoredWord } from "../../src/data/model";
+import { introducedOn } from "../../src/domain/queries";
 import { apply, type WordContent } from "../../src/domain/wordContent";
 import { content, openTestRepository } from "../support/repo";
 
@@ -292,13 +293,13 @@ describe("markShown", () => {
 });
 
 describe("recordReview", () => {
-  test("for a deleted word writes no log row", async () => {
+  test("for a deleted word writes no log row and resolves to null", async () => {
     const { repo, db } = await openTestRepository();
     await repo.addWord("rhythm", content("A pattern."));
     const word = await wordNamed(repo, "rhythm");
     await repo.deleteWord(word.id);
 
-    await repo.recordReview(word.id, true, "rhythm");
+    expect(await repo.recordReview(word.id, true, "rhythm")).toBeNull();
 
     expect(await logCount(db)).toBe(0);
     expect(await repo.wordCount()).toBe(0);
@@ -385,5 +386,81 @@ describe("subscribe", () => {
     stop();
     await repo.addWord("other", content("Another."));
     expect(calls).toBe(1);
+  });
+});
+
+describe("undoReview", () => {
+  test("an edited miss is undone: the seed's scheduling, the edit's content, no log row", async () => {
+    const { repo, db } = await openTestRepository();
+    await repo.addWord("rhythm", content("A pattern.", "The rhythm held."));
+    const added = await wordNamed(repo, "rhythm");
+    const seed: StoredWord = {
+      ...added,
+      repetitions: 2,
+      easeFactor: 2.6,
+      intervalDays: 6,
+      dueOn: 20_514,
+      lastReviewedAt: 1_000,
+      firstReviewedOn: 20_514 - 7,
+      isNew: false,
+    };
+    await db.put("words", seed);
+
+    const undo = await repo.recordReview(seed.id, false, "rythm");
+    const edited = apply(seed.content, { edit: "DefinitionText", definition: 0, value: "Beats." });
+    await repo.updateWord(seed.id, "rhythms", edited);
+    await repo.undoReview(undo!);
+
+    const saved = (await repo.wordById(seed.id)) as StoredWord;
+    const { content: _content, ...scheduling } = seed;
+    expect(saved).toMatchObject({ ...scheduling, text: "rhythms", normalizedText: "rhythms" });
+    expect(saved.content.definitions[0]?.text).toBe("Beats.");
+    expect(await repo.reviewedToday()).toBe(0);
+    expect(await logCount(db)).toBe(0);
+  });
+
+  test("undoing a new word's miss leaves it new and in the session", async () => {
+    const { repo } = await openTestRepository();
+    await repo.addWord("rhythm", content("A pattern."));
+    const word = await wordNamed(repo, "rhythm");
+
+    const undo = await repo.recordReview(word.id, false, "rythm");
+    expect(introducedOn(await repo.wordsWithContent(), 20_514)).toBe(1);
+    await repo.undoReview(undo!);
+
+    expect(await repo.wordById(word.id)).toEqual(word);
+    expect(introducedOn(await repo.wordsWithContent(), 20_514)).toBe(0);
+    expect((await repo.todayPlan()).newCount).toBe(1);
+    expect((await repo.buildSession()).map((c) => c.word.id)).toEqual([word.id]);
+  });
+
+  test("for a deleted word writes nothing", async () => {
+    const { repo } = await openTestRepository();
+    await repo.addWord("rhythm", content("A pattern."));
+    await repo.addWord("gone", content("A pattern."));
+    const gone = await wordNamed(repo, "gone");
+    const undo = await repo.recordReview(gone.id, false, "gon");
+    await repo.deleteWord(gone.id);
+
+    await repo.undoReview(undo!);
+
+    expect(await repo.wordCount()).toBe(1);
+    expect(await repo.wordById(gone.id)).toBeUndefined();
+  });
+});
+
+describe("cardFor", () => {
+  test("picks from the word's content now, and is null for a missing id", async () => {
+    const { repo } = await openTestRepository();
+    await repo.addWord("recieve", content("To get."));
+    const word = await wordNamed(repo, "recieve");
+    await repo.updateWord(word.id, "receive", apply(word.content, { edit: "DefinitionText", definition: 0, value: "To be given." }));
+
+    const card = await repo.cardFor(word.id);
+
+    expect(card?.word.text).toBe("receive");
+    expect(card?.answer).toBe("receive");
+    expect(card?.definition).toBe("To be given.");
+    expect(await repo.cardFor(404)).toBeNull();
   });
 });

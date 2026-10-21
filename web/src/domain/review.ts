@@ -49,3 +49,22 @@ export function reviewed<W extends Word>(
     },
   };
 }
+
+/**
+ * `current` with its scheduling put back to `before`'s, to take one review back. Content
+ * and everything else (`id`, `text`, `normalizedText`, `createdAt`, `suspended`, a
+ * `StoredWord`'s `content`) come from `current`, so an edit saved since is kept.
+ */
+export function undone<W extends Word>(current: W, before: Word): W {
+  return {
+    ...current,
+    repetitions: before.repetitions,
+    easeFactor: before.easeFactor,
+    intervalDays: before.intervalDays,
+    dueOn: before.dueOn,
+    lapses: before.lapses,
+    lastReviewedAt: before.lastReviewedAt,
+    firstReviewedOn: before.firstReviewedOn,
+    isNew: before.isNew,
+  };
+}

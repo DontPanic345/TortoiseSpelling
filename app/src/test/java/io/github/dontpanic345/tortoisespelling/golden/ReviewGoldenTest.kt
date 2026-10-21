@@ -3,6 +3,7 @@ package io.github.dontpanic345.tortoisespelling.golden
 import io.github.dontpanic345.tortoisespelling.data.ReviewLog
 import io.github.dontpanic345.tortoisespelling.data.Word
 import io.github.dontpanic345.tortoisespelling.domain.reviewed
+import io.github.dontpanic345.tortoisespelling.domain.undone
 import io.github.dontpanic345.tortoisespelling.golden.Golden.forEachCase
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
@@ -13,7 +14,7 @@ class ReviewGoldenTest {
     private val file = Golden.load("review")
 
     @Test
-    fun everyFunctionHasARunner() = Golden.assertFunctions(file, setOf("reviewed"))
+    fun everyFunctionHasARunner() = Golden.assertFunctions(file, setOf("reviewed", "undone"))
 
     @Test
     fun reviewed() = forEachCase(file, "reviewed") { c ->
@@ -41,11 +42,23 @@ class ReviewGoldenTest {
         )
     }
 
+    @Test
+    fun undone() = forEachCase(file, "undone") { c ->
+        val result = undone(
+            current = Golden.wordFrom(c.getValue("current").jsonObject),
+            before = Golden.wordFrom(c.getValue("before").jsonObject),
+        )
+        assertWord(c.getValue("out").jsonObject, result)
+    }
+
     /** The fields [expected] lists; the ease factor within 1e-9. */
     private fun assertWord(expected: JsonObject, actual: Word) {
         for (key in expected.keys) {
             when (key) {
                 "id" -> assertEquals(key, expected.long(key), actual.id)
+                "text" -> assertEquals(key, expected.str(key), actual.text)
+                "normalizedText" -> assertEquals(key, expected.str(key), actual.normalizedText)
+                "createdAt" -> assertEquals(key, expected.long(key), actual.createdAt)
                 "repetitions" -> assertEquals(key, expected.int(key), actual.repetitions)
                 "easeFactor" -> assertEquals(key, expected.double(key), actual.easeFactor, 1e-9)
                 "intervalDays" -> assertEquals(key, expected.int(key), actual.intervalDays)

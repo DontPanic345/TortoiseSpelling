@@ -56,6 +56,10 @@ class TortoiseSpellingDaoTest {
         typedAnswer = "x",
     )
 
+    private fun logIds(): List<Long> = db.openHelper.readableDatabase.query("SELECT id FROM review_log").use { c ->
+        buildList { while (c.moveToNext()) add(c.getLong(0)) }
+    }
+
     @Test
     fun duplicateNormalizedTextIsRefused() = runTest {
         dao.insertWord(testWord("Necessary"))
@@ -352,6 +356,29 @@ class TortoiseSpellingDaoTest {
         }
 
         assertEquals(before, dao.wordById(id))
+    }
+
+    @Test
+    fun recordReviewReturnsTheLogRowAndTheWordAsItWas() = runTest {
+        val id = dao.insertWord(testWord("rhythm"))
+        val before = dao.wordById(id)!!
+
+        val undo = dao.recordReview(id) { Reviewed(it.copy(repetitions = 7), log(id, day = 10)) }!!
+
+        assertEquals(id, undo.wordId)
+        assertEquals(before, undo.before)
+        assertEquals(listOf(undo.logId), logIds())
+    }
+
+    @Test
+    fun recordReviewForAMissingWordReturnsNull() = runTest {
+        assertNull(dao.recordReview(404) { Reviewed(it, log(404, day = 10)) })
+        assertEquals(emptyList<Long>(), logIds())
+    }
+
+    @Test
+    fun undoReviewForAMissingWordReturnsFalse() = runTest {
+        assertEquals(false, dao.undoReview(ReviewUndo(wordId = 404, logId = 1, before = testWord("gone"))))
     }
 
     @Test
