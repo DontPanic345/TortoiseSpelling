@@ -35,9 +35,8 @@
           "title": "Android: TtsSpeaker, manifest queries, debug RecordingSpeaker, AppHarness fake, the review button and its tests",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending",
-          "why": "Sonnet: a contained change to one screen in a pattern the app already uses; high effort because it spans three test layers and a device-only API.",
-          "awaitingCi": "fc000a1db47ba1a8972e0bcd7a863e34a5208a11"
+          "status": "done",
+          "why": "Sonnet: a contained change to one screen in a pattern the app already uses; high effort because it spans three test layers and a device-only API."
         },
         {
           "id": "build-3",
