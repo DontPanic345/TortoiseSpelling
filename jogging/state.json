@@ -103,9 +103,8 @@
           "title": "Both repositories apply it; Android's recordReview by id in one Room transaction, deleted word records nothing; tests, CLAUDE.md, changelog",
           "model": "opus",
           "effort": "medium",
-          "status": "pending",
-          "why": "Opus: changes how Android writes a review (goal 1), adds a Room transaction, and changes a repository signature the review screen calls.",
-          "awaitingCi": "d7f657d8271021ac221e8b9c4cbd13fffc6bc407"
+          "status": "done",
+          "why": "Opus: changes how Android writes a review (goal 1), adds a Room transaction, and changes a repository signature the review screen calls."
         },
         {
           "id": "review",
