@@ -78,7 +78,7 @@
         "jogging/specs/review-outcome.md"
       ],
       "dependsOn": [],
-      "status": "active",
+      "status": "done",
       "spec": "jogging/specs/review-outcome.md",
       "steps": [
         {
@@ -112,9 +112,8 @@
           "title": "Review the whole piece",
           "model": "opus",
           "effort": "medium",
-          "status": "pending",
-          "why": "Opus: the piece touches goal 1 (a transaction around the review write) and must keep both apps in agreement; medium effort for two build steps with no UI.",
-          "awaitingCi": "81b583233b9d73ab180b1ee57f2ef997daf5c582"
+          "status": "done",
+          "why": "Opus: the piece touches goal 1 (a transaction around the review write) and must keep both apps in agreement; medium effort for two build steps with no UI."
         }
       ],
       "release": "patch",
