@@ -54,7 +54,8 @@
           "model": "sonnet",
           "effort": "medium",
           "status": "pending",
-          "why": "Sonnet: two new steps on existing patterns, plus prose."
+          "why": "Sonnet: two new steps on existing patterns, plus prose.",
+          "awaitingCi": "941d0712eaae325ada5d3d63668a6ebae525f2e1"
         },
         {
           "id": "review",
