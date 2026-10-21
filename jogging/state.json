@@ -333,5 +333,16 @@
       ],
       "release": "minor"
     }
-  ]
+  ],
+  "modelCheck": {
+    "issue": 31,
+    "at": "2026-10-21T05:25:59.635Z",
+    "pieces": [
+      "speak-word",
+      "review-outcome",
+      "icon-redraw",
+      "edit-after-miss",
+      "form-warnings"
+    ]
+  }
 }
