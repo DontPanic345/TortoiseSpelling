@@ -71,9 +71,8 @@ If `e2e/support/testIds.ts` lacks `wordRowCheckForms`, add it (build-2 should ha
 - `CLAUDE.md`, "Lookup": one sentence: after a valid paste, and in the editor and the word
   list, `formWarnings` (`domain/FormWarnings.kt`, golden `warnings.json`) flags a spaced
   form on a one-word root; warnings never reject and are never stored.
-- `CHANGELOG.md`, under `[Unreleased]`, `### Added`: one line, e.g. "**Form warnings.** A
-  pasted form of more than one word, like “most curious”, is flagged before you save, and
-  words already saved with one show **Check forms** in the word list."
+- `CHANGELOG.md`: build-2 added the line under `[Unreleased]`, `### Added` ("**Form
+  warnings.** …"). Check it is there and still true; don't add a second one.
 
 Done: `node scripts/check-specs.mjs`; `cd e2e && npm run check-steps -- --all && npm run typecheck`;
 `cd web && npm run check-steps && npm run specs`; on the emulator,

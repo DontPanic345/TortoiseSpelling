@@ -141,11 +141,13 @@ for every function" check. A row in `golden/README.md`'s file table:
   (`web/test/ui/testIds.test.ts` fails when an Android tag has no web twin).
 - Golden `ui.json`: a `filterRows` case "a word with a two-word form is marked Check forms"
   ("curious" with "most curious" next to "run" with "ran"); `out` rows gain an optional
-  `checkForms` (absent means false), and both runners compare it.
+  `checkForms` (absent means false), and both runners compare it. build-2 adds the case
+  and the Kotlin comparison, and has the TypeScript runner strip `checkForms` from the
+  expected rows (it compares with `toEqual`); build-3 replaces the strip with a comparison.
 - Tests: `AddWordContentTest` (a flagged form shows its message and Save stays enabled; the
   paste dialog lists the warning for a valid answer with a two-word form) and
   `WordListContentTest` (a row with `checkForms` shows "Check forms", one without doesn't).
-  JVM unit tests for the two state properties in the existing `AddWordViewModel` tests.
+  JVM unit tests for the two state properties in `ui/add/AddWordUiStateTest.kt`.
   Screenshot references change only if a preview shows a flagged word; if one does, update,
   look, commit.
 
@@ -162,7 +164,9 @@ for every function" check. A row in `golden/README.md`'s file table:
   `filterRows` as Android's.
 - `web/src/ui/words/WordListContent.tsx`: when `row.checkForms`, a
   `<span class="status-badge check-forms" data-testid={wordRowCheckForms(...)}>Check forms</span>`
-  after the status badge, styled with the error container colours.
+  after the status badge, the two wrapped in a `word-row-badges` flex row with a 6px gap
+  (`.word-row-main` is a column). `styles.css` gains `--error-container` and
+  `--on-error-container` in both palettes (Material 3 baseline) for it.
 - `web/src/ui/testIds.ts`: `wordRowCheckForms` (added in build-2 with the Android tag).
 - Tests: `web/test/ui/add/` and `web/test/ui/words/` mirror the Android component tests.
 
@@ -226,7 +230,8 @@ Everything else is an existing step. Each new Android step goes in
   `formWarnings` flags a spaced form on a one-word root; warnings never reject and are
   never stored.
 - `CHANGELOG.md`: under `[Unreleased]`, `### Added`: a line on the warning after a paste
-  and the "Check forms" badge in the word list.
+  and the "Check forms" badge in the word list, added by build-2 (the first user-visible
+  change, per `CLAUDE.md`'s workflow).
 - `README.md` and `PRIVACY.md`: no change (no new data, nothing leaves the device).
 
 No schema, migration or backup change, so no `golden/backup/` case.
@@ -236,10 +241,9 @@ No schema, migration or backup change, so no `golden/backup/` case.
 1. **build-1**: the rule on both apps, `golden/warnings.json`, both runners.
 2. **build-2**: Android: the add screen's marks and dialog warnings, the word list badge,
    the tag (and its web twin), the `ui.json` case and the Kotlin runner's `checkForms`,
-   component tests.
+   component tests, the changelog line.
 3. **build-3**: Web: the same, the TypeScript `filterRows` and runner.
-4. **build-4**: the fixture, both scenarios and their steps on both runners, docs and
-   changelog.
+4. **build-4**: the fixture, both scenarios and their steps on both runners, `CLAUDE.md`.
 5. **review**.
 
 ## What later pieces rely on

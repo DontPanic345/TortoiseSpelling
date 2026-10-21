@@ -46,8 +46,15 @@ Paths under `app/src/main/java/io/github/dontpanic345/tortoisespelling/`.
   "curious" (one definition, forms "curious" and "most curious", each with an example
   containing it) beside "run" (with "ran"), query "", filter `ALL`; `out` rows gain an
   optional `checkForms`, absent meaning false, `true` for "curious". The Kotlin runner in
-  `UiGoldenTest.kt` compares `checkForms` (default false). The TypeScript runner ignores it
-  until build-3, so `cd web && npm test` still passes; check it does.
+  `UiGoldenTest.kt` compares `checkForms` (default false). The TypeScript runner in
+  `web/test/golden/ui.test.ts` compares `c.out` with `toEqual`, so an unknown `checkForms`
+  key would fail it: until build-3, strip it from the expected rows there
+  (`c.out.map(({ checkForms, ...row }: any) => row)`), with a comment that build-3 compares
+  it. `cd web && npm test && npm run typecheck` must still pass.
+- `CHANGELOG.md`, under `[Unreleased]`, `### Added` (create the heading if missing): one
+  line, e.g. "**Form warnings.** A pasted form of more than one word, like “most curious”,
+  is flagged before you save, and words already saved with one show **Check forms** in the
+  word list." It lands here because this is the first user-visible change.
 
 ## Tests
 
@@ -55,8 +62,9 @@ Paths under `app/src/main/java/io/github/dontpanic345/tortoisespelling/`.
   shows the message and Save stays enabled; a paste draft whose result is a valid answer
   with a two-word form shows the warning in the dialog.
 - `WordListContentTest`: a row with `checkForms` shows "Check forms"; a row without doesn't.
-- JVM: `AddWordUiState.formWarnings` and `PasteDraft.warnings` (valid with a two-word form;
-  invalid; null result) in the existing add-screen unit tests.
+- JVM, in `app/src/test/java/io/github/dontpanic345/tortoisespelling/ui/add/AddWordUiStateTest.kt`:
+  `AddWordUiState.formWarnings` (a two-word form is flagged; fixing its text clears it) and
+  `PasteDraft.warnings` (valid with a two-word form; invalid; null result).
 - Screenshot references change only if a preview shows a flagged word. If one does:
   `updateDebugScreenshotTest`, look at it, commit.
 

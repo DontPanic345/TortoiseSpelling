@@ -297,7 +297,7 @@
         {
           "id": "build-2",
           "phase": 2,
-          "title": "Android: paste-dialog warnings, live form marks, the Check forms badge and tag, the ui.json case, component tests",
+          "title": "Android: paste-dialog warnings, live form marks, the Check forms badge and tag, the ui.json case, component tests, the changelog line",
           "model": "sonnet",
           "effort": "medium",
           "why": "Sonnet: contained UI changes on two screens in patterns they already use, with no data or reminder risk.",
@@ -315,7 +315,7 @@
         {
           "id": "build-4",
           "phase": 2,
-          "title": "The curious fixture, two shared scenarios and their steps on both runners, CLAUDE.md, changelog",
+          "title": "The curious fixture, two shared scenarios and their steps on both runners, CLAUDE.md",
           "model": "sonnet",
           "effort": "high",
           "why": "Sonnet: four small steps on existing patterns; high effort because they must pass on the emulator and the web runner with the same texts.",

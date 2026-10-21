@@ -30,3 +30,7 @@ Added "deleting the only word finishes" tests on both apps. Models, effort and `
 ## 2026-10-21 18:00 form-warnings/spec (opus)
 Wrote the spec and five briefs: build-1 adds `formWarnings` and `ktHasWhitespace` with `golden/warnings.json` on both runners; build-2 (Android) shows live marks in the editor, warnings in the paste dialog and a "Check forms" badge (`WordRow.checkForms`, a `ui.json` case), adding the web test id too because `testIds.test.ts` needs a twin for every tag; build-3 mirrors it on the web; build-4 adds the `curious` fixture, a scenario each in `copy_prompt.feature` and `word_list.feature`, four new steps, and the docs.
 Choices: the base form is never checked, whitespace is Kotlin's, and the marks are computed live from what's on screen. All Sonnet; `release` stays `minor`.
+
+## 2026-10-21 18:40 form-warnings/spec-review (opus)
+Fixed four gaps against the code: the web `filterRows` golden runner compares with `toEqual`, so build-2's new `checkForms` key would have failed `npm test` (build-2 now strips it there, build-3 compares it); the web has no error-container colours and its row is a flex column, so build-3 adds both and a badge row; the changelog line moves to build-2, the first user-visible change; the JVM tests are named (`AddWordUiStateTest.kt`).
+Models, efforts and `release: minor` stand.

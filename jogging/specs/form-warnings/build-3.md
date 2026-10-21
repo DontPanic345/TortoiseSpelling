@@ -27,13 +27,21 @@ behaviour to match.
 - `web/src/ui/words/wordListState.ts`: `WordRow` gains `checkForms: boolean`, which
   `filterRows` sets to `formWarnings(w.text, w.content).length > 0`.
 - `web/src/ui/words/WordListContent.tsx`: when `row.checkForms`, after the status badge,
-  `<span class="status-badge check-forms" data-testid={wordRowCheckForms(word.normalizedText)}>Check forms</span>`,
-  styled with the error-container colours.
+  `<span class="status-badge check-forms" data-testid={wordRowCheckForms(word.normalizedText)}>Check forms</span>`.
+  `.word-row-main` is a flex column, so a bare second badge would stack under the first:
+  wrap both badges in `<span class="word-row-badges">` (`display: flex; gap: 6px`), as
+  Android's `Row` with 6 dp spacing. Fix any test or fixture that builds a `WordRow` by
+  hand (`checkForms` is required in TypeScript).
+- `web/src/styles.css` has no error-container colours yet: add `--error-container` and
+  `--on-error-container` beside `--error` in both the light and the dark palette (Material
+  3's baseline: light `#f9dedc` / `#410e0b`, dark `#8c1d18` / `#f9dedc`), and
+  `.status-badge.check-forms` uses them.
 - `web/src/ui/testIds.ts` already has `wordRowCheckForms` (build-2 added it with Android's
   `TestTags.wordRowCheckForms`, since `web/test/ui/testIds.test.ts` checks every Android
   tag has a web twin); import it from there.
-- `web/test/golden/ui.test.ts`: the `filterRows` runner compares `checkForms` (absent in
-  `out` means false), as `UiGoldenTest.kt` already does after build-2. The case
+- `web/test/golden/ui.test.ts`: build-2 made the `filterRows` runner strip `checkForms`
+  from the expected rows so it passed before this step. Replace that: compare
+  `checkForms` too (absent in `out` means false), as `UiGoldenTest.kt` already does. The case
   "a word with a two-word form is marked Check forms" is in `golden/ui.json`.
 
 ## Tests
