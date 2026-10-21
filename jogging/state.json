@@ -104,7 +104,8 @@
           "model": "opus",
           "effort": "medium",
           "status": "pending",
-          "why": "Opus: changes how Android writes a review (goal 1), adds a Room transaction, and changes a repository signature the review screen calls."
+          "why": "Opus: changes how Android writes a review (goal 1), adds a Room transaction, and changes a repository signature the review screen calls.",
+          "awaitingCi": "d7f657d8271021ac221e8b9c4cbd13fffc6bc407"
         },
         {
           "id": "review",
