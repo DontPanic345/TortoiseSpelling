@@ -66,7 +66,8 @@
           "why": "Sonnet: a small piece with no data or reminder risk, held together by golden cases and a shared scenario; high effort for both apps and the on-device-voices privacy rule."
         }
       ],
-      "release": "minor"
+      "release": "minor",
+      "modelsChecked": true
     },
     {
       "id": "review-outcome",
@@ -113,7 +114,8 @@
           "why": "Opus: the piece touches goal 1 (a transaction around the review write) and must keep both apps in agreement; medium effort for two build steps with no UI."
         }
       ],
-      "release": "patch"
+      "release": "patch",
+      "modelsChecked": true
     },
     {
       "id": "icon-redraw",
@@ -185,7 +187,8 @@
           "status": "pending"
         }
       ],
-      "release": "minor"
+      "release": "minor",
+      "modelsChecked": true
     },
     {
       "id": "edit-after-miss",
@@ -259,7 +262,8 @@
           "status": "pending"
         }
       ],
-      "release": "minor"
+      "release": "minor",
+      "modelsChecked": true
     },
     {
       "id": "form-warnings",
@@ -331,18 +335,8 @@
           "status": "pending"
         }
       ],
-      "release": "minor"
+      "release": "minor",
+      "modelsChecked": true
     }
-  ],
-  "modelCheck": {
-    "issue": 31,
-    "at": "2026-10-21T05:25:59.635Z",
-    "pieces": [
-      "speak-word",
-      "review-outcome",
-      "icon-redraw",
-      "edit-after-miss",
-      "form-warnings"
-    ]
-  }
+  ]
 }
