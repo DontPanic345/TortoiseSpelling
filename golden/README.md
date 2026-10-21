@@ -57,6 +57,7 @@ output, and a `name` saying what it checks (the Kotlin test it came from, in wor
 | `speech.json` | `chooseVoice`, `speechRate` |
 | `prompt.json` | `lookupPrompt`, the whole text |
 | `paste.json` | `parsePastedLookup` (every message, the order of the checks, each limit at and one over), `summary`, `isBlank` |
+| `warnings.json` | `formWarnings` |
 | `backup.json` | `parseBackup`, `toImport`, `toBackup`: whole files in `backup/` (`files`: what each imports as, and what exporting those words writes back), refusals with their messages, `quirks`, and the `envelope` (the version a file reads as, and the exact text an export writes) |
 | `ui.json` | The UI helpers both apps share: `statusLabel`, `noMatchesBody`, `filterRows`, `completionHeadline`, `importMessage`, `blankedExample`, `canSave`, `applying` (Kotlin: the ViewModels and `CompletionPanel`; TypeScript: `web/src/ui/<screen>/*State.ts`) |
 

@@ -16,6 +16,13 @@ export function ktIsBlank(raw: string): boolean {
   return ALL_WHITESPACE.test(raw);
 }
 
+const HAS_WHITESPACE = new RegExp(KT_WHITESPACE, "u");
+
+/** Whether `raw` holds a character Kotlin's `Char.isWhitespace` accepts. */
+export function ktHasWhitespace(raw: string): boolean {
+  return HAS_WHITESPACE.test(raw);
+}
+
 // Java's \s: space, \t \n \v \f \r only, so a non-breaking space is not collapsed.
 const JAVA_WHITESPACE_RUN = /[ \t\n\v\f\r]+/g;
 

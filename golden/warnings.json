@@ -1,0 +1,357 @@
+{
+  "about": "Suspect forms in a word's content (formWarnings, FormWarnings.kt).",
+  "formWarnings": [
+    {
+      "name": "a clean word",
+      "word": "run",
+      "content": {
+        "definitions": [
+          {
+            "text": "d",
+            "forms": [
+              {
+                "text": "run"
+              },
+              {
+                "text": "ran"
+              },
+              {
+                "text": "running"
+              }
+            ]
+          }
+        ]
+      },
+      "out": []
+    },
+    {
+      "name": "a spaced form of a one-word root",
+      "word": "curious",
+      "content": {
+        "definitions": [
+          {
+            "text": "d",
+            "forms": [
+              {
+                "text": "curious"
+              },
+              {
+                "text": "most curious"
+              }
+            ]
+          }
+        ]
+      },
+      "out": [
+        {
+          "definition": 0,
+          "form": 1,
+          "message": "\u201cmost curious\u201d is more than one word. Spelling review asks for one word."
+        }
+      ]
+    },
+    {
+      "name": "a phrase root may have spaced forms",
+      "word": "ice cream",
+      "content": {
+        "definitions": [
+          {
+            "text": "d",
+            "forms": [
+              {
+                "text": "ice cream"
+              },
+              {
+                "text": "ice creams"
+              }
+            ]
+          }
+        ]
+      },
+      "out": []
+    },
+    {
+      "name": "hyphens are not whitespace",
+      "word": "mother-in-law",
+      "content": {
+        "definitions": [
+          {
+            "text": "d",
+            "forms": [
+              {
+                "text": "mother-in-law"
+              },
+              {
+                "text": "mothers-in-law"
+              }
+            ]
+          }
+        ]
+      },
+      "out": []
+    },
+    {
+      "name": "apostrophes are not whitespace",
+      "word": "do",
+      "content": {
+        "definitions": [
+          {
+            "text": "d",
+            "forms": [
+              {
+                "text": "do"
+              },
+              {
+                "text": "don't"
+              }
+            ]
+          }
+        ]
+      },
+      "out": []
+    },
+    {
+      "name": "spaces around a form are trimmed",
+      "word": "curious",
+      "content": {
+        "definitions": [
+          {
+            "text": "d",
+            "forms": [
+              {
+                "text": "curious"
+              },
+              {
+                "text": " curiouser "
+              }
+            ]
+          }
+        ]
+      },
+      "out": []
+    },
+    {
+      "name": "a non-breaking space inside a form counts",
+      "word": "curious",
+      "content": {
+        "definitions": [
+          {
+            "text": "d",
+            "forms": [
+              {
+                "text": "curious"
+              },
+              {
+                "text": "most\u00a0curious"
+              }
+            ]
+          }
+        ]
+      },
+      "out": [
+        {
+          "definition": 0,
+          "form": 1,
+          "message": "\u201cmost\u00a0curious\u201d is more than one word. Spelling review asks for one word."
+        }
+      ]
+    },
+    {
+      "name": "a tab inside a form counts",
+      "word": "curious",
+      "content": {
+        "definitions": [
+          {
+            "text": "d",
+            "forms": [
+              {
+                "text": "curious"
+              },
+              {
+                "text": "most\tcurious"
+              }
+            ]
+          }
+        ]
+      },
+      "out": [
+        {
+          "definition": 0,
+          "form": 1,
+          "message": "\u201cmost\tcurious\u201d is more than one word. Spelling review asks for one word."
+        }
+      ]
+    },
+    {
+      "name": "a root with a non-breaking space inside is a phrase",
+      "word": "ice\u00a0cream",
+      "content": {
+        "definitions": [
+          {
+            "text": "d",
+            "forms": [
+              {
+                "text": "ice\u00a0cream"
+              },
+              {
+                "text": "ice creams"
+              }
+            ]
+          }
+        ]
+      },
+      "out": []
+    },
+    {
+      "name": "a root with spaces around it is one word",
+      "word": " curious ",
+      "content": {
+        "definitions": [
+          {
+            "text": "d",
+            "forms": [
+              {
+                "text": "curious"
+              },
+              {
+                "text": "most curious"
+              }
+            ]
+          }
+        ]
+      },
+      "out": [
+        {
+          "definition": 0,
+          "form": 1,
+          "message": "\u201cmost curious\u201d is more than one word. Spelling review asks for one word."
+        }
+      ]
+    },
+    {
+      "name": "two flagged forms in two definitions are in content order",
+      "word": "curious",
+      "content": {
+        "definitions": [
+          {
+            "text": "d",
+            "forms": [
+              {
+                "text": "curious"
+              },
+              {
+                "text": "most curious"
+              }
+            ]
+          },
+          {
+            "text": "d",
+            "forms": [
+              {
+                "text": "curious"
+              },
+              {
+                "text": "very curious"
+              }
+            ]
+          }
+        ]
+      },
+      "out": [
+        {
+          "definition": 0,
+          "form": 1,
+          "message": "\u201cmost curious\u201d is more than one word. Spelling review asks for one word."
+        },
+        {
+          "definition": 1,
+          "form": 1,
+          "message": "\u201cvery curious\u201d is more than one word. Spelling review asks for one word."
+        }
+      ]
+    },
+    {
+      "name": "the base form is never checked",
+      "word": "curious",
+      "content": {
+        "definitions": [
+          {
+            "text": "d",
+            "forms": [
+              {
+                "text": "cur ious"
+              }
+            ]
+          }
+        ]
+      },
+      "out": []
+    },
+    {
+      "name": "a blank form is not flagged",
+      "word": "curious",
+      "content": {
+        "definitions": [
+          {
+            "text": "d",
+            "forms": [
+              {
+                "text": "curious"
+              },
+              {
+                "text": "  "
+              }
+            ]
+          }
+        ]
+      },
+      "out": []
+    },
+    {
+      "name": "a byte order mark inside a form is not whitespace (Kotlin, unlike JavaScript's \\s)",
+      "word": "curious",
+      "content": {
+        "definitions": [
+          {
+            "text": "d",
+            "forms": [
+              {
+                "text": "curious"
+              },
+              {
+                "text": "cur\ufeffious"
+              }
+            ]
+          }
+        ]
+      },
+      "out": []
+    },
+    {
+      "name": "a unit separator inside a form is whitespace (Kotlin, unlike JavaScript's \\s)",
+      "word": "curious",
+      "content": {
+        "definitions": [
+          {
+            "text": "d",
+            "forms": [
+              {
+                "text": "curious"
+              },
+              {
+                "text": "most\u001fcurious"
+              }
+            ]
+          }
+        ]
+      },
+      "out": [
+        {
+          "definition": 0,
+          "form": 1,
+          "message": "\u201cmost\u001fcurious\u201d is more than one word. Spelling review asks for one word."
+        }
+      ]
+    }
+  ]
+}
