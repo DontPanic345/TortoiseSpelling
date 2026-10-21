@@ -26,3 +26,7 @@ Recorded the approved goal 4 exception in `GOALS.md`. Delete removes the card fr
 ## 2026-10-21 17:00 edit-after-miss/spec-review (opus)
 Checked the spec and briefs against the code and the assumed review-outcome and speak-word builds. Fixed three things: build-2 also adds `REVIEW_EDIT` to the web's `TestIds`, as `testIds.test.ts` fails CI when an Android tag has no web twin; the web's `finished` effect waits while `editing` is set, because the async `history.back()` would otherwise let `replace(completion)` overwrite the editor's entry and remount a fresh session; and both apps guard a double tap (`launchSingleTop`, an `opening` ref).
 Added "deleting the only word finishes" tests on both apps. Models, effort and `release: minor` stand.
+
+## 2026-10-21 18:00 form-warnings/spec (opus)
+Wrote the spec and five briefs: build-1 adds `formWarnings` and `ktHasWhitespace` with `golden/warnings.json` on both runners; build-2 (Android) shows live marks in the editor, warnings in the paste dialog and a "Check forms" badge (`WordRow.checkForms`, a `ui.json` case), adding the web test id too because `testIds.test.ts` needs a twin for every tag; build-3 mirrors it on the web; build-4 adds the `curious` fixture, a scenario each in `copy_prompt.feature` and `word_list.feature`, four new steps, and the docs.
+Choices: the base form is never checked, whitespace is Kotlin's, and the marks are computed live from what's on screen. All Sonnet; `release` stays `minor`.

@@ -284,6 +284,51 @@
           "model": "opus",
           "effort": "medium",
           "status": "pending"
+        },
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "The rule on both apps: formWarnings, ktHasWhitespace, golden/warnings.json and both runners",
+          "model": "sonnet",
+          "effort": "medium",
+          "why": "Sonnet: one small pure function per app, and the golden cases hold the two apps to the same answers mechanically.",
+          "status": "pending"
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "Android: paste-dialog warnings, live form marks, the Check forms badge and tag, the ui.json case, component tests",
+          "model": "sonnet",
+          "effort": "medium",
+          "why": "Sonnet: contained UI changes on two screens in patterns they already use, with no data or reminder risk.",
+          "status": "pending"
+        },
+        {
+          "id": "build-3",
+          "phase": 2,
+          "title": "Web: the same warnings, marks and badge, filterRows checkForms, the test id, tests",
+          "model": "sonnet",
+          "effort": "medium",
+          "why": "Sonnet: mirrors build-2 in the web's existing components, checked by the shared golden case.",
+          "status": "pending"
+        },
+        {
+          "id": "build-4",
+          "phase": 2,
+          "title": "The curious fixture, two shared scenarios and their steps on both runners, CLAUDE.md, changelog",
+          "model": "sonnet",
+          "effort": "high",
+          "why": "Sonnet: four small steps on existing patterns; high effort because they must pass on the emulator and the web runner with the same texts.",
+          "status": "pending"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the whole piece",
+          "model": "sonnet",
+          "effort": "high",
+          "why": "Sonnet: a small piece with no schema, backup or reminder change; high effort to check the two apps agree on whitespace and that warnings never block.",
+          "status": "pending"
         }
       ],
       "release": "minor"
