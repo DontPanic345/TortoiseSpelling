@@ -81,3 +81,7 @@ Component, integration (13/13), unit, lint, screenshots, web and `review.feature
 ## 2026-10-21 17:55 edit-after-miss/build-3 (opus)
 Web **Edit word** after a miss: `#/review/edit/<id>` and `#/practice/edit/<id>` with `screenKey` keeping review mounted, `AddWordScreen`'s `onClosed`, `editRequested`/`editSaving`/`editedCard`/`wordRemoved`, and `closeEdit` in `ReviewScreen`; with the brief's router, state, content, add-screen and eight review journeys (plus a double-tap one).
 The "only word deleted" journey passed without the `finished` guard, as jsdom lands the pop first and the remounted session is empty anyway; it now delays `history.back` and asserts no second `buildSession`, and fails without the guard. Web tests (932), typecheck, check-steps, specs (30, Chromium and WebKit) and build pass; smoke's push reminder test flaked once, then passed 12/12.
+
+## 2026-10-21 18:30 edit-after-miss/build-4 (sonnet)
+Added the "Fixing a wrong entry after a miss asks the word again" scenario to `specs/review.feature` (no new steps, none needed fixing), plus the CLAUDE.md, README and CHANGELOG lines.
+Passes on Android e2e (57) and web specs (Chromium); both check-steps and check-specs pass.

@@ -11,6 +11,7 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ### Added
 
+- **Edit word** after a miss in review, on Android and the web: fix a wrong definition, form or example, and saving takes the miss back and asks the word again.
 - **Hear the word**: a speaker button on the review screen, on Android and the web, says the word aloud in your phone's or browser's own voice. It is hidden when the device has no voice installed.
 
 ### Fixed

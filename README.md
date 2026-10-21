@@ -16,7 +16,8 @@ spaced repetition and a once-a-day reminder so the habit sticks. Slow and steady
 - 🔊 **Hear the word.** Tap the speaker to hear the word spoken by your phone's or
   browser's own voice.
 - ✅ **Immediate correction.** A miss shows a character-level diff, then makes you
-  retype the word correctly before moving on.
+  retype the word correctly before moving on. If the word itself was wrong, Edit word
+  fixes it and the miss doesn't count.
 - 🐢 **Spaced repetition (SM-2).** Correct spellings push the word further out
   (1 day → 6 days → longer); a miss brings it back tomorrow. See
   [Spaced repetition](#-spaced-repetition) below.

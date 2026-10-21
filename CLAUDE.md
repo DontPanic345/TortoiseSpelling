@@ -68,7 +68,9 @@ and builds the log row; `WordRepository.recordReview` reads, applies and writes 
 transaction, and records nothing for a deleted word.
 Correct first try is quality 5; correct only after the retype is 2, below SM-2's reset at 3,
 so the word comes back tomorrow. The review is recorded at the first attempt, so abandoning
-mid-correction still counts as a lapse. A session is every due word plus the new-word
+mid-correction still counts as a lapse, unless the user saves an edit from review's **Edit word**:
+`undoReview` puts back the scheduling captured before the miss and deletes its log row, in one
+transaction, and the word is asked again. A session is every due word plus the new-word
 allowance, which counts words *introduced* today. Practice mode never writes scheduling
 state or logs.
 
