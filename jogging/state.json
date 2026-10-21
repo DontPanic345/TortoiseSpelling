@@ -95,7 +95,8 @@
           "model": "opus",
           "effort": "medium",
           "status": "pending",
-          "why": "Opus: the step's whole point is that both apps agree (goal 5), and its golden cases must pin today's scheduling exactly (goal 4); medium effort for one pure function lifted from existing code on each side."
+          "why": "Opus: the step's whole point is that both apps agree (goal 5), and its golden cases must pin today's scheduling exactly (goal 4); medium effort for one pure function lifted from existing code on each side.",
+          "awaitingCi": "88fa1f002a752d96abcc5c49e12c85cb27e28e6d"
         },
         {
           "id": "build-2",
