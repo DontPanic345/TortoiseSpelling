@@ -18,7 +18,8 @@ it, request headers or the environment.
 
 ## Tools (from build-1)
 
-- `node scripts/recraft.mjs generate --round <round> --direction <letter> --n <n> --prompt "…" [--style …] [--model …]`
+- `node scripts/recraft.mjs generate --round <round> --direction <letter> --n <n> --prompt "…" [--style …] [--model …] [--colors "#2F5D50,#E7BE8A,#F7F4EE"]`
+  (default model `recraftv4_1_vector`; `--colors` passes the palette as `controls.colors`)
   saves SVGs as `docs/icon-concepts/<round>/<direction>-<nn>.svg` and records the request.
 - `node scripts/recraft.mjs spent` prints spent and cap; `check` verifies the ledger.
 - `cd web && node scripts/icon-sheet.mjs <round>` renders the round's SVGs (minus those

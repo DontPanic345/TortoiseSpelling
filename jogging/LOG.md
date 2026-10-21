@@ -65,3 +65,7 @@ Unit, lint, data and integration layers, review/completion/daily_allowance e2e o
 ## 2026-10-21 14:15 review-outcome/review (opus)
 Reviewed the whole piece: the nine golden cases match the removed `recordReview` (SM-2 numbers rechecked), the DAO's read, update and log run in one `@Transaction`, the web transaction still awaits only its own requests, and no caller passes a `Word` any more. No scheduling outcome changed; CHANGELOG's "Fixed" line covers both user-visible fixes. No fixes needed.
 `assembleRelease` and the release e2e (20 passing) pass, as do the review unit/golden tests and the web golden and repository tests.
+
+## 2026-10-21 14:30 icon-redraw/build-1 (opus)
+Built `scripts/recraft.mjs` (ledger, cap and balance refusal, V4.1 vector at 80 units; the API is `external.api.recraft.ai/v1`, balance from `/users/me` `credits`) with `recraft.test.mjs`, and `web/scripts/icon-sheet.mjs`. Added an optional `--colors` flag (Recraft's `controls.colors`, kept as `colors` in the ledger) and noted it in the spec and build-2's brief.
+Explore round: six directions a–f, 24 images, 1,920 of 10,000 units; dropped a-01, a-02, c-01, c-04. Sheet and prompts in `docs/icon-concepts/`. Blocked for Alan to pick a direction.

@@ -72,7 +72,7 @@ around 4,000 units, so the cap leaves room for re-rolls. The balance is read wit
   doesn't report a balance.
 - Saves each returned SVG as `docs/icon-concepts/<round>/<direction>-<nn>.svg` and
   appends the request to the ledger in the same run.
-- CLI: `node scripts/recraft.mjs generate --round explore --direction a --n 4 --prompt "…" [--style …] [--model …]`,
+- CLI: `node scripts/recraft.mjs generate --round explore --direction a --n 4 --prompt "…" [--style …] [--model …] [--colors …]`,
   `node scripts/recraft.mjs spent` (prints spent and cap), and
   `node scripts/recraft.mjs check` (exits 0 when spent ≤ cap and every ledger file exists).
 - `scripts/recraft.test.mjs` tests the pure parts (ledger totals, the refusal rule,
