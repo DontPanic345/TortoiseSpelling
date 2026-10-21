@@ -96,3 +96,6 @@ Brief was wrong on one point: JavaScript's `/\s/` matches a non-breaking space a
 
 ## 2026-10-21 18:55 form-warnings/build-2 (sonnet)
 Android shows `formWarnings` live on the add screen (form field error and message), in the paste dialog, and as a "Check forms" badge in the word list (`WordRow.checkForms`, `ui.json` case, test id on Android, e2e and web). Web golden runner strips `checkForms` until build-3. Unit, lint, screenshot, component layer and web tests pass; no screenshot reference changed.
+
+## 2026-10-21 19:20 form-warnings/build-2 (sonnet)
+CI run 39655691396 was red from the runner, not the code: the data and accessibility jobs never booted an emulator (the `system-images;android-34` download failed with "Error on ZipFile unknown archive"), and in the e2e job the reminder scenario timed out waiting on the accessibility tree. `notifications.feature` passes 33/33 on this emulator, so no code change; re-running CI.
