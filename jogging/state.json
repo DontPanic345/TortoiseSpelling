@@ -138,6 +138,51 @@
           "model": "opus",
           "effort": "medium",
           "status": "pending"
+        },
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "Recraft client with a spend cap, the sheet renderer, the explore round and its contact sheet; blocks for Alan to pick a direction",
+          "model": "opus",
+          "effort": "medium",
+          "why": "Opus: spends paid units against a hard cap with a new API client, and the step's worth is judging which designs to show Alan; medium effort as the code is small.",
+          "status": "pending"
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "Two refine rounds in the chosen direction and a finalists sheet; blocks for Alan to pick the final",
+          "model": "opus",
+          "effort": "medium",
+          "why": "Opus: design judgement and prompt tightening against the criteria, spending paid units; medium effort with the tools already built.",
+          "status": "pending"
+        },
+        {
+          "id": "build-3",
+          "phase": 2,
+          "title": "The generator reads scripts/icon-source.svg: parser, flattener, outputs and geometry tests, on today's shapes",
+          "model": "sonnet",
+          "effort": "high",
+          "why": "Sonnet: a contained Node script with exact tests; high effort for the path flattener and the contour-distance rules.",
+          "status": "pending"
+        },
+        {
+          "id": "build-4",
+          "phase": 2,
+          "title": "Rebuild the pick as clean paths in the source, every output, web icons, final side-by-side, changelog (or the fallback)",
+          "model": "opus",
+          "effort": "high",
+          "why": "Opus: hand-building art from a traced reference to pass strict geometry and look as good at 24 dp, including the reminder's notification icon (goal 2); high effort for visual iteration.",
+          "status": "pending"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the whole piece",
+          "model": "opus",
+          "effort": "medium",
+          "why": "Opus: the notification icon is the reminder's face (goal 2) and the piece spent paid units; medium effort for a piece with no data or behaviour change.",
+          "status": "pending"
         }
       ],
       "release": "minor"
