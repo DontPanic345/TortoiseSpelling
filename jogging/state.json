@@ -27,7 +27,8 @@
           "model": "sonnet",
           "effort": "medium",
           "status": "pending",
-          "why": "Sonnet: one small pure function, and the golden cases hold the two apps to the same answers mechanically."
+          "why": "Sonnet: one small pure function, and the golden cases hold the two apps to the same answers mechanically.",
+          "awaitingCi": "89018a5a662d441746e7bec8d4a1c46fe67d6593"
         },
         {
           "id": "build-2",
