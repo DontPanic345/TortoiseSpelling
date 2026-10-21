@@ -114,3 +114,7 @@ Web `npm test` (953) and typecheck, `check-specs` and `assembleRelease` pass; re
 ## 2026-10-21 21:00 icon-redraw/build-1 (opus)
 Alan replied "B-02, B-04": direction b (friendly cartoon, smiling), refining from `b-02` and `b-04`.
 Wrote it into `build-2.md` as "Alan's choice" with the prompt, model, colours and file names. No Recraft requests this session (1,920 of 10,000 units spent).
+
+## 2026-10-21 22:30 icon-redraw/build-1 (opus)
+CI was red for an e2e flake that has now hit twice (here and form-warnings/build-2): the scenario after "Open settings" fails in `resetApp`, as Android's notification settings sit in the app's task and `pm clear` tears them down under the relaunch, leaving no readable window for 30 s. It didn't reproduce locally (12 runs, some under CPU load).
+`resetApp` now presses Home before clearing, and the failure hook saves the screenshot before the page source, which threw first here and left no image. Full Android e2e (207), typecheck and `check-steps --all` pass; acceptance passes. No Recraft requests (1,920 of 10,000 units).
