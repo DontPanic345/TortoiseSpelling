@@ -99,3 +99,6 @@ Android shows `formWarnings` live on the add screen (form field error and messag
 
 ## 2026-10-21 19:20 form-warnings/build-2 (sonnet)
 CI run 39655691396 was red from the runner, not the code: the data and accessibility jobs never booted an emulator (the `system-images;android-34` download failed with "Error on ZipFile unknown archive"), and in the e2e job the reminder scenario timed out waiting on the accessibility tree. `notifications.feature` passes 33/33 on this emulator, so no code change; re-running CI.
+
+## 2026-10-21 19:30 form-warnings/build-3 (sonnet)
+Web shows `formWarnings` live on the add screen's form fields, in the paste dialog, and as a "Check forms" badge beside the status badge in the word list (`WordRow.checkForms`, error-container colours, `.word-row-badges`). The `filterRows` golden runner now compares `checkForms`. Added add-screen, paste-dialog and word-row tests; `npm test` and `npm run typecheck` pass.

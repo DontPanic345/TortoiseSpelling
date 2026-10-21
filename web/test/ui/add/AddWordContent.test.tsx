@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen } from "@testing-library/preact";
 import { describe, expect, it } from "vitest";
-import type { ContentEdit } from "../../../src/domain/wordContent";
+import { apply, type ContentEdit } from "../../../src/domain/wordContent";
 import { AddWordContent } from "../../../src/ui/add/AddWordContent";
 import type { AddWordState } from "../../../src/ui/add/addWordState";
 import { TestIds, addWordAddExample, addWordAddForm, addWordFormText } from "../../../src/ui/testIds";
@@ -256,6 +256,31 @@ describe("AddWordContent", () => {
   it("the rename line shows only when the answer changes the word", () => {
     show(addPasteValid("recieve", "receive"));
     expect(screen.getByText("This answer is for “receive”. Using it changes the word from “recieve”.")).toBeTruthy();
+  });
+
+  it("a valid answer with a two-word form lists the warning", () => {
+    const state = addPasteValid("curious", "curious");
+    state.paste!.result = {
+      kind: "valid",
+      word: "curious",
+      renames: false,
+      content: apply(addRun().content, { edit: "FormText", definition: 0, form: 1, value: "most curious" }),
+    };
+    show(state);
+    expect(screen.getByText("“most curious” is more than one word. Spelling review asks for one word.")).toBeTruthy();
+  });
+
+  it("a two-word form is marked but Save stays enabled", () => {
+    const state = addRun();
+    state.content = apply(state.content, { edit: "FormText", definition: 0, form: 1, value: "most curious" });
+    show(state);
+    expect(screen.getByText("“most curious” is more than one word. Spelling review asks for one word.")).toBeTruthy();
+    expect((byId(TestIds.ADD_WORD_SAVE) as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it("a one-word form has no warning", () => {
+    show(addRun());
+    expect(count(/is more than one word/)).toBe(0);
   });
 
   it("no rename line when the word matches", () => {

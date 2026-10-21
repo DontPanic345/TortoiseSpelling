@@ -3,7 +3,7 @@ import { fireEvent, render, screen, within } from "@testing-library/preact";
 import { describe, expect, it } from "vitest";
 import type { Word } from "../../../src/data/model";
 import { WORD_FILTERS } from "../../../src/domain/progress";
-import { TestIds, wordFilter, wordRow, wordRowStatus } from "../../../src/ui/testIds";
+import { TestIds, wordFilter, wordRow, wordRowCheckForms, wordRowStatus } from "../../../src/ui/testIds";
 import { WordListContent } from "../../../src/ui/words/WordListContent";
 import { initialWordListState, noMatchesBody, type WordListUiState } from "../../../src/ui/words/wordListState";
 
@@ -34,7 +34,7 @@ function listState(): WordListUiState {
     ...initialWordListState,
     loading: false,
     filterCounts: Object.fromEntries(WORD_FILTERS.map((f) => [f, 3])),
-    rows: words.map((w, i) => ({ word: w, status: statuses[i]!, definition: `A definition of ${w.text}.` })),
+    rows: words.map((w, i) => ({ word: w, status: statuses[i]!, definition: `A definition of ${w.text}.`, checkForms: false })),
     totalCount: 3,
   };
 }
@@ -110,6 +110,15 @@ describe("WordListContent", () => {
     fireEvent.click(screen.getByLabelText("Resume word"));
     fireEvent.click(screen.getAllByLabelText("Suspend word")[0]!);
     expect(calls).toEqual(["suspend:necessary", "suspend:rhythm"]);
+  });
+
+  it("a row with checkForms shows Check forms and the others don't", () => {
+    const state = listState();
+    state.rows[1] = { ...state.rows[1]!, checkForms: true };
+    show(state);
+    expect(screen.getByTestId(wordRowCheckForms("necessary")).textContent).toBe("Check forms");
+    expect(screen.queryByTestId(wordRowCheckForms("rhythm"))).toBeNull();
+    expect(screen.getAllByText("Check forms")).toHaveLength(1);
   });
 
   it("delete asks first, then deletes", () => {

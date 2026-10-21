@@ -6,7 +6,7 @@ import { Dialog } from "../common/Dialog";
 import { EmptyState } from "../common/EmptyState";
 import { DeleteIcon, PauseCircleIcon, PlayCircleIcon } from "../common/icons";
 import { TopBar } from "../common/TopBar";
-import { TestIds, wordFilter, wordRow, wordRowStatus } from "../testIds";
+import { TestIds, wordFilter, wordRow, wordRowCheckForms, wordRowStatus } from "../testIds";
 import { isFiltering, noMatchesBody, type WordListUiState, type WordRow } from "./wordListState";
 
 export interface WordListContentProps {
@@ -138,11 +138,18 @@ function WordListItem({
       <button type="button" class="word-row-main" onClick={onClick}>
         <span class="word-row-text">{word.text}</span>
         <span class="word-row-definition">{row.definition}</span>
-        <span
-          class={`status-badge ${word.suspended ? "suspended" : ""}`.trim()}
-          data-testid={wordRowStatus(word.normalizedText)}
-        >
-          {row.status}
+        <span class="word-row-badges">
+          <span
+            class={`status-badge ${word.suspended ? "suspended" : ""}`.trim()}
+            data-testid={wordRowStatus(word.normalizedText)}
+          >
+            {row.status}
+          </span>
+          {row.checkForms && (
+            <span class="status-badge check-forms" data-testid={wordRowCheckForms(word.normalizedText)}>
+              Check forms
+            </span>
+          )}
         </span>
       </button>
       <button

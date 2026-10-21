@@ -1,5 +1,6 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useId, useRef, useState } from "preact/hooks";
+import { formWarnings, type FormWarning } from "../../domain/formWarnings";
 import { isBlank, summary, type PastedLookup } from "../../domain/pastedLookup";
 import { ktIsBlank, ktTrim } from "../../domain/text";
 import {
@@ -56,6 +57,7 @@ export function AddWordContent({
   const wordField = useRef<HTMLInputElement>(null);
   const editing = isEditing(state);
   const word = ktTrim(state.text);
+  const warnings = formWarnings(word, state.content);
 
   // Focus on arrival and after each add, so a run of words can be added without reaching
   // for anything. The fields clear after a save, so this is the new burst's first field.
@@ -112,7 +114,7 @@ export function AddWordContent({
       {/* Every field stays editable whether or not a pasted answer filled it: the app has
           to be fully usable offline and with no chat AI at all. */}
       {state.content.definitions.map((definition, d) => (
-        <DefinitionEditor key={d} d={d} definition={definition} word={word} onEdit={onEdit} />
+        <DefinitionEditor key={d} d={d} definition={definition} word={word} warnings={warnings} onEdit={onEdit} />
       ))}
       <button
         type="button"
@@ -230,11 +232,13 @@ function DefinitionEditor({
   d,
   definition,
   word,
+  warnings,
   onEdit,
 }: {
   d: number;
   definition: DefinitionDraft;
   word: string;
+  warnings: readonly FormWarning[];
   onEdit: (edit: ContentEdit) => void;
 }) {
   const missing = ktIsBlank(definition.text);
@@ -272,7 +276,15 @@ function DefinitionEditor({
       />
 
       {definition.forms.map((form, f) => (
-        <FormEditor key={f} d={d} f={f} form={form} word={word} onEdit={onEdit} />
+        <FormEditor
+          key={f}
+          d={d}
+          f={f}
+          form={form}
+          word={word}
+          warning={warnings.find((w) => w.definition === d && w.form === f)?.message ?? null}
+          onEdit={onEdit}
+        />
       ))}
       <button
         type="button"
@@ -291,12 +303,14 @@ function FormEditor({
   f,
   form,
   word,
+  warning,
   onEdit,
 }: {
   d: number;
   f: number;
   form: FormDraft;
   word: string;
+  warning: string | null;
   onEdit: (edit: ContentEdit) => void;
 }) {
   const isBase = d === 0 && f === 0;
@@ -310,8 +324,8 @@ function FormEditor({
         <Field
           label="Form"
           value={form.text}
-          error={formMissing}
-          support={formMissing ? "Required" : null}
+          error={formMissing || warning !== null}
+          support={formMissing ? "Required" : warning}
           autocapitalize="none"
           testId={addWordFormText(d, f)}
           onInput={(value) => onEdit({ edit: "FormText", definition: d, form: f, value })}
@@ -439,6 +453,12 @@ function PasteDialog({
         </div>
         <p class="support">{pasteSupport(result)}</p>
       </div>
+      {result?.kind === "valid" &&
+        formWarnings(result.word, result.content).map((w, i) => (
+          <p key={i} class="warning">
+            {w.message}
+          </p>
+        ))}
       {result?.kind === "invalid" && (
         // So the message can go back to the chat, which can usually fix its answer.
         <button

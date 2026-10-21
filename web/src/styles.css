@@ -23,6 +23,8 @@
   --outline: #7a776f;
   --outline-variant: #d6d1c7;
   --error: #b3261e;
+  --error-container: #f9dedc;
+  --on-error-container: #410e0b;
   --correct: #1b5e3a;
   --correct-container: #d3efdf;
   --wrong: #b3261e;
@@ -53,6 +55,8 @@
     --outline: #89938e;
     --outline-variant: #3f4945;
     --error: #f2b8b5;
+    --error-container: #8c1d18;
+    --on-error-container: #f9dedc;
     --correct: #8ed9ae;
     --correct-container: #20402f;
     --wrong: #f2b8b5;
@@ -878,6 +882,10 @@ button {
   outline-color: var(--error);
 }
 
+.warning {
+  color: var(--error);
+}
+
 .field.error .support {
   color: var(--error);
 }
@@ -1024,6 +1032,16 @@ button {
   background: var(--secondary-container);
   color: var(--on-secondary-container);
   font-size: 11px;
+}
+
+.word-row-badges {
+  display: flex;
+  gap: 6px;
+}
+
+.status-badge.check-forms {
+  background: var(--error-container);
+  color: var(--on-error-container);
 }
 
 .status-badge.suspended {

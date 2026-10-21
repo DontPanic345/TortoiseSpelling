@@ -34,9 +34,10 @@ describe("ui golden cases", () => {
     it("matches", () => {
       const words = c.words.map((w: any) => ({ ...wordFrom(w), content: contentFrom(w.content) }));
       const rows = filterRows(words, c.query, c.filter, c.today);
-      // build-3 compares checkForms; until then the web rows don't have it.
-      const expected = c.out.map(({ checkForms, ...row }: any) => row);
-      expect(rows.map((r) => ({ text: r.word.text, status: r.status, definition: r.definition }))).toEqual(expected);
+      const expected = c.out.map((row: any) => ({ ...row, checkForms: row.checkForms ?? false }));
+      expect(
+        rows.map((r) => ({ text: r.word.text, status: r.status, definition: r.definition, checkForms: r.checkForms })),
+      ).toEqual(expected);
     });
   });
 
