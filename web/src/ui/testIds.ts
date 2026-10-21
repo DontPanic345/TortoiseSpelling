@@ -37,6 +37,7 @@ export const TestIds = {
   REVIEW_SUBMIT: "review_submit",
   REVIEW_SPEAK: "review_speak",
   REVIEW_CORRECT_WORD: "review_correct_word",
+  REVIEW_EDIT: "review_edit",
 } as const;
 
 /** The tree editor's fields by position (definition, form, example). */

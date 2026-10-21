@@ -24,6 +24,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/** How the edit screen closed: the edit was saved, or the word deleted. */
+enum class EditOutcome { SAVED, DELETED }
+
 /** The paste dialog's text and what [parsePastedLookup] made of it; [result] is null while the text is blank. */
 data class PasteDraft(val text: String = "", val result: PastedLookup? = null)
 
@@ -35,7 +38,8 @@ data class AddWordUiState(
     val message: String? = null,
     val addedThisSession: Int = 0,
     val totalWords: Int = 0,
-    val dismissed: Boolean = false,
+    /** Set when editing ends; adding never closes the screen. */
+    val closed: EditOutcome? = null,
 ) {
     val isEditing: Boolean get() = editingId != null
     val canSave: Boolean get() = text.isNotBlank() && content.isComplete()
@@ -151,7 +155,7 @@ class AddWordViewModel(
                     snapshot.content,
                 )
                 _state.value = when (result) {
-                    UpdateResult.Updated -> _state.value.copy(dismissed = true)
+                    UpdateResult.Updated -> _state.value.copy(closed = EditOutcome.SAVED)
                     is UpdateResult.Duplicate -> _state.value.copy(
                         message = "“${result.existing.text}” is already in your list.",
                     )
@@ -190,7 +194,7 @@ class AddWordViewModel(
         val editingId = _state.value.editingId ?: return
         viewModelScope.launch {
             repository.wordById(editingId)?.let { repository.deleteWord(it) }
-            _state.update { it.copy(dismissed = true) }
+            _state.update { it.copy(closed = EditOutcome.DELETED) }
         }
     }
 

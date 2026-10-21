@@ -75,6 +75,7 @@ import io.github.dontpanic345.tortoisespelling.ui.rememberAppContainer
 fun AddWordScreen(
     editingId: Long?,
     onDone: () -> Unit,
+    onClosed: (EditOutcome) -> Unit = { onDone() },
 ) {
     val container = rememberAppContainer()
     val viewModel: AddWordViewModel = viewModel(
@@ -87,10 +88,8 @@ fun AddWordScreen(
     val clipboard = LocalClipboard.current
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(state.dismissed) {
-        if (state.dismissed) {
-            onDone()
-        }
+    LaunchedEffect(state.closed) {
+        state.closed?.let(onClosed)
     }
 
     LaunchedEffect(state.message) {

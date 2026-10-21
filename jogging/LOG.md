@@ -73,3 +73,7 @@ Explore round: six directions a–f, 24 images, 1,920 of 10,000 units; dropped a
 ## 2026-10-21 14:40 edit-after-miss/build-1 (opus)
 Added `undone` on both apps with three `undone` golden cases, `recordReview` returning `ReviewUndo` (null for a gone word), and `undoReview` and `cardFor` on both repositories, with the brief's DAO, repository and web tests; screens untouched.
 The DAO test reads `review_log` ids through `db.openHelper` rather than adding a query. The emulator held a release-signed install that made `connectedDebugAndroidTest` skip silently while reporting success; uninstalled it, and the data layer then ran 47/47.
+
+## 2026-10-21 17:45 edit-after-miss/build-2 (opus)
+Android **Edit word** after a miss: `EditOutcome` from the edit screen through the review entry's `SavedStateHandle`, `ReviewDestination`, and `editWord`/`onEditClosed` in `ReviewViewModel` (joins the miss's write, undoes on save, drops the card on delete); tags on all three id lists, five component tests, six `EditAfterMissJourneyTest` journeys, four missed-shot references (light and dark).
+Component, integration (13/13), unit, lint, screenshots, web and `review.feature` e2e pass. The practice journey reaches practice through completion, so it checks no log rows were *added*; corrected the brief to say so. Also moved a stray `cardsFor` KDoc from build-1 back to its function.

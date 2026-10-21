@@ -111,7 +111,7 @@ private fun Themed(dark: Boolean, content: @Composable () -> Unit) =
 
 @Composable
 private fun ReviewShot(dark: Boolean, state: ReviewUiState, canSpeak: Boolean = false) = Themed(dark) {
-    ReviewContent(state = state, canSpeak = canSpeak, onSpeak = {}, onInputChange = {}, onSubmit = {}, onShowAnswer = {}, onQuit = {})
+    ReviewContent(state = state, canSpeak = canSpeak, onSpeak = {}, onInputChange = {}, onSubmit = {}, onShowAnswer = {}, onEditWord = {}, onQuit = {})
 }
 
 @Composable

@@ -48,4 +48,5 @@ export const testIds = {
     reviewSubmit: 'review_submit',
     reviewSpeak: 'review_speak',
     reviewCorrectWord: 'review_correct_word',
+    reviewEdit: 'review_edit',
 } as const;

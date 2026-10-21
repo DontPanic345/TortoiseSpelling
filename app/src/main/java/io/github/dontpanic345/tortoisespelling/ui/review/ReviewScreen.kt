@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -67,6 +68,7 @@ import io.github.dontpanic345.tortoisespelling.domain.BLANK_PLACEHOLDER
 import io.github.dontpanic345.tortoisespelling.domain.ReviewCard
 import io.github.dontpanic345.tortoisespelling.domain.SpellingDiff
 import io.github.dontpanic345.tortoisespelling.ui.TestTags
+import io.github.dontpanic345.tortoisespelling.ui.add.EditOutcome
 import io.github.dontpanic345.tortoisespelling.ui.rememberAppContainer
 import io.github.dontpanic345.tortoisespelling.ui.theme.BlankStyle
 import io.github.dontpanic345.tortoisespelling.ui.theme.LocalFeedbackColors
@@ -78,6 +80,9 @@ fun ReviewScreen(
     practiceMode: Boolean,
     onFinished: () -> Unit,
     onQuit: () -> Unit,
+    onEditWord: (Long) -> Unit,
+    editOutcome: EditOutcome?,
+    onEditOutcomeHandled: () -> Unit,
 ) {
     val container = rememberAppContainer()
     val viewModel: ReviewViewModel = viewModel(
@@ -88,6 +93,18 @@ fun ReviewScreen(
     LaunchedEffect(state.finished, state.loading) {
         if (state.finished && !state.loading) {
             onFinished()
+        }
+    }
+    LaunchedEffect(state.openEdit) {
+        state.openEdit?.let {
+            onEditWord(it)
+            viewModel.editOpened()
+        }
+    }
+    LaunchedEffect(editOutcome) {
+        editOutcome?.let {
+            viewModel.onEditClosed(it)
+            onEditOutcomeHandled()
         }
     }
 
@@ -104,6 +121,7 @@ fun ReviewScreen(
         onInputChange = viewModel::onInputChange,
         onSubmit = viewModel::submit,
         onShowAnswer = viewModel::showAnswer,
+        onEditWord = viewModel::editWord,
         onQuit = onQuit,
     )
 }
@@ -117,6 +135,7 @@ fun ReviewContent(
     onInputChange: (String) -> Unit,
     onSubmit: () -> Unit,
     onShowAnswer: () -> Unit,
+    onEditWord: () -> Unit,
     onQuit: () -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -202,7 +221,12 @@ fun ReviewContent(
                 )
 
                 Spacer(Modifier.height(16.dp))
-                Feedback(card = card, phase = state.phase, onShowAnswer = onShowAnswer)
+                Feedback(
+                    card = card,
+                    phase = state.phase,
+                    onShowAnswer = onShowAnswer,
+                    onEditWord = onEditWord,
+                )
             }
 
             // No Continue on the last word: the session closes itself a beat later, so
@@ -392,7 +416,12 @@ private fun AnswerField(
 }
 
 @Composable
-private fun Feedback(card: ReviewCard, phase: ReviewPhase, onShowAnswer: () -> Unit) {
+private fun Feedback(
+    card: ReviewCard,
+    phase: ReviewPhase,
+    onShowAnswer: () -> Unit,
+    onEditWord: () -> Unit,
+) {
     val feedback = LocalFeedbackColors.current
     when (phase) {
         ReviewPhase.Prompting -> Unit
@@ -444,9 +473,16 @@ private fun Feedback(card: ReviewCard, phase: ReviewPhase, onShowAnswer: () -> U
                 ) {
                     DiffRow(label = "Correct", text = card.form, diff = phase.diff, isAttempt = false)
                 }
-            } else {
-                TextButton(onClick = onShowAnswer) {
-                    Text("Show answer")
+            }
+            // Edit word is for a bad entry: a saved edit undoes the miss and asks again.
+            Row {
+                if (!phase.revealed) {
+                    TextButton(onClick = onShowAnswer) {
+                        Text("Show answer")
+                    }
+                }
+                TextButton(onClick = onEditWord, modifier = Modifier.testTag(TestTags.REVIEW_EDIT)) {
+                    Text("Edit word")
                 }
             }
             if (phase.retypeMissed) {

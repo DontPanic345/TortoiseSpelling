@@ -35,6 +35,7 @@ class ReviewContentTest {
     private var shownAnswers = 0
     private var quits = 0
     private var spoken = 0
+    private var edits = 0
 
     private fun show(state: ReviewUiState, canSpeak: Boolean = false) {
         compose.setContent {
@@ -46,6 +47,7 @@ class ReviewContentTest {
                     onInputChange = { inputs += it },
                     onSubmit = { submits++ },
                     onShowAnswer = { shownAnswers++ },
+                    onEditWord = { edits++ },
                     onQuit = { quits++ },
                 )
             }
@@ -105,6 +107,37 @@ class ReviewContentTest {
         show(state(phase = ReviewPhase.Correct, input = "ran").copy(queue = ranQueue))
         compose.onNodeWithTag(TestTags.REVIEW_CORRECT_WORD).assertTextEquals("ran")
         compose.onNodeWithText("He ran the whole way home.").assertExists()
+    }
+
+    @Test
+    fun editWordShowsAfterAMissRevealedOrNot() {
+        show(state(phase = missed(revealed = false)))
+        compose.onNodeWithTag(TestTags.REVIEW_EDIT).assertExists()
+    }
+
+    @Test
+    fun editWordShowsOnceTheAnswerIsRevealed() {
+        show(state(phase = missed(revealed = true)))
+        compose.onNodeWithTag(TestTags.REVIEW_EDIT).assertExists()
+    }
+
+    @Test
+    fun editWordIsHiddenWhilePrompting() {
+        show(state(input = "rhy"))
+        compose.onNodeWithTag(TestTags.REVIEW_EDIT).assertDoesNotExist()
+    }
+
+    @Test
+    fun editWordIsHiddenWhenCorrect() {
+        show(state(phase = ReviewPhase.Correct, input = "rhythm"))
+        compose.onNodeWithTag(TestTags.REVIEW_EDIT).assertDoesNotExist()
+    }
+
+    @Test
+    fun editWordCallsOnEditWord() {
+        show(state(phase = missed(revealed = false)))
+        compose.onNodeWithTag(TestTags.REVIEW_EDIT).performClick()
+        assertEquals(1, edits)
     }
 
     @Test

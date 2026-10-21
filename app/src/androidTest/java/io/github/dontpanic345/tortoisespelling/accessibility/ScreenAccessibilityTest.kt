@@ -74,7 +74,7 @@ class ScreenAccessibilityTest(private val dark: Boolean) {
         state: io.github.dontpanic345.tortoisespelling.ui.review.ReviewUiState,
         canSpeak: Boolean = false,
     ) = check {
-        ReviewContent(state = state, canSpeak = canSpeak, onSpeak = {}, onInputChange = {}, onSubmit = {}, onShowAnswer = {}, onQuit = {})
+        ReviewContent(state = state, canSpeak = canSpeak, onSpeak = {}, onInputChange = {}, onSubmit = {}, onShowAnswer = {}, onEditWord = {}, onQuit = {})
     }
 
     private fun home(state: io.github.dontpanic345.tortoisespelling.ui.home.HomeUiState) = check {

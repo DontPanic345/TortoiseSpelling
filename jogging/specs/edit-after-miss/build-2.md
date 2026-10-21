@@ -129,7 +129,8 @@ web suite on this push. Run `cd web && npm test` before pushing.
   - miss, **Edit word**, save, then **End session**: the word's scheduling equals the
     seed's and there are no log rows.
   - practice (Home's practice entry, as `PracticeJourneyTest` reaches it): miss, **Edit
-    word**, save: the new definition shows, no log rows, scheduling unchanged.
+    word**, save: the new definition shows, no log rows added (the review that reached
+    completion wrote one), scheduling unchanged.
 - Screenshots: `ReviewShot` in `Screenshots.kt` passes `onEditWord = {}`. The two missed
   shots change: run `./gradlew updateDebugScreenshotTest`, look at the new references,
   commit them, and `validateDebugScreenshotTest` passes.

@@ -136,10 +136,10 @@ class WordRepository(
     /** Stamps [example] as shown now, so the next pick for its word rotates to another. */
     suspend fun markShown(example: ExampleSentence) = dao.markShown(example.id, clock.millis())
 
-    /** One card per word (its least recently shown example), in the words' order. */
     /** The card [cardsFor] would pick for one word, from its content now; null if it's gone. */
     suspend fun cardFor(wordId: Long): ReviewCard? = dao.contentById(wordId)?.let(::pickCard)
 
+    /** One card per word (its least recently shown example), in the words' order. */
     private suspend fun cardsFor(words: List<Word>): List<ReviewCard> {
         val content = dao.contentFor(words.map { it.id }).associateBy { it.word.id }
         return words.map { word -> pickCard(content[word.id] ?: WordWithContent(word, emptyList())) }
