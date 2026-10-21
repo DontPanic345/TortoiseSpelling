@@ -127,7 +127,7 @@
         "docs/icon-redraw.md"
       ],
       "dependsOn": [],
-      "status": "blocked",
+      "status": "active",
       "spec": "jogging/specs/icon-redraw.md",
       "steps": [
         {
@@ -151,7 +151,7 @@
           "model": "opus",
           "effort": "medium",
           "why": "Opus: spends paid units against a hard cap with a new API client, and the step's worth is judging which designs to show Alan; medium effort as the code is small.",
-          "status": "blocked"
+          "status": "pending"
         },
         {
           "id": "build-2",
@@ -193,9 +193,7 @@
       "release": "minor",
       "modelsChecked": true,
       "baseSha": "7425f584f3a69f34fe84943e16516b5e064b02c1",
-      "blocker": "Pick a direction: https://github.com/DontPanic345/TortoiseSpelling/blob/main/docs/icon-concepts/explore/sheet.png (directions in docs/icon-concepts/README.md). Reply with a letter or two, describe another direction, or reply `fallback` to keep the ChatGPT placeholder.",
-      "blockerIssue": 32,
-      "blockedAt": "2026-10-21T14:26:54.641Z"
+      "userReply": "B-02, B-04"
     },
     {
       "id": "edit-after-miss",
