@@ -7,6 +7,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.dontpanic345.tortoisespelling.domain.DefinitionDraft
 import io.github.dontpanic345.tortoisespelling.domain.ExampleDraft
 import io.github.dontpanic345.tortoisespelling.domain.FormDraft
+import io.github.dontpanic345.tortoisespelling.domain.Reviewed
 import io.github.dontpanic345.tortoisespelling.domain.WordContent
 import io.github.dontpanic345.tortoisespelling.domain.simpleContent
 import kotlinx.coroutines.Dispatchers
@@ -337,6 +338,20 @@ class TortoiseSpellingDaoTest {
         assertThrows(SQLiteConstraintException::class.java) {
             kotlinx.coroutines.runBlocking { dao.insertLog(log(wordId = 404, day = 10)) }
         }
+    }
+
+    @Test
+    fun recordReviewRollsBackTheWordWhenTheLogIsRefused() = runTest {
+        val id = dao.insertWord(testWord("rhythm"))
+        val before = dao.wordById(id)!!
+
+        assertThrows(SQLiteConstraintException::class.java) {
+            kotlinx.coroutines.runBlocking {
+                dao.recordReview(id) { Reviewed(it.copy(repetitions = 7), log(wordId = 404, day = 10)) }
+            }
+        }
+
+        assertEquals(before, dao.wordById(id))
     }
 
     @Test

@@ -13,6 +13,10 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 - **Hear the word**: a speaker button on the review screen, on Android and the web, says the word aloud in your phone's or browser's own voice. It is hidden when the device has no voice installed.
 
+### Fixed
+
+- A review is saved in one step, so a crash can no longer leave a word rescheduled with the day missing from your streak; and finishing a card whose word was deleted meanwhile no longer closes the app.
+
 ## [0.8.0] - 2026-10-18
 
 ### Added

@@ -149,7 +149,7 @@ class WordRepositoryTest {
         val stale = dao.wordByNormalizedText("rhythm")!!
 
         repo.setSuspended(dao.wordById(stale.id)!!, true)
-        repo.recordReview(stale, correctFirstTry = true, typedAnswer = "rhythm")
+        repo.recordReview(stale.id, correctFirstTry = true, typedAnswer = "rhythm")
 
         val saved = dao.wordById(stale.id)!!
         assertEquals(true, saved.suspended)
@@ -158,6 +158,19 @@ class WordRepositoryTest {
         assertEquals(Days.today(DeviceClock), saved.firstReviewedOn)
         assertNotNull(saved.lastReviewedAt)
         assertEquals(1, dao.reviewedCountOn(Days.today(DeviceClock)))
+    }
+
+    @Test
+    fun recordReviewOfADeletedWordRecordsNothing() = runTest {
+        repo.addWord("rhythm", "A definition.", "An example.", null)
+        repo.addWord("gone", "A definition.", "An example.", null)
+        val gone = dao.wordByNormalizedText("gone")!!
+        repo.deleteWord(gone)
+
+        repo.recordReview(gone.id, correctFirstTry = true, typedAnswer = "gone")
+
+        assertEquals(0, dao.reviewedCountOn(Days.today(DeviceClock)))
+        assertEquals(1, dao.wordCount())
     }
 
     @Test

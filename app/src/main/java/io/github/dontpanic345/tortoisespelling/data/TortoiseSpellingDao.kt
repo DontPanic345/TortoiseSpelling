@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import io.github.dontpanic345.tortoisespelling.domain.Reviewed
 import io.github.dontpanic345.tortoisespelling.domain.WordContent
 import kotlinx.coroutines.flow.Flow
 
@@ -176,6 +177,20 @@ interface TortoiseSpellingDao {
 
     @Insert
     suspend fun insertLog(log: ReviewLog): Long
+
+    /**
+     * Apply [review] to the word and log it, in one transaction; false if the word is gone.
+     * The word is read here rather than taken from the session's snapshot, which was taken
+     * when the session opened: @Update writes every column.
+     */
+    @Transaction
+    suspend fun recordReview(id: Long, review: (Word) -> Reviewed): Boolean {
+        val current = wordById(id) ?: return false
+        val (word, log) = review(current)
+        updateWord(word)
+        insertLog(log)
+        return true
+    }
 
     @Query("SELECT COUNT(DISTINCT wordId) FROM review_log WHERE reviewedOn = :day")
     suspend fun reviewedCountOn(day: Long): Int

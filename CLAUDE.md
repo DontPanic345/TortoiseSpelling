@@ -63,7 +63,9 @@ Screens with component tests split into a stateful `XScreen` and a stateless `XC
 constructor parameter, so tests pin both. Only the reminder and backup timestamps read the
 real time.
 
-**Scheduling.** `WordRepository.recordReview` applies `Sm2Scheduler` (behind `Scheduler`).
+**Scheduling.** `reviewed` (`domain/Review.kt`) applies `Sm2Scheduler` (behind `Scheduler`)
+and builds the log row; `WordRepository.recordReview` reads, applies and writes in one
+transaction, and records nothing for a deleted word.
 Correct first try is quality 5; correct only after the retype is 2, below SM-2's reset at 3,
 so the word comes back tomorrow. The review is recorded at the first attempt, so abandoning
 mid-correction still counts as a lapse. A session is every due word plus the new-word

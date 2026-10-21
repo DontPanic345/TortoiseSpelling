@@ -14,10 +14,11 @@ import {
   recentStudyDays,
 } from "../domain/queries";
 import { interleaveSession, remainingNewToday } from "../domain/session";
-import { Grade, fuzzedDueDay, sm2Scheduler, NEW_WORD_STATE, RESET_BELOW_QUALITY } from "../domain/srs";
+import { fuzzedDueDay, NEW_WORD_STATE } from "../domain/srs";
 import { ktTrim, normalizeWord } from "../domain/text";
 import { preparedFor, type WordContent } from "../domain/wordContent";
 import { pickCard, type ReviewCard } from "../domain/cardPick";
+import { reviewed } from "../domain/review";
 import { exportBackup, parseBackup, toImport } from "./backup";
 import type { Db, PushRegistration, SettingName, SettingValue } from "./db";
 import type { ReviewLog, StoredWord, Word } from "./model";
@@ -279,7 +280,6 @@ export function createRepository({
     async recordReview(wordId: number, correctFirstTry: boolean, typedAnswer: string): Promise<void> {
       const today = todayOf(clock);
       const now = clock.millis();
-      const quality = correctFirstTry ? Grade.FIRST_TRY : Grade.AFTER_RETYPE;
 
       const tx = db.transaction(["words", "reviewLog"], "readwrite");
       const current = await tx.objectStore("words").get(wordId);
@@ -287,30 +287,9 @@ export function createRepository({
         await tx.done;
         return;
       }
-      const next = sm2Scheduler.next(
-        { repetitions: current.repetitions, easeFactor: current.easeFactor, intervalDays: current.intervalDays },
-        quality,
-      );
-      const log: Omit<ReviewLog, "id"> = {
-        wordId,
-        reviewedAt: now,
-        reviewedOn: today,
-        grade: quality,
-        correct: correctFirstTry,
-        typedAnswer: ktTrim(typedAnswer),
-      };
+      const { word, log } = reviewed(current, correctFirstTry, typedAnswer, today, now, fuzz);
       await Promise.all([
-        tx.objectStore("words").put({
-          ...current,
-          repetitions: next.repetitions,
-          easeFactor: next.easeFactor,
-          intervalDays: next.intervalDays,
-          dueOn: fuzz(today, next.intervalDays),
-          lapses: current.lapses + (quality < RESET_BELOW_QUALITY ? 1 : 0),
-          lastReviewedAt: now,
-          firstReviewedOn: current.firstReviewedOn ?? today,
-          isNew: false,
-        }),
+        tx.objectStore("words").put(word),
         tx.objectStore("reviewLog").add(log as ReviewLog),
       ]);
       await tx.done;

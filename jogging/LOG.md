@@ -57,3 +57,7 @@ The red `ci.yml` run was infrastructure, not code: the accessibility job's emula
 ## 2026-10-21 13:45 review-outcome/build-1 (opus)
 `reviewed` in `domain/Review.kt` and `web/src/domain/review.ts`, with nine cases in `golden/review.json` taken from today's `recordReview`, both runners, `ReviewTest` for the scheduler and fuzz parameters, and the `golden/README.md` row and "Not golden" paragraph. The repositories don't call it yet.
 The brief's first bite check was wrong: dropping `?: today` fails the new-word cases (1, 2, 7, 8), not case 3. Writing `today` in its place is what fails case 3. Fixed in `build-1.md`. Ran both mutations and old-interval fuzz (case 4 alone fails) on both runners, then reverted.
+
+## 2026-10-21 14:30 review-outcome/build-2 (opus)
+Both repositories now call `reviewed`; Android's read, update and log run in `TortoiseSpellingDao.recordReview`'s one transaction, and a deleted word records nothing instead of failing the log's foreign key. New instrumented tests: a deleted word logs nothing, and a refused log rolls back the word's update (fails with `@Transaction` removed). CLAUDE.md "Scheduling" and a CHANGELOG "Fixed" line.
+Unit, lint, data and integration layers, review/completion/daily_allowance e2e on Android and the web specs in Chromium and WebKit all pass; the emulator held a release-signed install that had to be removed before connected tests.

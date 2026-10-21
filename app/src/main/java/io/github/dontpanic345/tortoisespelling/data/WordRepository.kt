@@ -3,17 +3,16 @@ package io.github.dontpanic345.tortoisespelling.data
 import io.github.dontpanic345.tortoisespelling.domain.Days
 import io.github.dontpanic345.tortoisespelling.domain.DeviceClock
 import io.github.dontpanic345.tortoisespelling.domain.MarkedDay
-import io.github.dontpanic345.tortoisespelling.domain.RESET_BELOW_QUALITY
 import io.github.dontpanic345.tortoisespelling.domain.ReviewCard
 import io.github.dontpanic345.tortoisespelling.domain.Scheduler
 import io.github.dontpanic345.tortoisespelling.domain.Sm2Scheduler
-import io.github.dontpanic345.tortoisespelling.domain.SrsState
 import io.github.dontpanic345.tortoisespelling.domain.WordContent
 import io.github.dontpanic345.tortoisespelling.domain.WordProgress
 import io.github.dontpanic345.tortoisespelling.domain.fuzzedDueDay
 import io.github.dontpanic345.tortoisespelling.domain.interleaveSession
 import io.github.dontpanic345.tortoisespelling.domain.preparedFor
 import io.github.dontpanic345.tortoisespelling.domain.recentDays
+import io.github.dontpanic345.tortoisespelling.domain.reviewed
 import io.github.dontpanic345.tortoisespelling.domain.remainingNewToday
 import io.github.dontpanic345.tortoisespelling.domain.pickCard
 import io.github.dontpanic345.tortoisespelling.domain.simpleContent
@@ -144,45 +143,17 @@ class WordRepository(
     }
 
     /**
-     * Apply SM-2 and log the review.
+     * Apply SM-2 and log the review, in one transaction.
      *
      * A missed word is not re-queued into this session: the mandatory retype is the
      * corrective repetition, and an open-ended session undermines the clear stopping
      * point the whole app is built around.
      */
-    suspend fun recordReview(word: Word, correctFirstTry: Boolean, typedAnswer: String) {
+    suspend fun recordReview(wordId: Long, correctFirstTry: Boolean, typedAnswer: String) {
         val today = Days.today(clock)
-        // Re-read rather than trusting the session's snapshot, which was taken when the
-        // session opened: @Update writes every column.
-        val current = dao.wordById(word.id) ?: word
         val now = clock.millis()
-        val quality = if (correctFirstTry) Grade.FIRST_TRY else Grade.AFTER_RETYPE
-        val next = scheduler.next(
-            SrsState(current.repetitions, current.easeFactor, current.intervalDays),
-            quality,
-        )
-        dao.updateWord(
-            current.copy(
-                repetitions = next.repetitions,
-                easeFactor = next.easeFactor,
-                intervalDays = next.intervalDays,
-                dueOn = fuzz(today, next.intervalDays),
-                lapses = current.lapses + if (quality < RESET_BELOW_QUALITY) 1 else 0,
-                lastReviewedAt = now,
-                firstReviewedOn = current.firstReviewedOn ?: today,
-                isNew = false,
-            ),
-        )
-        dao.insertLog(
-            ReviewLog(
-                wordId = word.id,
-                reviewedAt = now,
-                reviewedOn = today,
-                grade = quality,
-                correct = correctFirstTry,
-                typedAnswer = typedAnswer.trim(),
-            ),
-        )
+        // A word deleted mid-session records nothing.
+        dao.recordReview(wordId) { reviewed(it, correctFirstTry, typedAnswer, today, now, fuzz, scheduler) }
     }
 
     suspend fun reviewedToday(): Int = dao.reviewedCountOn(Days.today(clock))

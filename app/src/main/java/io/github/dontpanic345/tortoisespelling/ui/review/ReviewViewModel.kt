@@ -190,7 +190,7 @@ class ReviewViewModel(
         if (practiceMode) {
             return
         }
-        viewModelScope.launch { repository.recordReview(word, correctFirstTry, typed) }
+        viewModelScope.launch { repository.recordReview(word.id, correctFirstTry, typed) }
     }
 
     /** Give a correct answer a beat on screen, but never block on it. */
