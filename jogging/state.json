@@ -332,8 +332,7 @@
           "model": "sonnet",
           "effort": "high",
           "why": "Sonnet: four small steps on existing patterns; high effort because they must pass on the emulator and the web runner with the same texts.",
-          "status": "pending",
-          "awaitingCi": "8b1cfcee6b52e19aa9278439ab8c2b888b51c40a"
+          "status": "done"
         },
         {
           "id": "review",
