@@ -30,7 +30,8 @@ export interface ReviewState {
 export type ReviewEffect =
   | { record: { wordId: number; correctFirstTry: boolean; typed: string } }
   | { autoAdvance: number }
-  | { markShown: ReviewCard };
+  | { markShown: ReviewCard }
+  | { openEdit: number };
 
 export interface ReviewStep {
   state: ReviewState;
@@ -169,4 +170,36 @@ export function advance(state: ReviewState): ReviewStep {
 /** The pause after a correct answer is over. Ignored if the user has moved on in the meantime. */
 export function autoAdvanceDue(state: ReviewState, forIndex: number): ReviewStep {
   return state.index === forIndex && state.phase.kind === "correct" ? advance(state) : idle(state);
+}
+
+/** Edit word, offered only after a miss. */
+export function editRequested(state: ReviewState): ReviewStep {
+  const card = current(state);
+  if (!card || state.phase.kind !== "corrective") return idle(state);
+  return { state, effects: [{ openEdit: card.word.id }] };
+}
+
+/** A saved edit is being undone and re-read. */
+export function editSaving(state: ReviewState): ReviewStep {
+  return idle({ ...state, loading: true });
+}
+
+/** The edited word is asked again, fresh, from its new content; null means it is gone. */
+export function editedCard(state: ReviewState, card: ReviewCard | null): ReviewStep {
+  if (card === null) return wordRemoved(state);
+  const queue = state.queue.map((c, i) => (i === state.index ? card : c));
+  return {
+    state: { ...state, queue, loading: false, phase: { kind: "prompting" }, input: "" },
+    effects: markShown(card),
+  };
+}
+
+/** The current word is gone: the next takes its place, and the total drops with it. */
+export function wordRemoved(state: ReviewState): ReviewStep {
+  const queue = state.queue.filter((_, i) => i !== state.index);
+  const finished = state.index >= queue.length;
+  return {
+    state: { ...state, queue, loading: false, phase: { kind: "prompting" }, input: "", finished },
+    effects: finished ? [] : markShown(queue[state.index]),
+  };
 }

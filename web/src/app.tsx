@@ -7,7 +7,7 @@ import { HomeScreen } from "./ui/home/HomeScreen";
 import { SettingsScreen } from "./ui/settings/SettingsScreen";
 import { WordListScreen } from "./ui/words/WordListScreen";
 import { ReviewScreen } from "./ui/review/ReviewScreen";
-import { routeHash, useRoute, type Route } from "./ui/router";
+import { screenKey, useRoute, type Route } from "./ui/router";
 
 function Screen({ route }: { route: Route }) {
   switch (route.name) {
@@ -17,7 +17,7 @@ function Screen({ route }: { route: Route }) {
       return <CompletionScreen />;
     case "review":
     case "practice":
-      return <ReviewScreen practiceMode={route.name === "practice"} />;
+      return <ReviewScreen practiceMode={route.name === "practice"} editing={route.editing} />;
     case "add":
       return <AddWordScreen editingId={null} />;
     case "edit":
@@ -50,8 +50,9 @@ export function App({ container, updatedInAnotherTab = false }: AppProps) {
 
   return (
     <ContainerContext.Provider value={container}>
-      {/* Keyed by the route's hash, so entering #/review always mounts a fresh session. */}
-      <Screen key={routeHash(route)} route={route} />
+      {/* Keyed by screenKey, so entering #/review always mounts a fresh session while
+          #/review/edit/<id> keeps the one underneath. */}
+      <Screen key={screenKey(route)} route={route} />
       <Snackbar message={snackbar.current} />
     </ContainerContext.Provider>
   );

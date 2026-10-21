@@ -17,9 +17,20 @@ export interface ReviewContentProps {
   /** Whether there is a voice to speak with; the button is absent otherwise. */
   canSpeak: boolean;
   onSpeak: () => void;
+  /** After a miss: fix the word, which undoes the miss if saved. */
+  onEditWord: () => void;
 }
 
-export function ReviewContent({ state, onInputChange, onSubmit, onShowAnswer, onQuit, canSpeak, onSpeak }: ReviewContentProps) {
+export function ReviewContent({
+  state,
+  onInputChange,
+  onSubmit,
+  onShowAnswer,
+  onQuit,
+  canSpeak,
+  onSpeak,
+  onEditWord,
+}: ReviewContentProps) {
   const answer = useRef<HTMLInputElement>(null);
   const answerArea = useRef<HTMLDivElement>(null);
   const card = current(state);
@@ -65,7 +76,7 @@ export function ReviewContent({ state, onInputChange, onSubmit, onShowAnswer, on
               canSpeak={canSpeak}
               onSpeak={onSpeak}
             />
-            <Feedback card={card} phase={phase} onShowAnswer={onShowAnswer} />
+            <Feedback card={card} phase={phase} onShowAnswer={onShowAnswer} onEditWord={onEditWord} />
           </div>
           {/* No Continue on the last word: the session closes itself a beat later, so the
               button would be gone by the time a thumb reached it. */}
@@ -209,7 +220,14 @@ function AnswerField({ inputRef, value, phase, onInputChange, onSubmit, canSpeak
   );
 }
 
-function Feedback({ card, phase, onShowAnswer }: { card: ReviewCard; phase: ReviewPhase; onShowAnswer: () => void }) {
+interface FeedbackProps {
+  card: ReviewCard;
+  phase: ReviewPhase;
+  onShowAnswer: () => void;
+  onEditWord: () => void;
+}
+
+function Feedback({ card, phase, onShowAnswer, onEditWord }: FeedbackProps) {
   switch (phase.kind) {
     case "prompting":
       return null;
@@ -227,15 +245,21 @@ function Feedback({ card, phase, onShowAnswer }: { card: ReviewCard; phase: Revi
         <div class="feedback wrong-feedback">
           <p class="not-quite">Not quite</p>
           <DiffRow label="You typed" text={phase.attempt} diff={phase.diff} isAttempt />
-          {phase.revealed ? (
+          {phase.revealed && (
             <div class="revealed">
               <DiffRow label="Correct" text={card.form} diff={phase.diff} isAttempt={false} />
             </div>
-          ) : (
-            <button type="button" class="text-button show-answer" onClick={onShowAnswer}>
-              Show answer
-            </button>
           )}
+          <div class="feedback-actions">
+            {!phase.revealed && (
+              <button type="button" class="text-button" onClick={onShowAnswer}>
+                Show answer
+              </button>
+            )}
+            <button type="button" class="text-button" data-testid={TestIds.REVIEW_EDIT} onClick={onEditWord}>
+              Edit word
+            </button>
+          </div>
           {phase.retypeMissed && <p class="retype-missed">Not yet: type it exactly as shown above.</p>}
         </div>
       );

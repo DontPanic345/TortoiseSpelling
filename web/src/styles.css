@@ -790,8 +790,9 @@ button {
   background: var(--correct-container);
 }
 
-.show-answer {
-  align-self: flex-start;
+.feedback-actions {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .retype-missed {

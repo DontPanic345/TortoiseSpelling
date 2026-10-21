@@ -3,7 +3,7 @@ import { lookupPrompt } from "../../domain/lookupPrompt";
 import type { ContentEdit } from "../../domain/wordContent";
 import { Snackbar, useSnackbar } from "../common/Snackbar";
 import { useContainer } from "../container";
-import { back } from "../router";
+import { back, type Route } from "../router";
 import { AddWordContent } from "./AddWordContent";
 import {
   afterAdd,
@@ -22,7 +22,16 @@ import {
   type AddWordState,
 } from "./addWordState";
 
-export function AddWordScreen({ editingId }: { editingId: number | null }) {
+/** How an editor opened from review closed; null is Back, which changed nothing. */
+export type EditOutcome = "saved" | "deleted";
+
+interface AddWordScreenProps {
+  editingId: number | null;
+  /** Given by review, which takes over every exit from the screen. */
+  onClosed?: (outcome: EditOutcome | null) => void;
+}
+
+export function AddWordScreen({ editingId, onClosed }: AddWordScreenProps) {
   const { repository, platform } = useContainer();
   const [state, setState] = useState(() => newAddWordState(editingId));
   // The loads and the user's typing interleave, so each change reads the latest state
@@ -30,6 +39,11 @@ export function AddWordScreen({ editingId }: { editingId: number | null }) {
   const latest = useRef<AddWordState>(state);
   const unmounted = useRef(false);
   const snackbar = useSnackbar();
+
+  const close = (outcome: EditOutcome | null, fallback: Route) => {
+    if (onClosed) onClosed(outcome);
+    else back(fallback);
+  };
 
   const update = (change: (state: AddWordState) => AddWordState) => {
     if (unmounted.current) return;
@@ -43,7 +57,7 @@ export function AddWordScreen({ editingId }: { editingId: number | null }) {
     if (editingId !== null) {
       void repository.wordById(editingId).then((word) => {
         if (word) update((s) => loadedForEdit(s, word.text, word.content));
-        else back({ name: "words" });
+        else close("deleted", { name: "words" });
       });
     }
     return () => {
@@ -63,7 +77,7 @@ export function AddWordScreen({ editingId }: { editingId: number | null }) {
     if (snapshot.editingId !== null) {
       const result = await repository.updateWord(snapshot.editingId, snapshot.text, snapshot.content);
       if (result.kind === "duplicate") update((s) => withMessage(s, duplicateMessage(result.existing.text)));
-      else back({ name: "words" });
+      else close("saved", { name: "words" });
       return;
     }
     const result = await repository.addWord(snapshot.text, snapshot.content);
@@ -82,7 +96,7 @@ export function AddWordScreen({ editingId }: { editingId: number | null }) {
   const remove = async () => {
     if (editingId === null) return;
     await repository.deleteWord(editingId);
-    back({ name: "words" });
+    close("deleted", { name: "words" });
   };
 
   // The copy runs synchronously in the tap: Safari refuses a clipboard write that comes
@@ -96,7 +110,7 @@ export function AddWordScreen({ editingId }: { editingId: number | null }) {
     <>
       <AddWordContent
         state={state}
-        onBack={() => back({ name: "home" })}
+        onBack={() => close(null, { name: "home" })}
         onDelete={() => void remove()}
         onTextChange={(value) => update((s) => textChanged(s, value))}
         onCopyPrompt={copyPrompt}

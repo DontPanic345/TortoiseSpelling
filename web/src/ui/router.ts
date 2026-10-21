@@ -1,7 +1,9 @@
 import { useEffect, useState } from "preact/hooks";
 
 export type Route =
-  | { name: "home" | "review" | "practice" | "completion" | "add" | "words" | "settings" }
+  | { name: "home" | "completion" | "add" | "words" | "settings" }
+  /** `editing`: the word's editor is open on top of the session, which stays mounted. */
+  | { name: "review" | "practice"; editing?: number }
   | { name: "edit"; id: number };
 
 const SIMPLE_ROUTES = ["review", "practice", "completion", "add", "words", "settings"] as const;
@@ -10,10 +12,13 @@ export function parseRoute(hash: string): Route {
   const path = hash.replace(/^#\/?/, "");
   const simple = SIMPLE_ROUTES.find((name) => name === path);
   if (simple) return { name: simple };
-  const edit = /^edit\/(\d+)$/.exec(path);
+  const edit = /^(?:(review|practice)\/)?edit\/(\d+)$/.exec(path);
   if (edit) {
-    const id = Number(edit[1]);
-    if (Number.isSafeInteger(id)) return { name: "edit", id };
+    const id = Number(edit[2]);
+    if (Number.isSafeInteger(id)) {
+      const session = edit[1] as "review" | "practice" | undefined;
+      return session ? { name: session, editing: id } : { name: "edit", id };
+    }
   }
   return { name: "home" };
 }
@@ -24,9 +29,17 @@ export function routeHash(route: Route): string {
       return "#/";
     case "edit":
       return `#/edit/${route.id}`;
+    case "review":
+    case "practice":
+      return route.editing === undefined ? `#/${route.name}` : `#/${route.name}/edit/${route.editing}`;
     default:
       return `#/${route.name}`;
   }
+}
+
+/** Which screen a route shows: a session and its editor are one, so the session survives the edit. */
+export function screenKey(route: Route): string {
+  return route.name === "review" || route.name === "practice" ? routeHash({ name: route.name }) : routeHash(route);
 }
 
 const listeners = new Set<() => void>();

@@ -4,12 +4,15 @@ import {
   advance,
   autoAdvanceDue,
   blankedExampleOf,
+  editedCard,
+  editRequested,
   ending,
   initialReviewState,
   inputChanged,
   loaded,
   showAnswer,
   submit,
+  wordRemoved,
   type ReviewState,
 } from "../../../src/ui/review/reviewState";
 import { testCard } from "../../support/cards";
@@ -173,5 +176,47 @@ describe("blankedExampleOf", () => {
   });
   it("has nothing to blank without an example", () => {
     expect(blankedExampleOf(start([testCard("ran")]))).toBeNull();
+  });
+});
+
+describe("Edit word", () => {
+  it("opens the editor after a miss, revealed or not", () => {
+    const miss = missed();
+    expect(editRequested(miss)).toEqual({ state: miss, effects: [{ openEdit: rhythm.word.id }] });
+    const revealed = showAnswer(miss).state;
+    expect(editRequested(revealed).effects).toEqual([{ openEdit: rhythm.word.id }]);
+  });
+
+  it("is idle while prompting and once correct", () => {
+    expect(editRequested(start()).effects).toEqual([]);
+    expect(editRequested(type(start(), "rhythm").state).effects).toEqual([]);
+  });
+
+  it("a saved edit replaces the card and asks it again from the start", () => {
+    const edited = testCard("rhythm", { definition: "Beats.", example: "The rhythm held.", id: 1 });
+    const step = editedCard({ ...showAnswer(missed()).state, loading: true }, edited);
+    expect(step.state).toMatchObject({ queue: [edited, necessary], index: 0, loading: false, input: "", finished: false });
+    expect(step.state.phase).toEqual({ kind: "prompting" });
+    expect(step.effects).toEqual([{ markShown: edited }]);
+  });
+
+  it("a word gone by the save is dropped like a delete", () => {
+    const miss = missed();
+    expect(editedCard({ ...miss, loading: true }, null)).toEqual(wordRemoved(miss));
+  });
+
+  it("a deleted word leaves the session and the next takes its place", () => {
+    const step = wordRemoved(missed());
+    expect(step.state).toMatchObject({ queue: [necessary], index: 0, input: "", finished: false, loading: false });
+    expect(step.state.phase).toEqual({ kind: "prompting" });
+    expect(step.effects).toEqual([{ markShown: necessary }]);
+  });
+
+  it("deleting the last word finishes the session", () => {
+    const onLast = missed(advance(start()).state);
+    const step = wordRemoved(onLast);
+    expect(step.state).toMatchObject({ queue: [rhythm], index: 1, finished: true });
+    expect(step.effects).toEqual([]);
+    expect(editedCard(onLast, null).state.finished).toBe(true);
   });
 });
