@@ -313,7 +313,8 @@
           "model": "sonnet",
           "effort": "medium",
           "why": "Sonnet: contained UI changes on two screens in patterns they already use, with no data or reminder risk.",
-          "status": "pending"
+          "status": "pending",
+          "awaitingCi": "e5f969f4683ec0b1442330614b383d3a78ef3cf9"
         },
         {
           "id": "build-3",
