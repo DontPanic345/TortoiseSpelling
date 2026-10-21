@@ -1,4 +1,5 @@
 import type { PushPlatform } from "../push/pushPlatform";
+import type { SpeechPlatform } from "./speechPlatform";
 
 export type InstallState = "installed" | "prompt" | "ios" | "unavailable";
 
@@ -13,4 +14,5 @@ export interface Platform {
   onInstallStateChange(listener: () => void): () => void;
   promptInstall(): Promise<void>;
   push: PushPlatform;
+  speech: SpeechPlatform;
 }

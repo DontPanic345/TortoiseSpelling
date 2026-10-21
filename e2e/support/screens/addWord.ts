@@ -1,5 +1,5 @@
 import { fieldValue, typeInto } from '../actions.ts';
-import { byTestId, scrollToTestId } from '../selectors.ts';
+import { byTestId, scrollToDescription, scrollToTestId } from '../selectors.ts';
 import { testIds } from '../testIds.ts';
 import { home } from './home.ts';
 
@@ -74,6 +74,11 @@ export const addWord = {
             scrollToTestId(testIds.addWordExampleAt(0, position, 0)),
             example,
         );
+    },
+
+    /** Scrolls until the form's remove button is on screen, then taps it. */
+    removeForm: async (form: string): Promise<void> => {
+        await (await scrollToDescription(`Remove form “${form}”`)).click();
     },
 
     save: async (): Promise<void> => {

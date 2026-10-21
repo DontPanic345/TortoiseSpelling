@@ -35,7 +35,9 @@ export const TestIds = {
 
   REVIEW_ANSWER: "review_answer",
   REVIEW_SUBMIT: "review_submit",
+  REVIEW_SPEAK: "review_speak",
   REVIEW_CORRECT_WORD: "review_correct_word",
+  REVIEW_EDIT: "review_edit",
 } as const;
 
 /** The tree editor's fields by position (definition, form, example). */
@@ -54,3 +56,4 @@ export const wordRow = (normalizedText: string) => `word_row_${normalizedText}`;
 
 /** The status badge's label. */
 export const wordRowStatus = (normalizedText: string) => `word_row_status_${normalizedText}`;
+export const wordRowCheckForms = (normalizedText: string) => `word_row_check_forms_${normalizedText}`;

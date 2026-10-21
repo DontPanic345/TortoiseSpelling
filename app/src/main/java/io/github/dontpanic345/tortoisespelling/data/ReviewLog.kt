@@ -31,6 +31,9 @@ data class ReviewLog(
     val typedAnswer: String,
 )
 
+/** What it takes to undo one review: its log row, and the word as it was before. */
+data class ReviewUndo(val wordId: Long, val logId: Long, val before: Word)
+
 /**
  * SM-2 quality values as this app uses them.
  *

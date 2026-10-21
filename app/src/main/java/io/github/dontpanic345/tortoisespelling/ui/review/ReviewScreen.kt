@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +22,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,7 +38,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
@@ -45,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
@@ -63,6 +68,7 @@ import io.github.dontpanic345.tortoisespelling.domain.BLANK_PLACEHOLDER
 import io.github.dontpanic345.tortoisespelling.domain.ReviewCard
 import io.github.dontpanic345.tortoisespelling.domain.SpellingDiff
 import io.github.dontpanic345.tortoisespelling.ui.TestTags
+import io.github.dontpanic345.tortoisespelling.ui.add.EditOutcome
 import io.github.dontpanic345.tortoisespelling.ui.rememberAppContainer
 import io.github.dontpanic345.tortoisespelling.ui.theme.BlankStyle
 import io.github.dontpanic345.tortoisespelling.ui.theme.LocalFeedbackColors
@@ -74,6 +80,9 @@ fun ReviewScreen(
     practiceMode: Boolean,
     onFinished: () -> Unit,
     onQuit: () -> Unit,
+    onEditWord: (Long) -> Unit,
+    editOutcome: EditOutcome?,
+    onEditOutcomeHandled: () -> Unit,
 ) {
     val container = rememberAppContainer()
     val viewModel: ReviewViewModel = viewModel(
@@ -86,12 +95,33 @@ fun ReviewScreen(
             onFinished()
         }
     }
+    LaunchedEffect(state.openEdit) {
+        state.openEdit?.let {
+            onEditWord(it)
+            viewModel.editOpened()
+        }
+    }
+    LaunchedEffect(editOutcome) {
+        editOutcome?.let {
+            viewModel.onEditClosed(it)
+            onEditOutcomeHandled()
+        }
+    }
+
+    // Built here, not at app start, so the engine binds only while Review is open.
+    val appContext = LocalContext.current.applicationContext
+    val speaker = remember(container, appContext) { container.speakerFactory(appContext) }
+    DisposableEffect(speaker) { onDispose { speaker.shutdown() } }
+    val canSpeak by speaker.ready.collectAsState()
 
     ReviewContent(
         state = state,
+        canSpeak = canSpeak,
+        onSpeak = { state.current?.let { speaker.speak(it.form) } },
         onInputChange = viewModel::onInputChange,
         onSubmit = viewModel::submit,
         onShowAnswer = viewModel::showAnswer,
+        onEditWord = viewModel::editWord,
         onQuit = onQuit,
     )
 }
@@ -100,9 +130,12 @@ fun ReviewScreen(
 @Composable
 fun ReviewContent(
     state: ReviewUiState,
+    canSpeak: Boolean,
+    onSpeak: () -> Unit,
     onInputChange: (String) -> Unit,
     onSubmit: () -> Unit,
     onShowAnswer: () -> Unit,
+    onEditWord: () -> Unit,
     onQuit: () -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -181,12 +214,19 @@ fun ReviewContent(
                     value = state.input,
                     phase = state.phase,
                     focusRequester = focusRequester,
+                    canSpeak = canSpeak,
+                    onSpeak = onSpeak,
                     onValueChange = onInputChange,
                     onSubmit = onSubmit,
                 )
 
                 Spacer(Modifier.height(16.dp))
-                Feedback(card = card, phase = state.phase, onShowAnswer = onShowAnswer)
+                Feedback(
+                    card = card,
+                    phase = state.phase,
+                    onShowAnswer = onShowAnswer,
+                    onEditWord = onEditWord,
+                )
             }
 
             // No Continue on the last word: the session closes itself a beat later, so
@@ -312,6 +352,8 @@ private fun AnswerField(
     value: String,
     phase: ReviewPhase,
     focusRequester: FocusRequester,
+    canSpeak: Boolean,
+    onSpeak: () -> Unit,
     onValueChange: (String) -> Unit,
     onSubmit: () -> Unit,
 ) {
@@ -336,6 +378,17 @@ private fun AnswerField(
             )
         },
         isError = phase is ReviewPhase.Corrective,
+        // A touch on a clickable doesn't move focus, so the field keeps it and the keyboard
+        // stays up while the word is spoken.
+        trailingIcon = if (canSpeak) {
+            {
+                IconButton(onClick = onSpeak, modifier = Modifier.testTag(TestTags.REVIEW_SPEAK)) {
+                    Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Hear the word")
+                }
+            }
+        } else {
+            null
+        },
         // The single most important configuration in the app: if the keyboard
         // autocorrects a misspelling into the right word — or just offers it in the
         // suggestion strip — the exercise is worthless. autoCorrectEnabled +
@@ -363,7 +416,12 @@ private fun AnswerField(
 }
 
 @Composable
-private fun Feedback(card: ReviewCard, phase: ReviewPhase, onShowAnswer: () -> Unit) {
+private fun Feedback(
+    card: ReviewCard,
+    phase: ReviewPhase,
+    onShowAnswer: () -> Unit,
+    onEditWord: () -> Unit,
+) {
     val feedback = LocalFeedbackColors.current
     when (phase) {
         ReviewPhase.Prompting -> Unit
@@ -415,9 +473,16 @@ private fun Feedback(card: ReviewCard, phase: ReviewPhase, onShowAnswer: () -> U
                 ) {
                     DiffRow(label = "Correct", text = card.form, diff = phase.diff, isAttempt = false)
                 }
-            } else {
-                TextButton(onClick = onShowAnswer) {
-                    Text("Show answer")
+            }
+            // Edit word is for a bad entry: a saved edit undoes the miss and asks again.
+            Row {
+                if (!phase.revealed) {
+                    TextButton(onClick = onShowAnswer) {
+                        Text("Show answer")
+                    }
+                }
+                TextButton(onClick = onEditWord, modifier = Modifier.testTag(TestTags.REVIEW_EDIT)) {
+                    Text("Edit word")
                 }
             }
             if (phase.retypeMissed) {

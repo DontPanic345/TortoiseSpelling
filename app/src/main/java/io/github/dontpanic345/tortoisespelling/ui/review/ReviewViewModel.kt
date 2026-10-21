@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import io.github.dontpanic345.tortoisespelling.data.ReviewUndo
 import io.github.dontpanic345.tortoisespelling.data.Word
 import io.github.dontpanic345.tortoisespelling.data.WordRepository
 import io.github.dontpanic345.tortoisespelling.data.normalizeWord
@@ -14,6 +15,7 @@ import io.github.dontpanic345.tortoisespelling.domain.ReviewCard
 import io.github.dontpanic345.tortoisespelling.domain.SpellingDiff
 import io.github.dontpanic345.tortoisespelling.domain.blankWordIn
 import io.github.dontpanic345.tortoisespelling.domain.spellingDiff
+import io.github.dontpanic345.tortoisespelling.ui.add.EditOutcome
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,6 +53,8 @@ data class ReviewUiState(
     val phase: ReviewPhase = ReviewPhase.Prompting,
     val finished: Boolean = false,
     val practiceMode: Boolean = false,
+    /** The word to open the editor for, from Edit word; cleared by [ReviewViewModel.editOpened]. */
+    val openEdit: Long? = null,
 ) {
     val current: ReviewCard? get() = queue.getOrNull(index)
     val total: Int get() = queue.size
@@ -78,6 +82,18 @@ class ReviewViewModel(
     val state: StateFlow<ReviewUiState> = _state.asStateFlow()
 
     private var advanceJob: Job? = null
+
+    /** The last miss's or hit's write, which the editor must wait for: its save writes the whole row. */
+    private var recordJob: Job? = null
+
+    /** What the last [WordRepository.recordReview] returned; null in practice. */
+    private var undo: ReviewUndo? = null
+
+    /** The word whose editor this ViewModel opened. */
+    private var editedWordId: Long? = null
+
+    /** Guards a double tap on Edit word. */
+    private var opening: Job? = null
 
     init {
         viewModelScope.launch {
@@ -133,7 +149,8 @@ class ReviewViewModel(
                 )
             }
             // Recorded at the miss, not at the retype: abandoning mid-correction should
-            // still count as a lapse rather than leaving the word untouched.
+            // still count as a lapse rather than leaving the word untouched. A saved edit
+            // from Edit word takes it back (onEditClosed).
             record(card.word, correctFirstTry = false, typed = typed)
         }
     }
@@ -190,7 +207,81 @@ class ReviewViewModel(
         if (practiceMode) {
             return
         }
-        viewModelScope.launch { repository.recordReview(word, correctFirstTry, typed) }
+        recordJob = viewModelScope.launch {
+            undo = repository.recordReview(word.id, correctFirstTry, typed)
+        }
+    }
+
+    /** Edit word, after a miss: opens the editor once the miss is written. */
+    fun editWord() {
+        val snapshot = _state.value
+        val wordId = snapshot.current?.word?.id ?: return
+        if (snapshot.phase !is ReviewPhase.Corrective || opening?.isActive == true) {
+            return
+        }
+        editedWordId = wordId
+        opening = viewModelScope.launch {
+            recordJob?.join()
+            _state.update { it.copy(openEdit = wordId) }
+        }
+    }
+
+    fun editOpened() {
+        _state.update { it.copy(openEdit = null) }
+    }
+
+    /**
+     * The editor closed with [outcome]: a saved edit undoes the miss and asks the word
+     * again from its new content; a deleted word leaves the session. Ignored for an editor
+     * this ViewModel didn't open, as after process death rebuilt the session.
+     */
+    fun onEditClosed(outcome: EditOutcome) {
+        val wordId = editedWordId ?: return
+        editedWordId = null
+        if (_state.value.current?.word?.id != wordId) {
+            return
+        }
+        when (outcome) {
+            EditOutcome.SAVED -> {
+                advanceJob?.cancel()
+                _state.update { it.copy(loading = true) }
+                viewModelScope.launch {
+                    undo?.takeIf { it.wordId == wordId }?.let { repository.undoReview(it) }
+                    undo = null
+                    val card = repository.cardFor(wordId)
+                    if (card == null) {
+                        removeCurrent()
+                        return@launch
+                    }
+                    _state.update { snapshot ->
+                        snapshot.copy(
+                            queue = snapshot.queue.toMutableList().also { it[snapshot.index] = card },
+                            loading = false,
+                            phase = ReviewPhase.Prompting,
+                            input = "",
+                        )
+                    }
+                    markShown(card)
+                }
+            }
+
+            EditOutcome.DELETED -> removeCurrent()
+        }
+    }
+
+    /** The current word is gone: the next takes its place, and the total drops with it. */
+    private fun removeCurrent() {
+        _state.update { snapshot ->
+            val queue = snapshot.queue.filterIndexed { i, _ -> i != snapshot.index }
+            snapshot.copy(
+                queue = queue,
+                phase = ReviewPhase.Prompting,
+                input = "",
+                loading = false,
+                finished = snapshot.index >= queue.size,
+            )
+        }
+        _state.value.takeUnless { it.finished }?.current?.let(::markShown)
     }
 
     /** Give a correct answer a beat on screen, but never block on it. */
@@ -213,6 +304,7 @@ class ReviewViewModel(
 
     fun advance() {
         advanceJob?.cancel()
+        undo = null
         _state.update { snapshot ->
             val next = snapshot.index + 1
             snapshot.copy(

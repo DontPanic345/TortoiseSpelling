@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, renderHook } from "@testing-library/preact";
 import { beforeEach, describe, expect, it } from "vitest";
-import { back, navigate, parseRoute, replace, routeHash, useRoute, type Route } from "../../src/ui/router";
+import { back, navigate, parseRoute, replace, routeHash, screenKey, useRoute, type Route } from "../../src/ui/router";
 
 const ROUTES: [Route, string][] = [
   [{ name: "home" }, "#/"],
@@ -12,6 +12,8 @@ const ROUTES: [Route, string][] = [
   [{ name: "words" }, "#/words"],
   [{ name: "settings" }, "#/settings"],
   [{ name: "edit", id: 42 }, "#/edit/42"],
+  [{ name: "review", editing: 5 }, "#/review/edit/5"],
+  [{ name: "practice", editing: 7 }, "#/practice/edit/7"],
 ];
 
 /** history.back() is asynchronous; wait for the popstate it fires. */
@@ -25,11 +27,31 @@ describe("routes", () => {
     expect(parseRoute(hash)).toEqual(route);
   });
 
+  it("a session and its editor share a screen key, so review stays mounted under the editor", () => {
+    expect(screenKey(parseRoute("#/review/edit/5"))).toBe(screenKey(parseRoute("#/review")));
+    expect(screenKey(parseRoute("#/practice"))).not.toBe(screenKey(parseRoute("#/review")));
+    expect(screenKey(parseRoute("#/edit/5"))).not.toBe(screenKey(parseRoute("#/review")));
+  });
+
   it("reads a hash without the slash", () => {
     expect(parseRoute("#words")).toEqual({ name: "words" });
   });
 
-  it.each(["", "#", "#/", "#/nowhere", "#/review/extra", "#/edit", "#/edit/abc", "#/edit/-1", "#/edit/1.5"])(
+  it.each([
+    "",
+    "#",
+    "#/",
+    "#/nowhere",
+    "#/review/extra",
+    "#/edit",
+    "#/edit/abc",
+    "#/edit/-1",
+    "#/edit/1.5",
+    "#/review/edit/abc",
+    "#/practice/edit/-1",
+    "#/review/edit/99999999999999999999",
+    "#/words/edit/5",
+  ])(
     "%j becomes home",
     (hash) => {
       expect(parseRoute(hash)).toEqual({ name: "home" });

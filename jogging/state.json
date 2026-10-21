@@ -10,7 +10,7 @@
         "jogging/specs/speak-word.md"
       ],
       "dependsOn": [],
-      "status": "active",
+      "status": "done",
       "spec": "jogging/specs/speak-word.md",
       "steps": [
         {
@@ -26,7 +26,7 @@
           "title": "The voice rule on both apps: chooseVoice, SPEECH_RATE, golden/speech.json",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending",
+          "status": "done",
           "why": "Sonnet: one small pure function, and the golden cases hold the two apps to the same answers mechanically."
         },
         {
@@ -35,7 +35,7 @@
           "title": "Android: TtsSpeaker, manifest queries, debug RecordingSpeaker, AppHarness fake, the review button and its tests",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending",
+          "status": "done",
           "why": "Sonnet: a contained change to one screen in a pattern the app already uses; high effort because it spans three test layers and a device-only API."
         },
         {
@@ -44,7 +44,7 @@
           "title": "Web: SpeechPlatform over speechSynthesis, the e2e fake, the review button and its tests",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending",
+          "status": "done",
           "why": "Sonnet: mirrors build-2 in the web's Platform and fake pattern; high effort because the iOS keyboard rule (focus, never remount) is easy to break."
         },
         {
@@ -53,7 +53,7 @@
           "title": "The shared Hearing the word scenario, docs and changelog",
           "model": "sonnet",
           "effort": "medium",
-          "status": "pending",
+          "status": "done",
           "why": "Sonnet: two new steps on existing patterns, plus prose."
         },
         {
@@ -62,11 +62,14 @@
           "title": "Review the whole piece",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending",
-          "why": "Sonnet: a small piece with no data or reminder risk, held together by golden cases and a shared scenario; high effort for both apps and the on-device-voices privacy rule."
+          "status": "done",
+          "why": "Sonnet: a small piece with no data or reminder risk, held together by golden cases and a shared scenario; high effort for both apps and the on-device-voices privacy rule.",
+          "attempts": 1
         }
       ],
-      "release": "minor"
+      "release": "minor",
+      "modelsChecked": true,
+      "baseSha": "78bd286c1d15dec9a8935845ec39e4eeec7697a7"
     },
     {
       "id": "review-outcome",
@@ -75,7 +78,7 @@
         "jogging/specs/review-outcome.md"
       ],
       "dependsOn": [],
-      "status": "active",
+      "status": "done",
       "spec": "jogging/specs/review-outcome.md",
       "steps": [
         {
@@ -83,16 +86,16 @@
           "phase": 1,
           "model": "opus",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "build-1",
           "phase": 2,
           "title": "The rule on both apps: reviewed() in domain, golden/review.json and both runners",
-          "model": "sonnet",
-          "effort": "high",
-          "status": "pending",
-          "why": "Sonnet: one pure function lifted from existing code on each side; high effort because the cases must pin today's behaviour exactly (goal 4) on two runners."
+          "model": "opus",
+          "effort": "medium",
+          "status": "done",
+          "why": "Opus: the step's whole point is that both apps agree (goal 5), and its golden cases must pin today's scheduling exactly (goal 4); medium effort for one pure function lifted from existing code on each side."
         },
         {
           "id": "build-2",
@@ -100,7 +103,7 @@
           "title": "Both repositories apply it; Android's recordReview by id in one Room transaction, deleted word records nothing; tests, CLAUDE.md, changelog",
           "model": "opus",
           "effort": "medium",
-          "status": "pending",
+          "status": "done",
           "why": "Opus: changes how Android writes a review (goal 1), adds a Room transaction, and changes a repository signature the review screen calls."
         },
         {
@@ -109,11 +112,13 @@
           "title": "Review the whole piece",
           "model": "opus",
           "effort": "medium",
-          "status": "pending",
+          "status": "done",
           "why": "Opus: the piece touches goal 1 (a transaction around the review write) and must keep both apps in agreement; medium effort for two build steps with no UI."
         }
       ],
-      "release": "patch"
+      "release": "patch",
+      "modelsChecked": true,
+      "baseSha": "17067554c7bb883d25d2fa22fcc996f6ed285b89"
     },
     {
       "id": "icon-redraw",
@@ -122,7 +127,7 @@
         "docs/icon-redraw.md"
       ],
       "dependsOn": [],
-      "status": "active",
+      "status": "blocked",
       "spec": "jogging/specs/icon-redraw.md",
       "steps": [
         {
@@ -130,17 +135,69 @@
           "phase": 1,
           "model": "opus",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "spec-review",
           "phase": 1,
           "model": "opus",
           "effort": "medium",
+          "status": "done"
+        },
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "Recraft client with a spend cap, the sheet renderer, the explore round and its contact sheet; blocks for Alan to pick a direction",
+          "model": "opus",
+          "effort": "medium",
+          "why": "Opus: spends paid units against a hard cap with a new API client, and the step's worth is judging which designs to show Alan; medium effort as the code is small.",
+          "status": "blocked",
+          "failure": "`ci.yml` run https://github.com/DontPanic345/TortoiseSpelling/actions/runs/39685948045 ended failure.\n\n**data tests (emulator)** failed at: data tests.\n```\n##[endgroup]\nMultiple search paths detected. Calculating the least common ancestor of all paths\nThe least common ancestor is /home/runner/work/TortoiseSpelling/TortoiseSpelling/app/build. This will be the root directory of the artifact\n##[warning]No files were found with the provided path: app/build/reports/androidTests/\napp/build/outputs/androidTest-results/. No artifacts will be uploaded.\nPost job cleanup.\nPost job cleanup.\n[command]/usr/bin/git version\ngit version 2.55.0\nTemporarily overriding HOME='/home/runner/work/_temp/068514cf-843c-4b5b-a649-539e4f7a7a19' before making global git config changes\nAdding repository directory to the temporary git global config as a safe directory\n[command]/usr/bin/git config --global --add safe.directory /home/runner/work/TortoiseSpelling/TortoiseSpelling\nRemoving SSH command configuration\n[command]/usr/bin/git config --local --name-only --get-regexp core\\.sshCommand\n[command]/usr/bin/git submodule foreach --recursive sh -c \"git config --local --name-only --get-regexp 'core\\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :\"\nRemoving HTTP extra header\n[command]/usr/bin/git config --local --name-only --get-regexp http\\.https\\:\\/\\/github\\.com\\/\\.extraheader\n[command]/usr/bin/git submodule foreach --recursive sh -c \"git config --local --name-only --get-regexp 'http\\.https\\:\\/\\/github\\.com\\/\\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :\"\nRemoving includeIf entries pointing to credentials config files\n[command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\\.gitdir:\nincludeif.gitdir:/home/runner/work/TortoiseSpelling/TortoiseSpelling/.git.path\nincludeif.gitdir:/home/runner/work/TortoiseSpelling/TortoiseSpelling/.git/worktrees/*.path\nincludeif.gitdir:/github/workspace/.git.path\nincludeif.gitdir:/github/workspace/.git/worktrees/*.path\n[command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/TortoiseSpelling/TortoiseSpelling/.git.path\n/home/runner/work/_temp/git-credentials-87b84652-2e65-40d0-be41-0fd02fd3a296.config\n[command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/TortoiseSpelling/TortoiseSpelling/.git.path \\/home\\/runner\\/work\\/_temp\\/git\\-credentials\\-87b84652\\-2e65\\-40d0\\-be41\\-0fd02fd3a296\\.config\n[command]/usr/bin/git config --local --get-all includeif.gitdir:/home/runner/work/TortoiseSpelling/TortoiseSpelling/.git/worktrees/*.path\n/home/runner/work/_temp/git-credentials-87b84652-2e65-40d0-be41-0fd02fd3a296.config\n[command]/usr/bin/git config --local --unset includeif.gitdir:/home/runner/work/TortoiseSpelling/TortoiseSpelling/.git/worktrees/*.path \\/home\\/runner\\/work\\/_temp\\/git\\-credentials\\-87b84652\\-2e65\\-40d0\\-be41\\-0fd02fd3a296\\.config\n[command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git.path\n/github/runner_temp/git-credentials-87b84652-2e65-40d0-be41-0fd02fd3a296.config\n[command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git.path \\/github\\/runner_temp\\/git\\-credentials\\-87b84652\\-2e65\\-40d0\\-be41\\-0fd02fd3a296\\.config\n[command]/usr/bin/git config --local --get-all includeif.gitdir:/github/workspace/.git/worktrees/*.path\n/github/runner_temp/git-credentials-87b84652-2e65-40d0-be41-0fd02fd3a296.config\n[command]/usr/bin/git config --local --unset includeif.gitdir:/github/workspace/.git/worktrees/*.path \\/github\\/runner_temp\\/git\\-credentials\\-87b84652\\-2e65\\-40d0\\-be41\\-0fd02fd3a296\\.config\n[command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url\nRemoving credentials config '/home/runner/work/_temp/git-credentials-87b84652-2e65-40d0-be41-0fd02fd3a296.config'\nCleaning up orphan processes\n```",
+          "attempts": 2
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "Two refine rounds in the chosen direction and a finalists sheet; blocks for Alan to pick the final",
+          "model": "opus",
+          "effort": "medium",
+          "why": "Opus: design judgement and prompt tightening against the criteria, spending paid units; medium effort with the tools already built.",
+          "status": "pending"
+        },
+        {
+          "id": "build-3",
+          "phase": 2,
+          "title": "The generator reads scripts/icon-source.svg: parser, flattener, outputs and geometry tests, on today's shapes",
+          "model": "sonnet",
+          "effort": "high",
+          "why": "Sonnet: a contained Node script with exact tests; high effort for the path flattener and the contour-distance rules.",
+          "status": "pending"
+        },
+        {
+          "id": "build-4",
+          "phase": 2,
+          "title": "Rebuild the pick as clean paths in the source, every output, web icons, final side-by-side, changelog (or the fallback)",
+          "model": "opus",
+          "effort": "high",
+          "why": "Opus: hand-building art from a traced reference to pass strict geometry and look as good at 24 dp, including the reminder's notification icon (goal 2); high effort for visual iteration.",
+          "status": "pending"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the whole piece",
+          "model": "opus",
+          "effort": "medium",
+          "why": "Opus: the notification icon is the reminder's face (goal 2) and the piece spent paid units; medium effort for a piece with no data or behaviour change.",
           "status": "pending"
         }
       ],
-      "release": "minor"
+      "release": "minor",
+      "modelsChecked": true,
+      "baseSha": "7425f584f3a69f34fe84943e16516b5e064b02c1",
+      "blocker": "Step build-1 ended 2 times without finishing (CI red). See jogging/LOG.md and this run's transcripts.",
+      "blockerIssue": 34,
+      "blockedAt": "2026-10-21T22:31:14.958Z"
     },
     {
       "id": "edit-after-miss",
@@ -151,7 +208,7 @@
       "dependsOn": [
         "review-outcome"
       ],
-      "status": "active",
+      "status": "done",
       "spec": "jogging/specs/edit-after-miss.md",
       "steps": [
         {
@@ -159,17 +216,64 @@
           "phase": 1,
           "model": "opus",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "spec-review",
           "phase": 1,
           "model": "opus",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
+        },
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "undone() in domain with golden cases; recordReview returns a ReviewUndo, undoReview and cardFor on both repositories; data tests",
+          "model": "opus",
+          "effort": "medium",
+          "why": "Opus: writes and deletes review data in one transaction on both apps (goal 1) and must keep them in agreement; medium effort for small functions on an existing pattern.",
+          "status": "done"
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "Android: the edit screen's outcome, nav hand-back, ReviewViewModel undo and re-present, the Edit word button, tags, component, integration and screenshot tests",
+          "model": "opus",
+          "effort": "medium",
+          "why": "Opus: the ordering between the miss's write, the edit's save and the undo is where a review could be lost or clobbered (goal 1); medium effort as the screens already exist.",
+          "status": "done"
+        },
+        {
+          "id": "build-3",
+          "phase": 2,
+          "title": "Web: the review edit sub-route and screenKey, the edit screen's outcome, the reducer transitions, ReviewScreen's undo and re-present, the button and its tests",
+          "model": "opus",
+          "effort": "medium",
+          "why": "Opus: async ordering across a route change, and it must match Android's behaviour exactly (goal 5); medium effort on the web's existing reducer pattern.",
+          "status": "done"
+        },
+        {
+          "id": "build-4",
+          "phase": 2,
+          "title": "The shared Edit word scenario on both apps, CLAUDE.md, README.md and the changelog",
+          "model": "sonnet",
+          "effort": "medium",
+          "why": "Sonnet: one scenario from existing steps plus prose.",
+          "status": "done"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the whole piece",
+          "model": "opus",
+          "effort": "medium",
+          "why": "Opus: the piece deletes review rows and rewrites scheduling (goal 1) on both apps, which must agree; medium effort for four build steps on existing patterns.",
+          "status": "done"
         }
       ],
-      "release": "minor"
+      "release": "minor",
+      "modelsChecked": true,
+      "baseSha": "a213ae6cd9e1a84433ced9aec5016214df211c95"
     },
     {
       "id": "form-warnings",
@@ -178,7 +282,7 @@
         "docs/form-warnings.md"
       ],
       "dependsOn": [],
-      "status": "active",
+      "status": "done",
       "spec": "jogging/specs/form-warnings.md",
       "steps": [
         {
@@ -186,17 +290,67 @@
           "phase": 1,
           "model": "opus",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": "spec-review",
           "phase": 1,
           "model": "opus",
           "effort": "medium",
-          "status": "pending"
+          "status": "done"
+        },
+        {
+          "id": "build-1",
+          "phase": 2,
+          "title": "The rule on both apps: formWarnings, ktHasWhitespace, golden/warnings.json and both runners",
+          "model": "sonnet",
+          "effort": "medium",
+          "why": "Sonnet: one small pure function per app, and the golden cases hold the two apps to the same answers mechanically.",
+          "status": "done"
+        },
+        {
+          "id": "build-2",
+          "phase": 2,
+          "title": "Android: paste-dialog warnings, live form marks, the Check forms badge and tag, the ui.json case, component tests, the changelog line",
+          "model": "sonnet",
+          "effort": "medium",
+          "why": "Sonnet: contained UI changes on two screens in patterns they already use, with no data or reminder risk.",
+          "status": "done",
+          "attempts": 1
+        },
+        {
+          "id": "build-3",
+          "phase": 2,
+          "title": "Web: the same warnings, marks and badge, filterRows checkForms, the test id, tests",
+          "model": "sonnet",
+          "effort": "medium",
+          "why": "Sonnet: mirrors build-2 in the web's existing components, checked by the shared golden case.",
+          "status": "done"
+        },
+        {
+          "id": "build-4",
+          "phase": 2,
+          "title": "The curious fixture, two shared scenarios and their steps on both runners, CLAUDE.md",
+          "model": "sonnet",
+          "effort": "high",
+          "why": "Sonnet: four small steps on existing patterns; high effort because they must pass on the emulator and the web runner with the same texts.",
+          "status": "done"
+        },
+        {
+          "id": "review",
+          "phase": 2,
+          "title": "Review the whole piece",
+          "model": "sonnet",
+          "effort": "high",
+          "why": "Sonnet: a small piece with no schema, backup or reminder change; high effort to check the two apps agree on whitespace and that warnings never block.",
+          "status": "done"
         }
       ],
-      "release": "minor"
+      "release": "minor",
+      "modelsChecked": true,
+      "baseSha": "a6661216864da12974324975ad3a5aadef3d61e9"
     }
-  ]
+  ],
+  "release": "minor",
+  "stuck": true
 }

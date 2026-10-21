@@ -5,6 +5,7 @@ import { openDatabase } from "./data/db";
 import { createRepository } from "./data/repository";
 import { fakePush } from "./debug/fakePush";
 import { fakePushApi } from "./debug/fakePushApi";
+import { fakeSpeech } from "./debug/fakeSpeech";
 import { installSeedHook } from "./debug/seedHook";
 import { deviceClock } from "./domain/clock";
 import { createPushApi } from "./push/pushApi";
@@ -24,6 +25,7 @@ async function start(root: HTMLElement): Promise<void> {
     const db = await openDatabase(undefined, () => onVersionChange());
     const repository = createRepository({ db });
     const platform = browserPlatform();
+    if (e2e) platform.speech = fakeSpeech();
     // Before anything can write a word: a notification's #/review launch must not review an
     // overdue word first and make the day it was skipped look quiet.
     await repository.settleQuietDays();

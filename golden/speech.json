@@ -1,0 +1,20 @@
+{
+  "about": "The voice rule (SpeechGoldenTest, Speech.kt): `chooseVoice` gives the index of the voice to speak with, or null. `speechRate` is SPEECH_RATE.",
+  "speechRate": 0.8,
+  "chooseVoice": [
+    {"name":"en-NZ device takes the en-NZ voice first of three","voices":["en-NZ","en-GB","en-US"],"deviceLocales":["en-NZ"],"out":0},
+    {"name":"en-NZ device with en-GB, en-NZ voices takes the en-NZ one","voices":["en-GB","en-NZ"],"deviceLocales":["en-NZ"],"out":1},
+    {"name":"en-NZ device with only en-GB and en-US takes the first given","voices":["en-GB","en-US"],"deviceLocales":["en-NZ"],"out":0},
+    {"name":"an en_NZ voice tag matches an en-NZ device locale","voices":["en-GB","en_NZ"],"deviceLocales":["en-NZ"],"out":1},
+    {"name":"the match ignores case","voices":["en-GB","EN-nz"],"deviceLocales":["en-NZ"],"out":1},
+    {"name":"a Unicode extension on the device locale is ignored","voices":["en-GB","en-NZ"],"deviceLocales":["en-NZ-u-mu-celsius"],"out":1},
+    {"name":"two en-US voices take the first","voices":["en-US","en-US"],"deviceLocales":["en-US"],"out":0},
+    {"name":"fr-FR then en-AU device with an en-AU voice takes it","voices":["en-US","en-AU"],"deviceLocales":["fr-FR","en-AU"],"out":1},
+    {"name":"fr-FR device only, an en-US voice is still taken","voices":["en-US"],"deviceLocales":["fr-FR"],"out":0},
+    {"name":"a bare en device locale takes the first English voice","voices":["en-GB","en-US"],"deviceLocales":["en"],"out":0},
+    {"name":"a bare en voice is English","voices":["fr-FR","en"],"deviceLocales":["fr-FR"],"out":1},
+    {"name":"a script subtag is skipped to reach the region","voices":["en-GB","en-Latn-NZ"],"deviceLocales":["en-NZ"],"out":1},
+    {"name":"no English voice gives none","voices":["fr-FR","de-DE"],"deviceLocales":["en-NZ"],"out":null},
+    {"name":"no voices gives none","voices":[],"deviceLocales":["en-NZ"],"out":null}
+  ]
+}

@@ -8,6 +8,7 @@ export const FINISH_LINE = "All done — see you tomorrow";
 export const review = {
   answerField: (page: Page) => byTestId(page, TestIds.REVIEW_ANSWER),
   submitButton: (page: Page) => byTestId(page, TestIds.REVIEW_SUBMIT),
+  speakButton: (page: Page) => byTestId(page, TestIds.REVIEW_SPEAK),
   /** The word shown in the hit card, below its small "Correct" label. */
   correctWord: (page: Page) => byTestId(page, TestIds.REVIEW_CORRECT_WORD),
 

@@ -19,6 +19,9 @@ object Routes {
     const val EDIT = "edit/{$EDIT_ARG}"
 
     fun edit(wordId: Long) = "edit/$wordId"
+
+    /** The [SavedStateHandle][androidx.lifecycle.SavedStateHandle] key the edit screen sets on the entry below it. */
+    const val EDIT_OUTCOME = "editOutcome"
 }
 
 /** Tests provide a container of their own; the app never does. */

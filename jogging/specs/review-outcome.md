@@ -95,7 +95,7 @@ their injected fuzz and tests stay deterministic.
 
 ### Golden cases
 
-`golden/review.json`, `{ "about": …, "reviewed": [ … ] }`. Each case has `word` (fields as
+`golden/review.json`, `{ "about": …, "reviewed": [ … ] }`. Each case has a `name`, `word` (fields as
 in the README's word rule: only those it needs, the rest Kotlin's defaults), `correctFirstTry`,
 `typedAnswer`, `today`, `now`, and `out` with `word` (every scheduling field:
 `repetitions`, `easeFactor`, `intervalDays`, `dueOn`, `lapses`, `lastReviewedAt`,
@@ -121,8 +121,9 @@ Cases, at least:
 9. `lastReviewedAt` is replaced by `now` when it was set before.
 
 The Kotlin runner `golden/ReviewGoldenTest.kt` (with `everyFunctionHasARunner`, as the other
-runners have) uses `Golden.wordFrom`; the TypeScript runner `web/test/golden/review.test.ts`
-uses `wordFrom` from `load.ts`. Add a `review.json` row to `golden/README.md`'s Files table
+runners have) uses `Golden.forEachCase` and `Golden.wordFrom(c.getValue("word").jsonObject)`;
+the TypeScript runner `web/test/golden/review.test.ts` uses `cases`, `expectFunctions` and
+`wordFrom(c.word)` from `load.ts`. Add a `review.json` row to `golden/README.md`'s Files table
 ("`reviewed`: one review's word and log row"), and change its "Not golden" paragraph so it
 says the repositories' reads and writes aren't golden, but the rule they apply is.
 

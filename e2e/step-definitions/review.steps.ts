@@ -60,3 +60,22 @@ Given('I have practised today\'s words correctly', async () => {
     await home.startSession();
     await review.practiceAllCorrectly();
 });
+
+// The debug build's RecordingSpeaker logs each spoken text, so a tap is checked without a TTS engine.
+When('I tap Hear the word', async () => {
+    await driver.execute('mobile: shell', { command: 'logcat', args: ['-c'] });
+    await review.speakButton().click();
+});
+
+Then('{string} was spoken', async (word: string) => {
+    await driver.waitUntil(
+        async () => {
+            const log = (await driver.execute('mobile: shell', {
+                command: 'logcat',
+                args: ['-d', '-s', 'TortoiseSpeech:I'],
+            })) as string;
+            return log.includes(`spoke "${word}"`);
+        },
+        { timeoutMsg: `"${word}" was never spoken` },
+    );
+});

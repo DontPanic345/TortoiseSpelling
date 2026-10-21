@@ -1,4 +1,5 @@
 import type { StoredWord, Word } from "../../data/model";
+import { formWarnings } from "../../domain/formWarnings";
 import { relativeLabel } from "../../domain/days";
 import { WORD_FILTER_LABELS, matches, wordFilterCounts, type WordFilter } from "../../domain/progress";
 import { ktIsBlank, normalizeWord } from "../../domain/text";
@@ -8,6 +9,7 @@ export interface WordRow {
   word: Word;
   status: string;
   definition: string;
+  checkForms: boolean;
 }
 
 /** Short human-readable scheduling state for the list. */
@@ -28,6 +30,7 @@ export function filterRows(words: readonly StoredWord[], query: string, filter: 
       word: w,
       status: statusLabel(w, today),
       definition: w.content.definitions[0]?.text ?? "",
+      checkForms: formWarnings(w.text, w.content).length > 0,
     }));
 }
 

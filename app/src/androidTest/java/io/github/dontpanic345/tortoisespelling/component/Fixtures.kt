@@ -127,6 +127,20 @@ object Fixtures {
         it.copy(content = it.content.apply(ContentEdit.ExampleText(0, 1, 0, "He sprinted the whole way home.")))
     }
 
+    /** Run with a form of two words. */
+    fun addRunWithTwoWordForm() = addRun().let {
+        it.copy(content = it.content.apply(ContentEdit.FormText(0, 1, "most run")))
+    }
+
+    /** The paste dialog open on a valid answer with a form of two words. */
+    fun addPasteValidWithTwoWordForm(): AddWordUiState {
+        val content = addRunWithTwoWordForm().content
+        return addNew().copy(
+            text = "run",
+            paste = PasteDraft(text = "{\"word\": \"run\"}", result = PastedLookup.Valid("run", content, renames = false)),
+        )
+    }
+
     fun settings(reminderEnabled: Boolean = true, busy: Boolean = false) = SettingsUiState(
         settings = Settings(reminderEnabled = reminderEnabled),
         busy = busy,

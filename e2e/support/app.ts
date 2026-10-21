@@ -36,6 +36,10 @@ export const compileApp = async (): Promise<void> => {
  * itself need a pristine permission state, which only a reinstall gives: freshInstall().
  */
 export const resetApp = async (): Promise<void> => {
+    // A scenario can end in another app's activity inside ours (Android's notification
+    // settings); clearing then tears it down under the relaunch, and on CI the next Home
+    // has twice gone unreadable for 30 s. Going Home first takes it off screen.
+    await driver.execute('mobile: pressKey', { keycode: 3 });
     await driver.execute('mobile: clearApp', { appId: APP_ID });
     if (await hasNotificationPermission()) {
         await driver.execute('mobile: changePermissions', {

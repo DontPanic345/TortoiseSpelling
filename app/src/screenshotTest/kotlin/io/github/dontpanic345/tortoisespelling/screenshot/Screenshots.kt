@@ -110,8 +110,8 @@ private fun Themed(dark: Boolean, content: @Composable () -> Unit) =
     TortoiseSpellingTheme(darkTheme = dark) { content() }
 
 @Composable
-private fun ReviewShot(dark: Boolean, state: ReviewUiState) = Themed(dark) {
-    ReviewContent(state = state, onInputChange = {}, onSubmit = {}, onShowAnswer = {}, onQuit = {})
+private fun ReviewShot(dark: Boolean, state: ReviewUiState, canSpeak: Boolean = false) = Themed(dark) {
+    ReviewContent(state = state, canSpeak = canSpeak, onSpeak = {}, onInputChange = {}, onSubmit = {}, onShowAnswer = {}, onEditWord = {}, onQuit = {})
 }
 
 @Composable
@@ -148,6 +148,16 @@ fun ReviewPromptingLight() = ReviewShot(dark = false, state = review(input = "rh
 @Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
 @Composable
 fun ReviewPromptingDark() = ReviewShot(dark = true, state = review(input = "rhy"))
+
+@PreviewTest
+@Preview(showBackground = true)
+@Composable
+fun ReviewCanSpeakLight() = ReviewShot(dark = false, state = review(input = "rhy"), canSpeak = true)
+
+@PreviewTest
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
+fun ReviewCanSpeakDark() = ReviewShot(dark = true, state = review(input = "rhy"), canSpeak = true)
 
 @PreviewTest
 @Preview(showBackground = true)

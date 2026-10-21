@@ -5,7 +5,7 @@ import { scenarioState } from '../support/scenarioState.ts';
 import { addWord } from '../support/screens/addWord.ts';
 import { seedWords } from '../support/seed.ts';
 import { wordList } from '../support/screens/wordList.ts';
-import { byText } from '../support/selectors.ts';
+import { byText, scrollToText } from '../support/selectors.ts';
 
 Given('I have no words yet', async () => {
     await expect(byText('No words yet')).toBeDisplayed();
@@ -102,6 +102,24 @@ When(
         await addWord.addForm(1, form, label, example);
     },
 );
+
+Then('the editor warns {string}', async (warning: string) => {
+    await expect(scrollToText(warning)).toBeDisplayed();
+});
+
+When('I remove the form {string}', async (form: string) => {
+    await addWord.removeForm(form);
+});
+
+Then('{string} is marked Check forms', async (word: string) => {
+    await expect(wordList.row(word)).toBeDisplayed();
+    await expect(wordList.rowCheckForms(word)).toBeDisplayed();
+});
+
+Then('{string} is not marked Check forms', async (word: string) => {
+    await expect(wordList.row(word)).toBeDisplayed();
+    await expect(wordList.rowCheckForms(word)).not.toBeDisplayed();
+});
 
 When('I save the changes', async () => {
     await addWord.save();

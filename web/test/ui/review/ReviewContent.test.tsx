@@ -30,8 +30,8 @@ function missed(revealed: boolean, retypeMissed = false): ReviewPhase {
   return { kind: "corrective", attempt: "rythm", diff: spellingDiff("rhythm", "rythm"), revealed, retypeMissed };
 }
 
-function show(state: ReviewState) {
-  const calls = { inputs: [] as string[], submits: 0, shown: 0, quits: 0 };
+function show(state: ReviewState, canSpeak = false) {
+  const calls = { inputs: [] as string[], submits: 0, shown: 0, quits: 0, spoken: 0, edits: 0 };
   const view = render(
     <ReviewContent
       state={state}
@@ -39,12 +39,16 @@ function show(state: ReviewState) {
       onSubmit={() => calls.submits++}
       onShowAnswer={() => calls.shown++}
       onQuit={() => calls.quits++}
+      canSpeak={canSpeak}
+      onSpeak={() => calls.spoken++}
+      onEditWord={() => calls.edits++}
     />,
   );
   return { calls, ...view };
 }
 
 const answer = () => screen.getByTestId(TestIds.REVIEW_ANSWER) as HTMLInputElement;
+const speakButton = () => screen.queryByTestId(TestIds.REVIEW_SPEAK) as HTMLButtonElement | null;
 const submitButton = () => screen.getByTestId(TestIds.REVIEW_SUBMIT) as HTMLButtonElement;
 const example = (container: Element) => container.querySelector(".example")?.textContent;
 const text = (selector: string, container: Element) => container.querySelector(selector)?.textContent;
@@ -165,6 +169,9 @@ describe("ReviewContent", () => {
         onSubmit={() => {}}
         onShowAnswer={() => {}}
         onQuit={() => {}}
+        canSpeak={false}
+        onSpeak={() => {}}
+        onEditWord={() => {}}
       />,
     );
     expect(screen.getByLabelText("Loading")).toBeTruthy();
@@ -194,7 +201,7 @@ describe("ReviewContent", () => {
   });
 
   it("the field is the same node before and after the word changes", () => {
-    const props = { onInputChange: () => {}, onSubmit: () => {}, onShowAnswer: () => {}, onQuit: () => {} };
+    const props = { onInputChange: () => {}, onSubmit: () => {}, onShowAnswer: () => {}, onQuit: () => {}, canSpeak: false, onSpeak: () => {}, onEditWord: () => {} };
     const { rerender } = render(<ReviewContent state={stateOf()} {...props} />);
     const before = answer();
     rerender(<ReviewContent state={stateOf({ phase: { kind: "correct" }, input: "rhythm" })} {...props} />);
@@ -207,5 +214,83 @@ describe("ReviewContent", () => {
     const { container } = show(stateOf());
     const hidden = container.querySelector(".blank .sr-only");
     expect(hidden?.textContent).toBe("_____");
+  });
+
+  describe("the Hear the word button", () => {
+    it("is absent when nothing can speak", () => {
+      show(stateOf());
+      expect(speakButton()).toBeNull();
+    });
+
+    it("is labelled for screen readers and sits after the field", () => {
+      show(stateOf(), true);
+      expect(speakButton()?.getAttribute("aria-label")).toBe("Hear the word");
+      expect(speakButton()?.getAttribute("type")).toBe("button");
+      expect(answer().nextElementSibling).toBe(speakButton());
+    });
+
+    it("appears when readiness changes, with the field the same node", () => {
+      const props = { onInputChange: () => {}, onSubmit: () => {}, onShowAnswer: () => {}, onQuit: () => {}, onSpeak: () => {}, onEditWord: () => {} };
+      const { rerender } = render(<ReviewContent state={stateOf()} canSpeak={false} {...props} />);
+      const before = answer();
+      before.focus();
+      rerender(<ReviewContent state={stateOf()} canSpeak {...props} />);
+      expect(speakButton()).not.toBeNull();
+      expect(answer()).toBe(before);
+      rerender(<ReviewContent state={stateOf()} canSpeak={false} {...props} />);
+      expect(speakButton()).toBeNull();
+      expect(answer()).toBe(before);
+      expect(document.activeElement).toBe(before);
+    });
+
+    it("is there in every phase", () => {
+      const phases: ReviewPhase[] = [{ kind: "prompting" }, missed(false), missed(true), { kind: "correct" }];
+      for (const phase of phases) {
+        const { unmount } = show(stateOf({ phase }), true);
+        expect(speakButton(), phase.kind).not.toBeNull();
+        unmount();
+      }
+    });
+
+    it("a click asks to speak", () => {
+      const { calls } = show(stateOf(), true);
+      fireEvent.click(speakButton()!);
+      expect(calls.spoken).toBe(1);
+    });
+
+    it("a pointer tap leaves the input focused", () => {
+      show(stateOf(), true);
+      answer().focus();
+      const down = new Event("pointerdown", { bubbles: true, cancelable: true });
+      speakButton()!.dispatchEvent(down);
+      expect(down.defaultPrevented).toBe(true);
+      expect(document.activeElement).toBe(answer());
+    });
+  });
+
+  describe("the Edit word button", () => {
+    const editButton = () => screen.queryByTestId(TestIds.REVIEW_EDIT) as HTMLButtonElement | null;
+
+    it("shows after a miss, revealed or not", () => {
+      for (const revealed of [false, true]) {
+        const { unmount } = show(stateOf({ phase: missed(revealed) }));
+        expect(editButton()?.textContent, `revealed ${revealed}`).toBe("Edit word");
+        unmount();
+      }
+    });
+
+    it("is absent while prompting and once correct", () => {
+      for (const phase of [{ kind: "prompting" }, { kind: "correct" }] as ReviewPhase[]) {
+        const { unmount } = show(stateOf({ phase, input: phase.kind === "correct" ? "rhythm" : "" }));
+        expect(editButton(), phase.kind).toBeNull();
+        unmount();
+      }
+    });
+
+    it("a click asks to edit", () => {
+      const { calls } = show(stateOf({ phase: missed(false) }));
+      fireEvent.click(editButton()!);
+      expect(calls.edits).toBe(1);
+    });
   });
 });

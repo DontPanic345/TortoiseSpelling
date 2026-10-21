@@ -36,7 +36,10 @@ describe("ui golden cases", () => {
     it("matches", () => {
       const words = c.words.map((w: any) => ({ ...wordFrom(w), content: contentFrom(w.content) }));
       const rows = filterRows(words, c.query, c.filter, c.today);
-      expect(rows.map((r) => ({ text: r.word.text, status: r.status, definition: r.definition }))).toEqual(c.out);
+      const expected = c.out.map((row: any) => ({ ...row, checkForms: row.checkForms ?? false }));
+      expect(
+        rows.map((r) => ({ text: r.word.text, status: r.status, definition: r.definition, checkForms: r.checkForms })),
+      ).toEqual(expected);
     });
   });
 

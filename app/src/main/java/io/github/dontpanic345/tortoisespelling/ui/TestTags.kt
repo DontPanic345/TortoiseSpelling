@@ -53,6 +53,7 @@ object TestTags {
 
     /** The status chip's label, tagged because two rows can share the same status text. */
     fun wordRowStatus(normalizedText: String) = "word_row_status_$normalizedText"
+    fun wordRowCheckForms(normalizedText: String) = "word_row_check_forms_$normalizedText"
 
     const val SETTINGS_NEW_WORDS_VALUE = "settings_new_words_value"
     const val SETTINGS_NEW_WORDS_DECREASE = "settings_new_words_decrease"
@@ -63,5 +64,7 @@ object TestTags {
 
     const val REVIEW_ANSWER = "review_answer"
     const val REVIEW_SUBMIT = "review_submit"
+    const val REVIEW_SPEAK = "review_speak"
     const val REVIEW_CORRECT_WORD = "review_correct_word"
+    const val REVIEW_EDIT = "review_edit"
 }

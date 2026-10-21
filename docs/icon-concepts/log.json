@@ -1,0 +1,120 @@
+{
+  "cap": 10000,
+  "requests": [
+    {
+      "at": "2026-10-21T14:22:23.883Z",
+      "round": "explore",
+      "direction": "a",
+      "model": "recraftv4_1_vector",
+      "style": null,
+      "prompt": "App icon: a single tortoise seen from the side, built from a few bold flat geometric shapes (a hexagon-patterned domed shell, simple head and stubby legs), centred on a plain flat background, minimal, no gradients, no text, no outlines thinner than the shapes. Palette: evergreen #2F5D50 background, shell amber #E7BE8A, parchment #F7F4EE.",
+      "colors": "#2F5D50,#E7BE8A,#F7F4EE",
+      "n": 1,
+      "units": 80,
+      "files": [
+        "docs/icon-concepts/explore/a-01.svg"
+      ]
+    },
+    {
+      "at": "2026-10-21T14:23:52.234Z",
+      "round": "explore",
+      "direction": "a",
+      "model": "recraftv4_1_vector",
+      "style": null,
+      "prompt": "App icon: a single tortoise seen from the side, built from a few bold flat geometric shapes (a domed shell split into a few large plates, simple round head, stubby legs). Single app icon, centred, on a plain flat background, a small number of flat shapes, no gradients, no shading, no text, no thin outlines. Palette: evergreen #2F5D50 background, shell amber #E7BE8A, parchment #F7F4EE body.",
+      "colors": "#2F5D50,#E7BE8A,#F7F4EE",
+      "n": 3,
+      "units": 240,
+      "files": [
+        "docs/icon-concepts/explore/a-02.svg",
+        "docs/icon-concepts/explore/a-03.svg",
+        "docs/icon-concepts/explore/a-04.svg"
+      ]
+    },
+    {
+      "at": "2026-10-21T14:24:30.841Z",
+      "round": "explore",
+      "direction": "b",
+      "model": "recraftv4_1_vector",
+      "style": null,
+      "prompt": "App icon: a friendly, cheerful cartoon tortoise in three-quarter view with a big round head, a gentle smile and a dot eye, chunky rounded shapes, a high domed shell with three or four big soft plates. Single app icon, centred, on a plain flat background, a small number of flat shapes, no gradients, no shading, no text, no thin outlines. Palette: evergreen #2F5D50 background, shell amber #E7BE8A, parchment #F7F4EE skin.",
+      "colors": "#2F5D50,#E7BE8A,#F7F4EE",
+      "n": 4,
+      "units": 320,
+      "files": [
+        "docs/icon-concepts/explore/b-01.svg",
+        "docs/icon-concepts/explore/b-02.svg",
+        "docs/icon-concepts/explore/b-03.svg",
+        "docs/icon-concepts/explore/b-04.svg"
+      ]
+    },
+    {
+      "at": "2026-10-21T14:24:59.666Z",
+      "round": "explore",
+      "direction": "c",
+      "model": "recraftv4_1_vector",
+      "style": null,
+      "prompt": "App icon: a bold emblem — a tortoise in strong heavy silhouette, walking, framed by a thick circular badge ring, chunky shapes with wide gaps between them like a stencil or stamp. Single app icon, centred, on a plain flat background, a small number of flat shapes, no gradients, no shading, no text, no thin outlines. Palette: evergreen #2F5D50 background, shell amber #E7BE8A, parchment #F7F4EE.",
+      "colors": "#2F5D50,#E7BE8A,#F7F4EE",
+      "n": 4,
+      "units": 320,
+      "files": [
+        "docs/icon-concepts/explore/c-01.svg",
+        "docs/icon-concepts/explore/c-02.svg",
+        "docs/icon-concepts/explore/c-03.svg",
+        "docs/icon-concepts/explore/c-04.svg"
+      ]
+    },
+    {
+      "at": "2026-10-21T14:25:17.804Z",
+      "round": "explore",
+      "direction": "d",
+      "model": "recraftv4_1_vector",
+      "style": null,
+      "prompt": "App icon: a tortoise whose shell is a square letter tile (like a word-game tile) with a single bold capital letter A on it, simple head and legs poking out from under the tile, side view. Flat shapes, no gradients, no other text, centred on a plain background. Palette: evergreen #2F5D50 background, tile amber #E7BE8A, parchment #F7F4EE head and legs, letter in evergreen.",
+      "colors": "#2F5D50,#E7BE8A,#F7F4EE",
+      "n": 4,
+      "units": 320,
+      "files": [
+        "docs/icon-concepts/explore/d-01.svg",
+        "docs/icon-concepts/explore/d-02.svg",
+        "docs/icon-concepts/explore/d-03.svg",
+        "docs/icon-concepts/explore/d-04.svg"
+      ]
+    },
+    {
+      "at": "2026-10-21T14:25:42.552Z",
+      "round": "explore",
+      "direction": "e",
+      "model": "recraftv4_1_vector",
+      "style": null,
+      "prompt": "App icon: a tortoise seen from directly above, symmetrical, round shell made of a few large flat plates, head and four legs poking out, minimal geometric mark. Single app icon, centred, on a plain flat background, a small number of flat shapes, no gradients, no shading, no text, no thin outlines. Palette: evergreen #2F5D50 background, shell amber #E7BE8A, parchment #F7F4EE head and legs.",
+      "colors": "#2F5D50,#E7BE8A,#F7F4EE",
+      "n": 4,
+      "units": 320,
+      "files": [
+        "docs/icon-concepts/explore/e-01.svg",
+        "docs/icon-concepts/explore/e-02.svg",
+        "docs/icon-concepts/explore/e-03.svg",
+        "docs/icon-concepts/explore/e-04.svg"
+      ]
+    },
+    {
+      "at": "2026-10-21T14:26:01.951Z",
+      "round": "explore",
+      "direction": "f",
+      "model": "recraftv4_1_vector",
+      "style": null,
+      "prompt": "App icon: a small tortoise carrying a big yellow pencil on its back like a backpack, side view, simple bold flat shapes, playful. Single app icon, centred, on a plain flat background, a small number of flat shapes, no gradients, no shading, no text, no thin outlines. Palette: deep navy #1F3A5F background, marigold #F2B134, cream #FFF8E7.",
+      "colors": "#1F3A5F,#F2B134,#FFF8E7",
+      "n": 4,
+      "units": 320,
+      "files": [
+        "docs/icon-concepts/explore/f-01.svg",
+        "docs/icon-concepts/explore/f-02.svg",
+        "docs/icon-concepts/explore/f-03.svg",
+        "docs/icon-concepts/explore/f-04.svg"
+      ]
+    }
+  ]
+}

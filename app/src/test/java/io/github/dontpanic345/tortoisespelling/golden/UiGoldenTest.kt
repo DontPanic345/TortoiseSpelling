@@ -51,8 +51,9 @@ class UiGoldenTest {
     fun filterRows() = forEachCase(file, "filterRows") { c ->
         val words = c.array("words").map { wordWithContentFrom(it.jsonObject) }
         val rows = filterRows(words, c.str("query"), WordFilter.valueOf(c.str("filter")), c.long("today"))
-        val expected = c.array("out").map { it.jsonObject }.map { Triple(it.str("text"), it.str("status"), it.str("definition")) }
-        assertEquals(expected, rows.map { Triple(it.word.text, it.status, it.definition) })
+        val expected = c.array("out").map { it.jsonObject }
+            .map { listOf(it.str("text"), it.str("status"), it.str("definition"), it.boolOrNull("checkForms") ?: false) }
+        assertEquals(expected, rows.map { listOf(it.word.text, it.status, it.definition, it.checkForms) })
     }
 
     @Test

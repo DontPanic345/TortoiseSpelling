@@ -11,8 +11,9 @@ Before(async () => {
 });
 
 /**
- * On failure, keep the screen as text (page source XML: grep it for texts and
- * resource-ids) and as a screenshot for a human. Named after the scenario.
+ * On failure, keep the screen as a screenshot for a human and as text (page source XML:
+ * grep it for texts and resource-ids). Named after the scenario. The screenshot comes
+ * first: when no window is readable, the page source throws too.
  */
 After(async (scenario) => {
     if (scenario.result?.status !== 'FAILED') {
@@ -20,8 +21,8 @@ After(async (scenario) => {
     }
     const name = scenario.pickle.name.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
     await fs.mkdir(LOG_DIR, { recursive: true });
-    await fs.writeFile(path.join(LOG_DIR, `${name}.xml`), await driver.getPageSource());
     await driver.saveScreenshot(path.join(LOG_DIR, `${name}.png`));
+    await fs.writeFile(path.join(LOG_DIR, `${name}.xml`), await driver.getPageSource());
 });
 
 /**

@@ -59,6 +59,10 @@ export const addWord = {
     await byTestId(page, addWordExample(0, position, 0)).fill(example);
   },
 
+  removeForm: async (page: Page, form: string): Promise<void> => {
+    await page.getByRole("button", { name: `Remove form “${form}”`, exact: true }).click();
+  },
+
   save: async (page: Page): Promise<void> => {
     await addWord.saveButton(page).click();
   },

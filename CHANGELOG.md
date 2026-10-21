@@ -11,7 +11,14 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ### Added
 
+- **Form warnings.** A pasted form of more than one word, like “most curious”, is flagged before you save, and words already saved with one show **Check forms** in the word list.
+- **Edit word** after a miss in review, on Android and the web: fix a wrong definition, form or example, and saving takes the miss back and asks the word again.
+- **Hear the word**: a speaker button on the review screen, on Android and the web, says the word aloud in your phone's or browser's own voice. It is hidden when the device has no voice installed.
 - **How it works** on Home, on Android and the web: the ⓘ button in the top bar explains a day's practice and spaced repetition, including how many days each review is from the last if you spell the word right every time (1, 6, 17, 49 and 147 days, then once a year).
+
+### Fixed
+
+- A review is saved in one step, so a crash can no longer leave a word rescheduled with the day missing from your streak; and finishing a card whose word was deleted meanwhile no longer closes the app.
 
 ## [0.8.0] - 2026-10-18
 

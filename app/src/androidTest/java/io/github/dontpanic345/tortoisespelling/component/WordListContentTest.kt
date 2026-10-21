@@ -1,8 +1,10 @@
 package io.github.dontpanic345.tortoisespelling.component
 
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -84,6 +86,16 @@ class WordListContentTest {
         words.zip(statuses).forEach { (word, status) ->
             compose.onNodeWithTag(TestTags.wordRowStatus(word.normalizedText), useUnmergedTree = true).assertTextEquals(status)
         }
+    }
+
+    @Test
+    fun onlyARowToCheckShowsCheckForms() {
+        val rows = listState().rows.mapIndexed { i, row -> row.copy(checkForms = i == 0) }
+        show(listState().copy(rows = rows))
+
+        compose.onNodeWithTag(TestTags.wordRowCheckForms(words[0].normalizedText), useUnmergedTree = true)
+            .assertTextEquals("Check forms")
+        compose.onAllNodesWithText("Check forms", useUnmergedTree = true).assertCountEquals(1)
     }
 
     @Test

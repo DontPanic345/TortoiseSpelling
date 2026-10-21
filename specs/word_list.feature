@@ -44,3 +44,12 @@ Feature: Managing the word list
     When I change the definition to "the rhythm of a song"
     And I save the changes
     Then "rhythm" is listed with the definition "the _____ of a song"
+
+  Scenario: A saved word with a two-word form is marked to check
+    When I open "rhythm"
+    And I add the form "rhythm section" labelled "compound" with the example "The rhythm section played on."
+    And I save the changes
+    Then "rhythm" is marked Check forms
+    And "necessary" is not marked Check forms
+    When I open "rhythm"
+    Then the editor warns "“rhythm section” is more than one word. Spelling review asks for one word."

@@ -14,6 +14,7 @@ import io.github.dontpanic345.tortoisespelling.data.toContent
 import io.github.dontpanic345.tortoisespelling.di.AppContainer
 import io.github.dontpanic345.tortoisespelling.domain.Days
 import io.github.dontpanic345.tortoisespelling.domain.WordFilter
+import io.github.dontpanic345.tortoisespelling.domain.formWarnings
 import io.github.dontpanic345.tortoisespelling.domain.matches
 import io.github.dontpanic345.tortoisespelling.domain.searchTerms
 import io.github.dontpanic345.tortoisespelling.domain.wordFilterCounts
@@ -24,7 +25,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class WordRow(val word: Word, val status: String, val definition: String)
+data class WordRow(
+    val word: Word,
+    val status: String,
+    val definition: String,
+    val checkForms: Boolean = false,
+)
 
 data class WordListUiState(
     val query: String = "",
@@ -59,7 +65,8 @@ fun filterRows(
         .filter { filter.matches(it.word, today) }
         .map { content ->
             val definition = content.sorted().definitions.firstOrNull()?.definition?.text.orEmpty()
-            WordRow(content.word, statusLabel(content.word, today), definition)
+            val checkForms = formWarnings(content.word.text, content.toContent()).isNotEmpty()
+            WordRow(content.word, statusLabel(content.word, today), definition, checkForms)
         }
 }
 

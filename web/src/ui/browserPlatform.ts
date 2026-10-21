@@ -1,6 +1,8 @@
 import { decodeBase64Url } from "../push/base64url";
 import { describeSubscription, type Permission, type PushPlatform, type PushSupport } from "../push/pushPlatform";
+import { chooseVoice, SPEECH_RATE } from "../domain/speech";
 import type { InstallState, Platform } from "./platform";
+import type { SpeechPlatform } from "./speechPlatform";
 
 /** Chrome's install prompt event, which lib.dom doesn't type. */
 interface BeforeInstallPromptEvent extends Event {
@@ -66,6 +68,48 @@ function pushPlatform(installState: () => InstallState): PushPlatform {
 
     async unsubscribe() {
       await (await (await registration())?.pushManager.getSubscription())?.unsubscribe();
+    },
+  };
+}
+
+/** Speaks with `speechSynthesis`, using only voices that run on the device so nothing is sent away. */
+function speechPlatform(): SpeechPlatform {
+  const synth = typeof speechSynthesis === "undefined" ? null : speechSynthesis;
+  const listeners = new Set<() => void>();
+  let voice: SpeechSynthesisVoice | null = null;
+
+  const choose = () => {
+    const local = synth ? synth.getVoices().filter((candidate) => candidate.localService) : [];
+    const index = chooseVoice(
+      local.map((candidate) => candidate.lang),
+      [...navigator.languages],
+    );
+    const chosen = index === null ? null : (local[index] ?? null);
+    if (chosen === voice) return;
+    voice = chosen;
+    listeners.forEach((listener) => listener());
+  };
+
+  // Voices load asynchronously and Safari may never fire the event, so also look once now.
+  synth?.addEventListener("voiceschanged", choose);
+  choose();
+
+  return {
+    ready: () => voice !== null,
+
+    onReadyChange(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+
+    speak(text) {
+      if (!synth || !voice) return;
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.voice = voice;
+      utterance.lang = voice.lang;
+      utterance.rate = SPEECH_RATE;
+      synth.cancel();
+      synth.speak(utterance);
     },
   };
 }
@@ -141,6 +185,8 @@ export function browserPlatform(): Platform {
     },
 
     push: pushPlatform(installState),
+
+    speech: speechPlatform(),
   };
 }
 

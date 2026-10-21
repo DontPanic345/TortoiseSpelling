@@ -3,6 +3,8 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/preact";
 import { afterEach, describe, expect, it } from "vitest";
 import { lookupPrompt } from "../../../src/domain/lookupPrompt";
 import { App } from "../../../src/app";
+import { AddWordScreen, type EditOutcome } from "../../../src/ui/add/AddWordScreen";
+import { ContainerContext } from "../../../src/ui/container";
 import { TestIds } from "../../../src/ui/testIds";
 import { filterRows } from "../../../src/ui/words/wordListState";
 import { fakePlatform } from "../../support/fakePlatform";
@@ -173,5 +175,59 @@ describe("add and edit journeys", () => {
     history.replaceState(null, "", "#/edit/99");
     render(<App container={container} />);
     await waitFor(() => expect(location.hash).toBe("#/words"));
+  });
+
+  describe("opened from review", () => {
+    async function openFromReview() {
+      const { repo, container } = await setup();
+      await repo.addWord("rhythm", content("A strong, regular pattern of sound."));
+      const [word] = await repo.wordsWithContent();
+      history.replaceState(null, "", `#/review/edit/${word!.id}`);
+      const outcomes: (EditOutcome | null)[] = [];
+      render(
+        <ContainerContext.Provider value={container}>
+          <AddWordScreen editingId={word!.id} onClosed={(outcome) => outcomes.push(outcome)} />
+        </ContainerContext.Provider>,
+      );
+      await waitFor(() =>
+        expect((screen.getByTestId(TestIds.ADD_WORD_TEXT) as HTMLInputElement).value).toBe("rhythm"),
+      );
+      return { repo, outcomes };
+    }
+
+    it("a save reports saved and navigates nowhere", async () => {
+      const { repo, outcomes } = await openFromReview();
+      input(TestIds.ADD_WORD_DEFINITION, "A regular, repeated beat.");
+      click(TestIds.ADD_WORD_SAVE);
+      await waitFor(() => expect(outcomes).toEqual(["saved"]));
+      expect((await repo.wordsWithContent())[0]!.content.definitions[0]!.text).toBe("A regular, repeated beat.");
+      expect(location.hash).toMatch(/^#\/review\/edit\/\d+$/);
+    });
+
+    it("a delete reports deleted and navigates nowhere", async () => {
+      const { repo, outcomes } = await openFromReview();
+      fireEvent.click(screen.getByLabelText("Delete word"));
+      await waitFor(() => expect(outcomes).toEqual(["deleted"]));
+      expect(await repo.wordCount()).toBe(0);
+      expect(location.hash).toMatch(/^#\/review\/edit\/\d+$/);
+    });
+
+    it("back reports nothing changed and navigates nowhere", async () => {
+      const { outcomes } = await openFromReview();
+      fireEvent.click(screen.getByLabelText("Back"));
+      expect(outcomes).toEqual([null]);
+      expect(location.hash).toMatch(/^#\/review\/edit\/\d+$/);
+    });
+
+    it("a word gone on load reports deleted", async () => {
+      const { container } = await setup();
+      const outcomes: (EditOutcome | null)[] = [];
+      render(
+        <ContainerContext.Provider value={container}>
+          <AddWordScreen editingId={99} onClosed={(outcome) => outcomes.push(outcome)} />
+        </ContainerContext.Provider>,
+      );
+      await waitFor(() => expect(outcomes).toEqual(["deleted"]));
+    });
   });
 });

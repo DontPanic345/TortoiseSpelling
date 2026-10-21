@@ -12,6 +12,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -19,6 +22,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import io.github.dontpanic345.tortoisespelling.ui.Routes
 import io.github.dontpanic345.tortoisespelling.ui.add.AddWordScreen
+import io.github.dontpanic345.tortoisespelling.ui.add.EditOutcome
 import io.github.dontpanic345.tortoisespelling.ui.complete.CompletionScreen
 import io.github.dontpanic345.tortoisespelling.ui.home.HomeScreen
 import io.github.dontpanic345.tortoisespelling.ui.review.ReviewScreen
@@ -103,23 +107,25 @@ fun TortoiseSpellingNavHost(
             )
         }
 
-        composable(Routes.REVIEW) {
-            ReviewScreen(
+        composable(Routes.REVIEW) { entry ->
+            ReviewDestination(
+                entry = entry,
                 practiceMode = false,
+                navController = navController,
                 onFinished = {
                     navController.navigate(Routes.COMPLETION) {
                         popUpTo(Routes.REVIEW) { inclusive = true }
                     }
                 },
-                onQuit = { navController.popBackStack(Routes.HOME, inclusive = false) },
             )
         }
 
-        composable(Routes.PRACTICE) {
-            ReviewScreen(
+        composable(Routes.PRACTICE) { entry ->
+            ReviewDestination(
+                entry = entry,
                 practiceMode = true,
+                navController = navController,
                 onFinished = { navController.popBackStack(Routes.HOME, inclusive = false) },
-                onQuit = { navController.popBackStack(Routes.HOME, inclusive = false) },
             )
         }
 
@@ -141,6 +147,12 @@ fun TortoiseSpellingNavHost(
             AddWordScreen(
                 editingId = entry.arguments?.getLong(Routes.EDIT_ARG),
                 onDone = { navController.popBackStack() },
+                // Review reads it to undo the miss or drop the word; under the word list
+                // it is set and never read.
+                onClosed = { outcome ->
+                    navController.previousBackStackEntry?.savedStateHandle?.set(Routes.EDIT_OUTCOME, outcome.name)
+                    navController.popBackStack()
+                },
             )
         }
 
@@ -155,4 +167,26 @@ fun TortoiseSpellingNavHost(
             SettingsScreen(onBack = { navController.popBackStack() })
         }
     }
+}
+
+/** Review or practice, with Edit word's editor opened above it and its outcome read back. */
+@androidx.compose.runtime.Composable
+private fun ReviewDestination(
+    entry: NavBackStackEntry,
+    practiceMode: Boolean,
+    navController: NavHostController,
+    onFinished: () -> Unit,
+) {
+    val outcome by entry.savedStateHandle
+        .getStateFlow<String?>(Routes.EDIT_OUTCOME, null)
+        .collectAsStateWithLifecycle()
+    ReviewScreen(
+        practiceMode = practiceMode,
+        onFinished = onFinished,
+        onQuit = { navController.popBackStack(Routes.HOME, inclusive = false) },
+        // Single top, so a second tap during the transition can't stack another editor.
+        onEditWord = { id -> navController.navigate(Routes.edit(id)) { launchSingleTop = true } },
+        editOutcome = outcome?.let(EditOutcome::valueOf),
+        onEditOutcomeHandled = { entry.savedStateHandle[Routes.EDIT_OUTCOME] = null },
+    )
 }

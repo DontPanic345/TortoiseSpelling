@@ -49,3 +49,27 @@ Feature: Reviewing words
     Then I am told "Not yet: type it exactly as shown above."
     When I retype it as "necessary"
     Then I see "All done — see you tomorrow"
+
+  Scenario: Fixing a wrong entry after a miss asks the word again
+    Given I have added the word "necessary" defined as "a kind of fruit"
+    And I go back to Home
+    When I start today's session
+    And I spell it "neccessary"
+    Then I am told "Not quite"
+    When I choose "Edit word"
+    Then the title reads "Edit word"
+    When I change the definition to "needed or required"
+    And I save the changes
+    Then the session title reads "1 / 1"
+    And I am shown the definition "needed or required"
+    When I spell it "necessary"
+    Then I am told the correct word "necessary"
+    And the session moves on by itself to the finish line
+    And I see "You practised 1 word today."
+
+  Scenario: Hearing the word
+    Given I have added the word "necessary" defined as "needed or required"
+    And I go back to Home
+    When I start today's session
+    And I tap Hear the word
+    Then "necessary" was spoken

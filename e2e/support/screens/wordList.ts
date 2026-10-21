@@ -11,6 +11,7 @@ export const wordList = {
     filterChip: (label: string) => byTestId(testIds.wordFilter(label.toLowerCase())),
     row: (word: string) => byTestId(testIds.wordRow(normalizeWord(word))),
     rowStatus: (word: string) => byTestId(testIds.wordRowStatus(normalizeWord(word))),
+    rowCheckForms: (word: string) => byTestId(testIds.wordRowCheckForms(normalizeWord(word))),
     suspendIcon: (word: string) =>
         byTestIdWithDescendantDescription(testIds.wordRow(normalizeWord(word)), 'Suspend word'),
     deleteIcon: (word: string) =>

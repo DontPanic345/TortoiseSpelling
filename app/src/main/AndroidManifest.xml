@@ -3,6 +3,13 @@
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Without this, binding to the text-to-speech engine silently fails from target SDK 30. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+    </queries>
+
     <application
         android:name=".TortoiseSpellingApp"
         android:allowBackup="true"

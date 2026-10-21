@@ -9,8 +9,8 @@ Write each golden case's `out` from what today's `recordReview` does before writ
 
 Prove the cases bite, then revert each change:
 
-- Drop `?: today` from `firstReviewedOn` (Kotlin) and `?? today` (TypeScript): case 3
-  fails on each runner.
+- Drop `?: today` from `firstReviewedOn` (Kotlin) and `?? today` (TypeScript): cases 1
+  and 2 fail on each runner. Write `today` in its place: case 3 fails.
 - Pass the old `intervalDays` to `fuzz`: case 4 fails on each runner.
 
 ## Design
@@ -72,7 +72,7 @@ their injected fuzz and tests stay deterministic.
 
 ### Golden cases
 
-`golden/review.json`, `{ "about": …, "reviewed": [ … ] }`. Each case has `word` (fields as
+`golden/review.json`, `{ "about": …, "reviewed": [ … ] }`. Each case has a `name`, `word` (fields as
 in the README's word rule: only those it needs, the rest Kotlin's defaults), `correctFirstTry`,
 `typedAnswer`, `today`, `now`, and `out` with `word` (every scheduling field:
 `repetitions`, `easeFactor`, `intervalDays`, `dueOn`, `lapses`, `lastReviewedAt`,
@@ -98,35 +98,22 @@ Cases, at least:
 9. `lastReviewedAt` is replaced by `now` when it was set before.
 
 The Kotlin runner `golden/ReviewGoldenTest.kt` (with `everyFunctionHasARunner`, as the other
-runners have) uses `Golden.wordFrom`; the TypeScript runner `web/test/golden/review.test.ts`
-uses `wordFrom` from `load.ts`. Add a `review.json` row to `golden/README.md`'s Files table
+runners have) uses `Golden.forEachCase` and `Golden.wordFrom(c.getValue("word").jsonObject)`;
+the TypeScript runner `web/test/golden/review.test.ts` uses `cases`, `expectFunctions` and
+`wordFrom(c.word)` from `load.ts`. Add a `review.json` row to `golden/README.md`'s Files table
 ("`reviewed`: one review's word and log row"), and change its "Not golden" paragraph so it
 says the repositories' reads and writes aren't golden, but the rule they apply is.
 
 ### Tests
 
 - Golden: as above, both runners.
-- Android JVM: `domain/ReviewTest.kt` only for what golden can't say: that `scheduler` is
-  used (a fake `Scheduler` returning a fixed state) and `fuzz` receives
+- Android JVM: `app/src/test/java/.../domain/ReviewTest.kt` only for what golden can't say:
+  that `scheduler` is used (a fake `Scheduler` returning a fixed state) and `fuzz` receives
   `(today, next.intervalDays)` (a recording lambda).
-- Android instrumented (`data/WordRepositoryTest.kt`):
-  - `recordReviewWithAStaleSnapshotKeepsALaterWrite` now passes `stale.id`; it still passes.
-  - New: a word deleted before `recordReview` writes no log row and doesn't throw
-    (`reviewedCountOn(today)` is 0, the word count is unchanged).
-  - New, on the DAO (`TortoiseSpellingDaoTest`): `recordReview` with a lambda that
-    returns a changed word and a `ReviewLog` whose `wordId` points at a missing word makes
-    `insertLog` fail on the foreign key; the word row must be unchanged afterwards, proving
-    the `updateWord` before it was rolled back.
-- Web: `test/data/repository.test.ts`'s `recordReview` tests pass unchanged. No new web
-  repository test is needed; the rule's cases are golden.
+
+The repositories, their instrumented tests, `CLAUDE.md` and `CHANGELOG.md` are build-2's:
+leave `WordRepository.kt`, `TortoiseSpellingDao.kt` and `repository.ts` as they are.
 
 ### Docs
 
-- `CLAUDE.md`, "Scheduling": `reviewed` (`domain/Review.kt`) applies `Sm2Scheduler` and
-  builds the log row; `WordRepository.recordReview` reads, applies and writes in one
-  transaction, and records nothing for a deleted word. Keep the rest of the paragraph.
-- `golden/README.md`: as above.
-- `CHANGELOG.md`, under `[Unreleased]`, `### Fixed`: a review is saved in one step, so a
-  crash can't leave a word rescheduled with the day missing from the streak; and finishing
-  a card whose word was deleted meanwhile no longer closes the app.
-- `web/README.md` needs no change (its transaction rule already describes the web).
+- `golden/README.md`: the Files row and the "Not golden" paragraph, as above.

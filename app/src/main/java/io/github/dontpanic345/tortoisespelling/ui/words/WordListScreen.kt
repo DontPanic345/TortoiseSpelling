@@ -222,7 +222,12 @@ private fun WordListItem(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            StatusBadge(row)
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                StatusBadge(row)
+                if (row.checkForms) {
+                    CheckFormsBadge(row)
+                }
+            }
         }
         IconButton(onClick = onToggleSuspended) {
             Icon(
@@ -237,6 +242,25 @@ private fun WordListItem(
         IconButton(onClick = onDelete) {
             Icon(Icons.Default.Delete, contentDescription = "Delete word")
         }
+    }
+}
+
+/** Marks a word with a suspect form (see `formWarnings`); the add screen says which. */
+@Composable
+private fun CheckFormsBadge(row: WordRow) {
+    val colors = MaterialTheme.colorScheme
+    Surface(
+        color = colors.errorContainer,
+        contentColor = colors.onErrorContainer,
+        shape = RoundedCornerShape(6.dp),
+    ) {
+        Text(
+            text = "Check forms",
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier
+                .padding(horizontal = 8.dp, vertical = 3.dp)
+                .testTag(TestTags.wordRowCheckForms(row.word.normalizedText)),
+        )
     }
 }
 

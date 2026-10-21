@@ -6,6 +6,7 @@ import { testIds } from '../testIds.ts';
 export const review = {
     answerField: () => byTestId(testIds.reviewAnswer),
     submitButton: () => byTestId(testIds.reviewSubmit),
+    speakButton: () => byTestId(testIds.reviewSpeak),
     /** The word shown in the hit card, below its small "Correct" label. */
     correctWord: () => byTestId(testIds.reviewCorrectWord),
 

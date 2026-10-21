@@ -3,7 +3,7 @@ import type { ReviewCard } from "../../domain/cardPick";
 import type { SpellingDiff } from "../../domain/spellingDiff";
 import { ktIsBlank } from "../../domain/text";
 import { BLANK_PLACEHOLDER } from "../../domain/wordBlank";
-import { CloseIcon } from "../common/icons";
+import { CloseIcon, VolumeUpIcon } from "../common/icons";
 import { TopBar } from "../common/TopBar";
 import { TestIds } from "../testIds";
 import { blankedExampleOf, current, ending, position, total, type ReviewPhase, type ReviewState } from "./reviewState";
@@ -14,9 +14,23 @@ export interface ReviewContentProps {
   onSubmit: () => void;
   onShowAnswer: () => void;
   onQuit: () => void;
+  /** Whether there is a voice to speak with; the button is absent otherwise. */
+  canSpeak: boolean;
+  onSpeak: () => void;
+  /** After a miss: fix the word, which undoes the miss if saved. */
+  onEditWord: () => void;
 }
 
-export function ReviewContent({ state, onInputChange, onSubmit, onShowAnswer, onQuit }: ReviewContentProps) {
+export function ReviewContent({
+  state,
+  onInputChange,
+  onSubmit,
+  onShowAnswer,
+  onQuit,
+  canSpeak,
+  onSpeak,
+  onEditWord,
+}: ReviewContentProps) {
   const answer = useRef<HTMLInputElement>(null);
   const answerArea = useRef<HTMLDivElement>(null);
   const card = current(state);
@@ -59,8 +73,10 @@ export function ReviewContent({ state, onInputChange, onSubmit, onShowAnswer, on
               phase={phase}
               onInputChange={onInputChange}
               onSubmit={onSubmit}
+              canSpeak={canSpeak}
+              onSpeak={onSpeak}
             />
-            <Feedback card={card} phase={phase} onShowAnswer={onShowAnswer} />
+            <Feedback card={card} phase={phase} onShowAnswer={onShowAnswer} onEditWord={onEditWord} />
           </div>
           {/* No Continue on the last word: the session closes itself a beat later, so the
               button would be gone by the time a thumb reached it. */}
@@ -147,9 +163,11 @@ interface AnswerFieldProps {
   phase: ReviewPhase;
   onInputChange: (value: string) => void;
   onSubmit: () => void;
+  canSpeak: boolean;
+  onSpeak: () => void;
 }
 
-function AnswerField({ inputRef, value, phase, onInputChange, onSubmit }: AnswerFieldProps) {
+function AnswerField({ inputRef, value, phase, onInputChange, onSubmit, canSpeak, onSpeak }: AnswerFieldProps) {
   const label =
     phase.kind !== "corrective" ? "Your answer" : phase.revealed ? "Type the correct spelling" : "Try again from memory";
   const state = phase.kind === "correct" ? "correct" : phase.kind === "corrective" ? "wrong" : "idle";
@@ -159,33 +177,57 @@ function AnswerField({ inputRef, value, phase, onInputChange, onSubmit }: Answer
       {/* The single most important configuration in the app: if the keyboard autocorrects a
           misspelling into the right word, or just offers it, the exercise is worthless. A
           text field with these attributes keeps the iPhone's password autofill away. */}
-      <input
-        id="review-answer"
-        ref={inputRef}
-        class="word"
-        type="text"
-        value={value}
-        readOnly={phase.kind === "correct"}
-        aria-invalid={phase.kind === "corrective"}
-        autocomplete="off"
-        autocorrect="off"
-        autocapitalize="none"
-        spellcheck={false}
-        enterkeyhint="done"
-        data-testid={TestIds.REVIEW_ANSWER}
-        onInput={(event) => onInputChange(event.currentTarget.value)}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") {
-            event.preventDefault();
-            onSubmit();
-          }
-        }}
-      />
+      <div class="answer-input">
+        <input
+          id="review-answer"
+          ref={inputRef}
+          class="word"
+          type="text"
+          value={value}
+          readOnly={phase.kind === "correct"}
+          aria-invalid={phase.kind === "corrective"}
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="none"
+          spellcheck={false}
+          enterkeyhint="done"
+          data-testid={TestIds.REVIEW_ANSWER}
+          onInput={(event) => onInputChange(event.currentTarget.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              onSubmit();
+            }
+          }}
+        />
+        {/* After the input, in the same parent, so it appearing or going never moves the field.
+            Its pointerdown is cancelled so a tap leaves the input focused: blurring it would close
+            the iOS keyboard. */}
+        {canSpeak && (
+          <button
+            type="button"
+            class="icon-button"
+            aria-label="Hear the word"
+            data-testid={TestIds.REVIEW_SPEAK}
+            onPointerDown={(event) => event.preventDefault()}
+            onClick={onSpeak}
+          >
+            <VolumeUpIcon />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
 
-function Feedback({ card, phase, onShowAnswer }: { card: ReviewCard; phase: ReviewPhase; onShowAnswer: () => void }) {
+interface FeedbackProps {
+  card: ReviewCard;
+  phase: ReviewPhase;
+  onShowAnswer: () => void;
+  onEditWord: () => void;
+}
+
+function Feedback({ card, phase, onShowAnswer, onEditWord }: FeedbackProps) {
   switch (phase.kind) {
     case "prompting":
       return null;
@@ -203,15 +245,21 @@ function Feedback({ card, phase, onShowAnswer }: { card: ReviewCard; phase: Revi
         <div class="feedback wrong-feedback">
           <p class="not-quite">Not quite</p>
           <DiffRow label="You typed" text={phase.attempt} diff={phase.diff} isAttempt />
-          {phase.revealed ? (
+          {phase.revealed && (
             <div class="revealed">
               <DiffRow label="Correct" text={card.form} diff={phase.diff} isAttempt={false} />
             </div>
-          ) : (
-            <button type="button" class="text-button show-answer" onClick={onShowAnswer}>
-              Show answer
-            </button>
           )}
+          <div class="feedback-actions">
+            {!phase.revealed && (
+              <button type="button" class="text-button" onClick={onShowAnswer}>
+                Show answer
+              </button>
+            )}
+            <button type="button" class="text-button" data-testid={TestIds.REVIEW_EDIT} onClick={onEditWord}>
+              Edit word
+            </button>
+          </div>
           {phase.retypeMissed && <p class="retype-missed">Not yet: type it exactly as shown above.</p>}
         </div>
       );

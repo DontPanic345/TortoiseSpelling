@@ -6,7 +6,9 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
+import io.github.dontpanic345.tortoisespelling.domain.Reviewed
 import io.github.dontpanic345.tortoisespelling.domain.WordContent
+import io.github.dontpanic345.tortoisespelling.domain.undone
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -176,6 +178,36 @@ interface TortoiseSpellingDao {
 
     @Insert
     suspend fun insertLog(log: ReviewLog): Long
+
+    /**
+     * Apply [review] to the word and log it, in one transaction; null if the word is gone,
+     * else the log row's id and the word as read, which [undoReview] needs to take it back.
+     * The word is read here rather than taken from the session's snapshot, which was taken
+     * when the session opened: @Update writes every column.
+     */
+    @Transaction
+    suspend fun recordReview(id: Long, review: (Word) -> Reviewed): ReviewUndo? {
+        val current = wordById(id) ?: return null
+        val (word, log) = review(current)
+        updateWord(word)
+        return ReviewUndo(id, insertLog(log), current)
+    }
+
+    @Query("DELETE FROM review_log WHERE id = :id")
+    suspend fun deleteLog(id: Long)
+
+    /**
+     * Take one review back, in one transaction: the word's scheduling as it was and its log
+     * row gone. Reads the row inside, as the edit just saved may have changed its content.
+     * False, and nothing written, if the word is gone (its log went with it, by cascade).
+     */
+    @Transaction
+    suspend fun undoReview(undo: ReviewUndo): Boolean {
+        val current = wordById(undo.wordId) ?: return false
+        updateWord(undone(current, undo.before))
+        deleteLog(undo.logId)
+        return true
+    }
 
     @Query("SELECT COUNT(DISTINCT wordId) FROM review_log WHERE reviewedOn = :day")
     suspend fun reviewedCountOn(day: Long): Int
