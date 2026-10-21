@@ -340,5 +340,6 @@
       "release": "minor",
       "modelsChecked": true
     }
-  ]
+  ],
+  "release": "minor"
 }
