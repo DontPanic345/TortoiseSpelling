@@ -34,3 +34,6 @@ Choices: the base form is never checked, whitespace is Kotlin's, and the marks a
 ## 2026-10-21 18:40 form-warnings/spec-review (opus)
 Fixed four gaps against the code: the web `filterRows` golden runner compares with `toEqual`, so build-2's new `checkForms` key would have failed `npm test` (build-2 now strips it there, build-3 compares it); the web has no error-container colours and its row is a flex column, so build-3 adds both and a badge row; the changelog line moves to build-2, the first user-visible change; the JVM tests are named (`AddWordUiStateTest.kt`).
 Models, efforts and `release: minor` stand.
+
+## 2026-10-21 12:10 speak-word/build-1 (sonnet)
+Built `chooseVoice` and `SPEECH_RATE` in `domain/Speech.kt` and `web/src/domain/speech.ts`, with `golden/speech.json` (14 cases plus `speechRate`), `SpeechGoldenTest.kt`, `speech.test.ts` and the README row. Both bite checks failed on both runners (step 1 dropped; whole tags compared) and were reverted. Unit tests, lint, web tests and typecheck pass. No UI, so no CHANGELOG line yet.

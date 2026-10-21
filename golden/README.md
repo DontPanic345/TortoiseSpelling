@@ -53,6 +53,7 @@ output, and a `name` saying what it checks (the Kotlin test it came from, in wor
 | `session.json` | `remainingNewToday`, `interleaveSession` |
 | `content.json` | `blankContent`, `simpleContent`, `preparedFor`, `isComplete`, `apply`, `searchTerms`, `exampleMissesForm` |
 | `pick.json` | `pickCard`, the card's `answer` and `hint` |
+| `speech.json` | `chooseVoice`, `speechRate` |
 | `prompt.json` | `lookupPrompt`, the whole text |
 | `paste.json` | `parsePastedLookup` (every message, the order of the checks, each limit at and one over), `summary`, `isBlank` |
 | `backup.json` | `parseBackup`, `toImport`, `toBackup`: whole files in `backup/` (`files`: what each imports as, and what exporting those words writes back), refusals with their messages, `quirks`, and the `envelope` (the version a file reads as, and the exact text an export writes) |
