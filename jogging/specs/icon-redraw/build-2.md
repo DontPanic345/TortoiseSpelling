@@ -1,5 +1,16 @@
 # icon-redraw/build-2: Refine the chosen direction; Alan picks the final
 
+## Alan's choice
+
+Direction **b**, friendly cartoon, smiling: specifically `b-02` and `b-04`
+(`docs/icon-concepts/explore/b-02.svg`, `docs/icon-concepts/explore/b-04.svg`). Refine from
+those two; the other b images (`b-01`, `b-03`) weren't picked. The explore prompt, on
+`recraftv4_1_vector` with `--colors "#2F5D50,#E7BE8A,#F7F4EE"`:
+
+> App icon: a friendly, cheerful cartoon tortoise in three-quarter view with a big round head, a gentle smile and a dot eye, chunky rounded shapes, a high domed shell with three or four big soft plates. Single app icon, centred, on a plain flat background, a small number of flat shapes, no gradients, no shading, no text, no thin outlines. Palette: evergreen #2F5D50 background, shell amber #E7BE8A, parchment #F7F4EE skin.
+
+His reply, verbatim: "B-02, B-04"
+
 build-1 generated a first round of icon styles with Recraft and Alan picked a direction;
 his choice is under "Alan's choice" below (build-1 writes it there). This step runs two
 refining rounds within that direction, builds a finalists sheet, and ends `blocked` so
