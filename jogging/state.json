@@ -349,5 +349,6 @@
       "baseSha": "a6661216864da12974324975ad3a5aadef3d61e9"
     }
   ],
-  "release": "minor"
+  "release": "minor",
+  "stuck": true
 }
