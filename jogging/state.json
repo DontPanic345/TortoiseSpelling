@@ -230,8 +230,7 @@
           "model": "opus",
           "effort": "medium",
           "why": "Opus: writes and deletes review data in one transaction on both apps (goal 1) and must keep them in agreement; medium effort for small functions on an existing pattern.",
-          "status": "pending",
-          "awaitingCi": "0b09114fca3f055f0aa44c0a7cb9ff5cde69c56d"
+          "status": "done"
         },
         {
           "id": "build-2",
