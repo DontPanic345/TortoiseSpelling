@@ -151,7 +151,8 @@
           "model": "opus",
           "effort": "medium",
           "why": "Opus: spends paid units against a hard cap with a new API client, and the step's worth is judging which designs to show Alan; medium effort as the code is small.",
-          "status": "pending"
+          "status": "pending",
+          "awaitingCi": "1cf962578a734a2901ab3cc6dc2fdfde11634a0f"
         },
         {
           "id": "build-2",
@@ -192,8 +193,7 @@
       ],
       "release": "minor",
       "modelsChecked": true,
-      "baseSha": "7425f584f3a69f34fe84943e16516b5e064b02c1",
-      "userReply": "B-02, B-04"
+      "baseSha": "7425f584f3a69f34fe84943e16516b5e064b02c1"
     },
     {
       "id": "edit-after-miss",
@@ -347,6 +347,5 @@
       "baseSha": "a6661216864da12974324975ad3a5aadef3d61e9"
     }
   ],
-  "release": "minor",
-  "stuck": true
+  "release": "minor"
 }
