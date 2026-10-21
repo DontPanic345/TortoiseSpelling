@@ -67,7 +67,8 @@
         }
       ],
       "release": "minor",
-      "modelsChecked": true
+      "modelsChecked": true,
+      "baseSha": "78bd286c1d15dec9a8935845ec39e4eeec7697a7"
     },
     {
       "id": "review-outcome",
