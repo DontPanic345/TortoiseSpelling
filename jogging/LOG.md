@@ -50,3 +50,6 @@ Added the "Hearing the word" scenario with its two steps on Android (logcat via 
 
 ## 2026-10-21 16:00 speak-word/review (sonnet)
 Reviewed the whole piece against the spec, goals and standards. Acceptance passes (`assembleRelease`, `e2e:release`); by hand on the release APK (R8, no debug speaker) the button shows, a tap makes the Google engine synthesise (`en-us-x-iog-seanet-embedded`, an on-device voice), and the answer field keeps focus and the keyboard. Voice rule, golden cases, both platforms' on-device filters, hidden-when-none and the CHANGELOG line all match the spec. Only fix: `web/README.md` now mentions `fakeSpeech.ts` and `__tortoiseSpellingSpoken`. Left as a nit: `Voice.features` isn't null-guarded in `TtsSpeaker`.
+
+## 2026-10-21 18:55 speak-word/review (sonnet)
+The red `ci.yml` run was infrastructure, not code: the accessibility job's emulator download got HTTP 502 from dl.google.com, so no test ran. The next run, on the same code (only `state.json` differed), passed all ten jobs including accessibility. No code change; the review stands as logged above.
