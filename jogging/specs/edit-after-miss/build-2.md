@@ -53,7 +53,8 @@ key the edit screen writes on the entry below it.
   `ReviewDestination(entry: NavBackStackEntry, practiceMode: Boolean, navController: NavHostController, onFinished: () -> Unit)`
   that reads `entry.savedStateHandle.getStateFlow<String?>(Routes.EDIT_OUTCOME, null)` with
   `collectAsStateWithLifecycle()` and calls `ReviewScreen` with `onQuit` as now,
-  `onEditWord = { id -> navController.navigate(Routes.edit(id)) }`,
+  `onEditWord = { id -> navController.navigate(Routes.edit(id)) { launchSingleTop = true } }`
+  (a tap during the transition can't stack a second editor),
   `editOutcome = outcome?.let(EditOutcome::valueOf)` and
   `onEditOutcomeHandled = { entry.savedStateHandle[Routes.EDIT_OUTCOME] = null }`.
 
@@ -102,7 +103,10 @@ The existing comment in `gradeFirstAttempt` ("Recorded at the miss…") gains: "
 edit from Edit word takes it back (`onEditClosed`)."
 
 **Tags**: `TestTags.REVIEW_EDIT = "review_edit"`; `e2e/support/testIds.ts` gains
-`reviewEdit: 'review_edit'` beside the other review ids.
+`reviewEdit: 'review_edit'` beside the other review ids, and `web/src/ui/testIds.ts`'s
+`TestIds` gains `REVIEW_EDIT: "review_edit"` (unused until build-3):
+`web/test/ui/testIds.test.ts` fails when an Android tag has no web twin, and CI runs the
+web suite on this push. Run `cd web && npm test` before pushing.
 
 ## Tests
 
@@ -120,6 +124,8 @@ edit from Edit word takes it back (`onEditClosed`)."
     row with `correct` false.
   - with a second due word seeded: miss the first, **Edit word**, **Delete word**: the
     title reads "1 / 1", the second word's definition shows, one word is left.
+  - with only that word: miss, **Edit word**, **Delete word**: the session finishes to
+    the completion screen.
   - miss, **Edit word**, save, then **End session**: the word's scheduling equals the
     seed's and there are no log rows.
   - practice (Home's practice entry, as `PracticeJourneyTest` reaches it): miss, **Edit

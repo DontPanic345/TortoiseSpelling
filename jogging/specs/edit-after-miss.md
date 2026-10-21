@@ -170,7 +170,8 @@ export interface ReviewUndo { wordId: number; logId: number; before: Word }
 - `REVIEW` and `PRACTICE` share a private composable `ReviewDestination(entry, practiceMode, navController, onFinished)`
   that reads `entry.savedStateHandle.getStateFlow<String?>(Routes.EDIT_OUTCOME, null)` with
   `collectAsStateWithLifecycle()` and calls `ReviewScreen` with
-  `onEditWord = { id -> navController.navigate(Routes.edit(id)) }`,
+  `onEditWord = { id -> navController.navigate(Routes.edit(id)) { launchSingleTop = true } }`
+  (a tap during the transition can't stack a second editor),
   `editOutcome = outcome?.let(EditOutcome::valueOf)` and
   `onEditOutcomeHandled = { entry.savedStateHandle[Routes.EDIT_OUTCOME] = null }`.
 
@@ -220,7 +221,9 @@ Grading after a save is the usual `gradeFirstAttempt`, so a right answer records
 and a miss records a miss, with a new `undo`.
 
 **Tags**: `TestTags.REVIEW_EDIT = "review_edit"`; `e2e/support/testIds.ts` gains
-`reviewEdit: 'review_edit'`.
+`reviewEdit: 'review_edit'`. build-2 also adds `REVIEW_EDIT: "review_edit"` to
+`web/src/ui/testIds.ts`: `web/test/ui/testIds.test.ts` fails when an Android tag has no
+web twin, and CI runs it on build-2's push.
 
 ### Web screens
 
@@ -260,12 +263,17 @@ missing on load `onClosed("deleted")`. Without it, behaviour is as now.
 
 **`ReviewScreen({ practiceMode, editing }: { practiceMode: boolean; editing?: number })`**:
 
-- Refs: `recorded: Promise<void>` (starts resolved), `undo: ReviewUndo | null`,
+- Refs: `opening: boolean`, `recorded: Promise<void>` (starts resolved), `undo: ReviewUndo | null`,
   `editedWord: number | null`.
 - The `record` effect: `recorded.current = repository.recordReview(...).then((u) => { undo.current = u; })`.
-- The `openEdit` effect: `editedWord.current = id`, then
-  `void recorded.current.then(() => navigate({ name: practiceMode ? "practice" : "review", editing: id }))`;
+- The `openEdit` effect: ignored while `opening.current` (a double tap); else
+  `opening.current = true`, `editedWord.current = id`, then
+  `void recorded.current.then(() => { opening.current = false; navigate({ name: practiceMode ? "practice" : "review", editing: id }); })`;
   the editor never opens before the miss is written.
+- The `finished` effect also waits while `editing` is set (`editing` joins its deps):
+  `back()` is an async `history.back()`, so a `replace({ name: "completion" })` run before
+  the pop lands would overwrite the editor's entry, and the pop would then remount a
+  fresh `#/review` session.
 - On mount with `editing` set (a reload on `#/review/edit/5`), `replace` with the plain
   route: the miss it was for belonged to a session that is gone.
 - While `editing` is set it renders `<AddWordScreen editingId={editing} onClosed={closeEdit} />`
@@ -281,7 +289,8 @@ missing on load `onClosed("deleted")`. Without it, behaviour is as now.
 **`ReviewContent.tsx`** gains `onEditWord: () => void` and renders, in the corrective
 feedback beside "Show answer",
 `<button type="button" class="text-button" data-testid={TestIds.REVIEW_EDIT} onClick={onEditWord}>Edit word</button>`.
-`TestIds.REVIEW_EDIT = "review_edit"`; `testIds.test.ts` already checks the mirror.
+`TestIds.REVIEW_EDIT = "review_edit"` is already there (build-2 adds it with Android's tag,
+so `testIds.test.ts` stays green).
 
 On iOS the keyboard won't reopen by itself when review comes back from the editor (focus
 outside a tap doesn't summon it); the field still takes focus and a tap opens it. That is
@@ -307,6 +316,8 @@ the platform, not a difference in behaviour.
     false) and the "Not quite" feedback is still on screen.
   - with a second due word seeded: miss the first, **Edit word**, **Delete word**: the
     title reads "1 / 1", the second word's definition shows, and one word is left.
+  - with only that word: miss, **Edit word**, **Delete word**: the session finishes to
+    the completion screen.
   - miss, **Edit word**, **Save**, then **End session**: the word's scheduling equals the
     seed's and there are no log rows.
   - practice: miss, **Edit word**, **Save**: a fresh card with the new definition, and no
@@ -321,8 +332,9 @@ the platform, not a difference in behaviour.
   last card finishes, and `editRequested` in `prompting` and `correct` is idle);
   `test/ui/router.test.ts` covers the new hashes and `screenKey`;
   `test/ui/review/ReviewContent.test.tsx` the button's phases; and
-  `test/ui/review/journeys.test.tsx` the save, back, delete and practice journeys through
-  `App`, as the integration tests do.
+  `test/ui/review/journeys.test.tsx` the save, back, delete (including the only word,
+  which ends at `#/completion`) and practice journeys through `App`, as the integration
+  tests do.
 - Shared scenario in `specs/review.feature`, run by both apps, from existing steps only:
 
   ```gherkin

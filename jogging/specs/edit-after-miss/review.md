@@ -8,6 +8,8 @@ design doc (`docs/edit-after-miss.md`). Look hardest at:
   the edit's save, reads the row inside its own transaction, writes only the eight
   scheduling fields (`undone`), and deletes only its own log row by id. No path writes
   back a stale `Word` row over the edit or the undo.
+- **Double taps.** A second tap on Edit word opens no second editor (Android's
+  `launchSingleTop` and `opening` job, the web's `opening` ref).
 - **Only a saved edit undoes.** Top bar back, system back and the browser's Back leave
   the miss and its log row in place, and the retype goes on. A process death (Android) or
   reload (web) with the editor open undoes nothing.
@@ -15,7 +17,8 @@ design doc (`docs/edit-after-miss.md`). Look hardest at:
   through the normal first-attempt path and records again. Practice still writes no
   scheduling state or logs.
 - **Deleted words.** Deleting from the editor removes the card, the title stays truthful,
-  and the last card's removal finishes the session; `undoReview` and `cardFor` for a gone
+  and the last card's removal finishes the session (on the web, the `finished` effect
+  waits for the editor's `history.back()` to land, so it can't remount a fresh session); `undoReview` and `cardFor` for a gone
   word write nothing and don't throw.
 - **Two apps agree (goal 5).** The same phases show the button, the same outcomes do the
   same things, the golden `undone` cases pass on both runners, and the shared scenario

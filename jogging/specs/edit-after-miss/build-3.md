@@ -69,11 +69,17 @@ missing on load `onClosed("deleted")`. Without it, behaviour is exactly as now.
 
 **`ReviewScreen({ practiceMode, editing }: { practiceMode: boolean; editing?: number })`**:
 
-- Refs: `recorded: Promise<void>` (starts `Promise.resolve()`), `undo: ReviewUndo | null`,
+- Refs: `opening: boolean`, `recorded: Promise<void>` (starts `Promise.resolve()`), `undo: ReviewUndo | null`,
   `editedWord: number | null`.
 - The `record` effect: `recorded.current = repository.recordReview(...).then((u) => { undo.current = u; })`.
-- The `openEdit` effect: `editedWord.current = id`, then
-  `void recorded.current.then(() => navigate({ name: practiceMode ? "practice" : "review", editing: id }))`.
+- The `openEdit` effect: ignored while `opening.current` (a double tap would push two
+  editor entries); else `opening.current = true`, `editedWord.current = id`, then
+  `void recorded.current.then(() => { opening.current = false; navigate({ name: practiceMode ? "practice" : "review", editing: id }); })`.
+- The `finished` effect returns early while `editing` is set, and `editing` joins its
+  deps. `closeEdit` dispatches before `back()`'s `history.back()` has landed, so when the
+  removed card was the last, a `replace({ name: "completion" })` run at once would
+  overwrite the editor's history entry and the pending pop would then remount a fresh
+  `#/review` session. Waiting for the pop to clear `editing` avoids it.
 - `dispatch` clears `undo.current` whenever `index` changes (it already clears the timer
   there).
 - On mount with `editing` set (a reload on `#/review/edit/5`), `replace` with the plain
@@ -93,8 +99,8 @@ beside "Show answer" (and alone once revealed), before the retype-missed line, r
 Lay the two buttons out side by side in `styles.css` if they need it. `ReviewScreen`
 passes `onEditWord={() => dispatch(editRequested)}`.
 
-**Test ids**: `TestIds.REVIEW_EDIT = "review_edit"` in `web/src/ui/testIds.ts` (Android's
-`TestTags.REVIEW_EDIT` exists from build-2; `testIds.test.ts` checks the mirror).
+**Test ids**: `TestIds.REVIEW_EDIT = "review_edit"` is already in `web/src/ui/testIds.ts`:
+build-2 added it beside Android's `TestTags.REVIEW_EDIT`, as `testIds.test.ts` demands.
 
 On iOS the keyboard won't reopen by itself when review comes back from the editor; the
 field still takes focus and a tap opens it. Don't remount the answer field to force it.
@@ -121,6 +127,8 @@ field still takes focus and a tap opens it. Don't remount the answer field to fo
     `correct` false.
   - two due words: miss the first, Edit word, delete: the second word's card shows,
     "1 / 1".
+  - one due word: miss, Edit word, delete: `location.hash` ends at `#/completion` and
+    stays there (the race the `finished` guard prevents).
   - miss, Edit word, save, then End session: scheduling equals the seed's, no log rows.
   - practice: miss, Edit word, save: the new definition shows, no log rows.
 - `cd web && npm test && npm run typecheck` pass.
