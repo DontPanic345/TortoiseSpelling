@@ -85,3 +85,7 @@ The "only word deleted" journey passed without the `finished` guard, as jsdom la
 ## 2026-10-21 18:30 edit-after-miss/build-4 (sonnet)
 Added the "Fixing a wrong entry after a miss asks the word again" scenario to `specs/review.feature` (no new steps, none needed fixing), plus the CLAUDE.md, README and CHANGELOG lines.
 Passes on Android e2e (57) and web specs (Chromium); both check-steps and check-specs pass.
+
+## 2026-10-21 18:20 edit-after-miss/review (opus)
+Reviewed the whole piece against the spec, goals and coding standards: the editor opens only after the miss is written (Android joins `recordJob`, the web chains on `recorded`), the undo reads inside its transaction and writes only `undone`'s eight fields and its own log row, back and reload leave the miss, deletes keep the title truthful and finish cleanly, and grading and SM-2 are untouched. No substantive defect found, so no code changes.
+Nits left as they are: Android has no double-tap test (the web has one), and when the word is gone on load the web editor closes but Android's opens empty (this predates the piece). Web tests (932) and typecheck pass; `assembleRelease` and `e2e:release` pass (20). The changelog line covers the one user-visible change.
