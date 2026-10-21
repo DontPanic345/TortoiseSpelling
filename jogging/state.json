@@ -239,8 +239,7 @@
           "model": "opus",
           "effort": "medium",
           "why": "Opus: the ordering between the miss's write, the edit's save and the undo is where a review could be lost or clobbered (goal 1); medium effort as the screens already exist.",
-          "status": "pending",
-          "awaitingCi": "6011b34fbe74130656304290c4bd094edd52d02b"
+          "status": "done"
         },
         {
           "id": "build-3",
