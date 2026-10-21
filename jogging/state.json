@@ -323,7 +323,8 @@
           "model": "sonnet",
           "effort": "medium",
           "why": "Sonnet: mirrors build-2 in the web's existing components, checked by the shared golden case.",
-          "status": "pending"
+          "status": "pending",
+          "awaitingCi": "a0b20aad65f64f00cc594623f8fc6814b812b766"
         },
         {
           "id": "build-4",
