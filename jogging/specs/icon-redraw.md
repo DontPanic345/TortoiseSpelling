@@ -85,7 +85,8 @@ around 4,000 units, so the cap leaves room for re-rolls. The balance is read wit
 `web/scripts/icon-sheet.mjs`, beside `icons.mjs` and like it using `@playwright/test`'s
 Chromium, run as `cd web && node scripts/icon-sheet.mjs <round>` for the rounds
 `explore`, `refine-1`, `refine-2`, `finalists` (copies numbered `1.svg`…`5.svg`) and
-`final` (`docs/icon.svg`). It lays out an HTML page and screenshots it to
+`final` (`docs/icon.svg` at 432 and 48 px; at 24 px the notification set from
+`scripts/icon-source.svg`, so notification-only parts are what's judged). It lays out an HTML page and screenshots it to
 `docs/icon-concepts/<round>/sheet.png` (`final` writes `docs/icon-concepts/final.png`).
 A round's designs are the SVGs in its folder minus those listed in its `dropped.json`.
 Each design gets a labelled cell with:

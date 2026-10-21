@@ -24,6 +24,11 @@ Look hardest at:
   ahead in Settings with a word due, or by running the worker through `adb shell cmd jobscheduler`.
   Take screenshots with `adb shell screencap` and look at them. The notification icon must
   read as one white shape (goal 2: it is the reminder's face).
+- **On the fallback** instead of the art and generator checks: the 15 WebPs and the
+  background colour match `39188cc^` byte for byte (`git diff --quiet 39188cc^ -- app/src/main/res/drawable-*dpi app/src/main/res/values/ic_launcher_background.xml`),
+  `app/src/main/res/drawable/` has no `ic_launcher_*` or `ic_notification` XML left to
+  shadow them, nothing still imports `scripts/icon.mjs`, and `docs/icon.svg` (the WebP in
+  an `<image>`) renders as the favicon and PWA icons.
 - **The web icons** are rebuilt from `docs/icon.svg` (`web/public/icons/`), and
   `CLAUDE.md`'s "Generated files" and the `CHANGELOG.md` line say what happened.
 

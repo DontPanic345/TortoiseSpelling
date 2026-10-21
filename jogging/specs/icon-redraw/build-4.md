@@ -22,8 +22,9 @@ source's rules (enforced by `scripts/icon.mjs` and `scripts/icon.test.mjs`):
 - Every gap is an absence of paint, never paint on top of paint: the same paths make the
   colour, themed (all white) and notification (white, scaled into 20×20 of 24) icons.
 - Every launcher point within 33 of the centre (54, 54), the art's larger dimension at
-  least 52, no two contours closer than `GAP` (3.4; `GAP` × the notification scale must
-  stay ≥ 1, so a smaller notification set needs a larger `GAP` and vice versa), no part in
+  least 52, no two contours closer than `GAP` (3.4 now; `GAP` × the notification scale must stay
+  ≥ 1, and the scale is 20 ÷ the notification set's larger dimension, so `GAP` must be at
+  least that dimension ÷ 20: shrink the notification set or raise `GAP` to fit), no part in
   the background colour, no contour inside another unless both are subpaths of one
   evenodd path.
 
@@ -37,8 +38,10 @@ Then:
 1. `node scripts/icon.mjs`, and `cd web && npm run icons`; commit every output and the
    web PNGs.
 2. Render the side-by-side: add a `final` round to `web/scripts/icon-sheet.mjs` that
-   shows `docs/icon.svg` beside the placeholder (which the script already renders from
-   `git show 39188cc^:…`) at 108 dp (432 px), 48 and 24 dp, and run
+   shows the new icon beside the placeholder (which the script already renders from
+   `git show 39188cc^:…`) at 108 dp (432 px) and 48 dp from `docs/icon.svg`, and at 24 dp
+   as the white silhouette of the notification set (the source's paths minus
+   `data-only="launcher"` ones, so `data-only="notification"` parts show there), and run
    `cd web && node scripts/icon-sheet.mjs final` to write `docs/icon-concepts/final.png`.
    Look at it against the criteria below; iterate on the paths until it passes.
 3. Add the final to `docs/icon-concepts/README.md`.
