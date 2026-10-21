@@ -12,9 +12,11 @@ import io.github.dontpanic345.tortoisespelling.data.toContent
 import io.github.dontpanic345.tortoisespelling.di.AppContainer
 import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
 import io.github.dontpanic345.tortoisespelling.domain.ExampleDraft
+import io.github.dontpanic345.tortoisespelling.domain.FormWarning
 import io.github.dontpanic345.tortoisespelling.domain.PastedLookup
 import io.github.dontpanic345.tortoisespelling.domain.WordContent
 import io.github.dontpanic345.tortoisespelling.domain.apply
+import io.github.dontpanic345.tortoisespelling.domain.formWarnings
 import io.github.dontpanic345.tortoisespelling.domain.isComplete
 import io.github.dontpanic345.tortoisespelling.domain.parsePastedLookup
 import io.github.dontpanic345.tortoisespelling.domain.preparedFor
@@ -28,7 +30,11 @@ import kotlinx.coroutines.launch
 enum class EditOutcome { SAVED, DELETED }
 
 /** The paste dialog's text and what [parsePastedLookup] made of it; [result] is null while the text is blank. */
-data class PasteDraft(val text: String = "", val result: PastedLookup? = null)
+data class PasteDraft(val text: String = "", val result: PastedLookup? = null) {
+    /** Suspect forms in a valid answer, shown before the user accepts it. */
+    val warnings: List<FormWarning>
+        get() = (result as? PastedLookup.Valid)?.let { formWarnings(it.word, it.content) } ?: emptyList()
+}
 
 data class AddWordUiState(
     val editingId: Long? = null,
@@ -45,6 +51,9 @@ data class AddWordUiState(
     val canSave: Boolean get() = text.isNotBlank() && content.isComplete()
 
     val canCopyPrompt: Boolean get() = text.isNotBlank()
+
+    /** Live, from what is on screen, so fixing a form clears its mark at once. */
+    val formWarnings: List<FormWarning> get() = formWarnings(text, content)
 
     /** The state after the user accepts a pasted answer: its spelling and content replace the editor's. */
     fun applying(answer: PastedLookup.Valid): AddWordUiState = copy(

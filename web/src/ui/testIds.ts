@@ -56,3 +56,4 @@ export const wordRow = (normalizedText: string) => `word_row_${normalizedText}`;
 
 /** The status badge's label. */
 export const wordRowStatus = (normalizedText: string) => `word_row_status_${normalizedText}`;
+export const wordRowCheckForms = (normalizedText: string) => `word_row_check_forms_${normalizedText}`;

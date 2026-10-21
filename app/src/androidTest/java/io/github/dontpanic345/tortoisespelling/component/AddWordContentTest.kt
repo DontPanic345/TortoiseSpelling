@@ -122,6 +122,23 @@ class AddWordContentTest {
     }
 
     @Test
+    fun aTwoWordFormShowsItsWarningAndSaveStaysEnabled() {
+        show(Fixtures.addRunWithTwoWordForm())
+
+        compose.onNodeWithText("“most run” is more than one word. Spelling review asks for one word.")
+            .performScrollTo().assertExists()
+        compose.onNodeWithTag(TestTags.ADD_WORD_SAVE).performScrollTo().assertIsEnabled()
+    }
+
+    @Test
+    fun aValidAnswerWithATwoWordFormShowsTheWarningInTheDialog() {
+        show(Fixtures.addPasteValidWithTwoWordForm())
+
+        compose.onNodeWithText("“most run” is more than one word. Spelling review asks for one word.").assertExists()
+        compose.onNodeWithTag(TestTags.ADD_WORD_PASTE_USE).assertIsEnabled()
+    }
+
+    @Test
     fun saveIsDisabledWhileTheFirstDefinitionIsBlank() {
         show(Fixtures.addNew().copy(text = "run"))
 

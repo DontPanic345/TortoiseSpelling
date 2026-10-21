@@ -1,6 +1,7 @@
 package io.github.dontpanic345.tortoisespelling.ui.add
 
 import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
+import io.github.dontpanic345.tortoisespelling.domain.FormWarning
 import io.github.dontpanic345.tortoisespelling.domain.PastedLookup
 import io.github.dontpanic345.tortoisespelling.domain.WordContent
 import io.github.dontpanic345.tortoisespelling.domain.apply
@@ -64,6 +65,38 @@ class AddWordUiStateTest {
         assertFalse(AddWordUiState().canCopyPrompt)
         assertFalse(AddWordUiState(text = "  ").canCopyPrompt)
         assertTrue(AddWordUiState(text = "rhythm").canCopyPrompt)
+    }
+
+    private fun withForm(word: String, form: String) = AddWordUiState(
+        text = word,
+        content = WordContent.blank()
+            .apply(ContentEdit.DefinitionText(0, "eager to know"))
+            .apply(ContentEdit.AddForm(0))
+            .apply(ContentEdit.FormText(0, 1, form)),
+    )
+
+    @Test
+    fun `a two-word form is flagged and fixing its text clears the mark`() {
+        val flagged = withForm("curious", "most curious")
+        assertEquals(
+            listOf(FormWarning(0, 1, "“most curious” is more than one word. Spelling review asks for one word.")),
+            flagged.formWarnings,
+        )
+        val fixed = flagged.copy(content = flagged.content.apply(ContentEdit.FormText(0, 1, "curiouser")))
+        assertTrue(fixed.formWarnings.isEmpty())
+    }
+
+    @Test
+    fun `a valid answer with a two-word form has a warning`() {
+        val content = withForm("curious", "most curious").content
+        val draft = PasteDraft(text = "{}", result = PastedLookup.Valid("curious", content, renames = false))
+        assertEquals(listOf(FormWarning(0, 1, "“most curious” is more than one word. Spelling review asks for one word.")), draft.warnings)
+    }
+
+    @Test
+    fun `an invalid or missing answer has no warnings`() {
+        assertTrue(PasteDraft(text = "x", result = PastedLookup.Invalid("Broken.")).warnings.isEmpty())
+        assertTrue(PasteDraft().warnings.isEmpty())
     }
 
     private val answerContent = WordContent.blank().apply(ContentEdit.DefinitionText(0, "to move fast on foot"))

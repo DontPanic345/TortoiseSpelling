@@ -93,3 +93,6 @@ Nits left as they are: Android has no double-tap test (the web has one), and whe
 ## 2026-10-21 18:30 form-warnings/build-1 (sonnet)
 Added `formWarnings` (Kotlin, TypeScript), `ktHasWhitespace`, `golden/warnings.json` and a runner on each side. Proved the cases bite: dropping the phrase check fails case 3 on both; `' ' in text` fails case 7/8 on Android.
 Brief was wrong on one point: JavaScript's `/\s/` matches a non-breaking space and tab, so cases 7 and 8 pass on the web with it. Added two cases (a BOM inside a form is not whitespace, U+001F is) that fail with `/\s/`.
+
+## 2026-10-21 18:55 form-warnings/build-2 (sonnet)
+Android shows `formWarnings` live on the add screen (form field error and message), in the paste dialog, and as a "Check forms" badge in the word list (`WordRow.checkForms`, `ui.json` case, test id on Android, e2e and web). Web golden runner strips `checkForms` until build-3. Unit, lint, screenshot, component layer and web tests pass; no screenshot reference changed.

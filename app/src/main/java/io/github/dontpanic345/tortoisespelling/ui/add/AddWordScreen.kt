@@ -62,6 +62,7 @@ import kotlinx.coroutines.launch
 import io.github.dontpanic345.tortoisespelling.domain.ContentEdit
 import io.github.dontpanic345.tortoisespelling.domain.DefinitionDraft
 import io.github.dontpanic345.tortoisespelling.domain.FormDraft
+import io.github.dontpanic345.tortoisespelling.domain.FormWarning
 import io.github.dontpanic345.tortoisespelling.domain.PastedLookup
 import io.github.dontpanic345.tortoisespelling.domain.exampleMissesForm
 import io.github.dontpanic345.tortoisespelling.domain.isBlank
@@ -209,7 +210,7 @@ fun AddWordContent(
             // Every field stays editable whether or not a pasted answer filled it: the app
             // has to be fully usable offline and with no chat AI at all.
             state.content.definitions.forEachIndexed { d, definition ->
-                DefinitionEditor(d, definition, word = state.text.trim(), onEdit = onEdit)
+                DefinitionEditor(d, definition, word = state.text.trim(), warnings = state.formWarnings, onEdit = onEdit)
             }
             TextButton(
                 onClick = { onEdit(ContentEdit.AddDefinition) },
@@ -313,6 +314,13 @@ private fun PasteDialog(
                         Text(if (copiedMessage == result.message) "Error copied" else "Copy error")
                     }
                 }
+                paste.warnings.forEach { warning ->
+                    Text(
+                        warning.message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                    )
+                }
                 if (result is PastedLookup.Valid) {
                     if (result.renames) {
                         Text(
@@ -347,6 +355,7 @@ private fun DefinitionEditor(
     d: Int,
     definition: DefinitionDraft,
     word: String,
+    warnings: List<FormWarning>,
     onEdit: (ContentEdit) -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -388,7 +397,8 @@ private fun DefinitionEditor(
         )
 
         definition.forms.forEachIndexed { f, form ->
-            FormEditor(d, f, form, word, onEdit)
+            val warning = warnings.firstOrNull { it.definition == d && it.form == f }?.message
+            FormEditor(d, f, form, word, warning, onEdit)
         }
         TextButton(
             onClick = { onEdit(ContentEdit.AddForm(d)) },
@@ -405,6 +415,7 @@ private fun FormEditor(
     f: Int,
     form: FormDraft,
     word: String,
+    warning: String?,
     onEdit: (ContentEdit) -> Unit,
 ) {
     val isBase = d == 0 && f == 0
@@ -428,8 +439,12 @@ private fun FormEditor(
                     value = form.text,
                     onValueChange = { onEdit(ContentEdit.FormText(d, f, it)) },
                     label = { Text("Form") },
-                    isError = form.text.isBlank(),
-                    supportingText = if (form.text.isBlank()) ({ Text("Required") }) else null,
+                    isError = form.text.isBlank() || warning != null,
+                    supportingText = when {
+                        form.text.isBlank() -> ({ Text("Required") })
+                        warning != null -> ({ Text(warning) })
+                        else -> null
+                    },
                     singleLine = true,
                     modifier = Modifier
                         .weight(1f)
