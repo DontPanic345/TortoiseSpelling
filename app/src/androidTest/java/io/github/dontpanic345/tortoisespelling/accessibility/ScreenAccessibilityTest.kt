@@ -70,8 +70,11 @@ class ScreenAccessibilityTest(private val dark: Boolean) {
         repeat(roots.fetchSemanticsNodes().size) { roots[it].performTouchInput { } }
     }
 
-    private fun review(state: io.github.dontpanic345.tortoisespelling.ui.review.ReviewUiState) = check {
-        ReviewContent(state = state, onInputChange = {}, onSubmit = {}, onShowAnswer = {}, onQuit = {})
+    private fun review(
+        state: io.github.dontpanic345.tortoisespelling.ui.review.ReviewUiState,
+        canSpeak: Boolean = false,
+    ) = check {
+        ReviewContent(state = state, canSpeak = canSpeak, onSpeak = {}, onInputChange = {}, onSubmit = {}, onShowAnswer = {}, onQuit = {})
     }
 
     private fun home(state: io.github.dontpanic345.tortoisespelling.ui.home.HomeUiState) = check {
@@ -131,6 +134,8 @@ class ScreenAccessibilityTest(private val dark: Boolean) {
     }
 
     @Test fun reviewPrompting() = review(Fixtures.review(input = "rhy"))
+
+    @Test fun reviewCanSpeak() = review(Fixtures.review(input = "rhy"), canSpeak = true)
 
     @Test fun reviewMissedHidden() = review(Fixtures.review(Fixtures.missed(revealed = false)))
 

@@ -22,10 +22,22 @@ import io.github.dontpanic345.tortoisespelling.di.AppContainer
 import io.github.dontpanic345.tortoisespelling.domain.Days
 import io.github.dontpanic345.tortoisespelling.ui.LocalAppContainer
 import io.github.dontpanic345.tortoisespelling.ui.TestTags
+import io.github.dontpanic345.tortoisespelling.ui.review.Speaker
 import io.github.dontpanic345.tortoisespelling.ui.theme.TortoiseSpellingTheme
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
+
+/** Keeps the emulator's text-to-speech engine unbound, so Review looks the same on every image. */
+private object NeverReadySpeaker : Speaker {
+    override val ready: StateFlow<Boolean> = MutableStateFlow(false)
+
+    override fun speak(text: String) = Unit
+
+    override fun shutdown() = Unit
+}
 
 data class LogRow(val correct: Boolean, val typedAnswer: String)
 
@@ -75,6 +87,7 @@ class AppHarness : TestRule {
                         fuzz = { today, days -> today + days },
                         openDatabase = { database },
                         settingsFile = SETTINGS_FILE,
+                        speakerFactory = { NeverReadySpeaker },
                     )
                     // Otherwise Home raises the notification permission prompt over the test.
                     container.settings.setReminderEnabled(false)

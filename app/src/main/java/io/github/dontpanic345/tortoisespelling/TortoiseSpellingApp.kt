@@ -11,7 +11,7 @@ class TortoiseSpellingApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        container = AppContainer(this)
+        container = AppContainer(this, speakerFactory = variantSpeakerFactory())
         ReminderScheduler.createChannel(this)
         // Re-assert the schedule on every launch so a dropped or cancelled worker heals.
         ReminderScheduler.ensureScheduled(this, container.settings.current())

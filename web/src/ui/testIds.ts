@@ -35,6 +35,7 @@ export const TestIds = {
 
   REVIEW_ANSWER: "review_answer",
   REVIEW_SUBMIT: "review_submit",
+  REVIEW_SPEAK: "review_speak",
   REVIEW_CORRECT_WORD: "review_correct_word",
 } as const;
 

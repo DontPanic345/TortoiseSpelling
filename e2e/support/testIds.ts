@@ -46,5 +46,6 @@ export const testIds = {
 
     reviewAnswer: 'review_answer',
     reviewSubmit: 'review_submit',
+    reviewSpeak: 'review_speak',
     reviewCorrectWord: 'review_correct_word',
 } as const;

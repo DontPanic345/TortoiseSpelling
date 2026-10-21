@@ -21,6 +21,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -36,7 +37,9 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
@@ -45,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
@@ -87,8 +91,16 @@ fun ReviewScreen(
         }
     }
 
+    // Built here, not at app start, so the engine binds only while Review is open.
+    val appContext = LocalContext.current.applicationContext
+    val speaker = remember(container, appContext) { container.speakerFactory(appContext) }
+    DisposableEffect(speaker) { onDispose { speaker.shutdown() } }
+    val canSpeak by speaker.ready.collectAsState()
+
     ReviewContent(
         state = state,
+        canSpeak = canSpeak,
+        onSpeak = { state.current?.let { speaker.speak(it.form) } },
         onInputChange = viewModel::onInputChange,
         onSubmit = viewModel::submit,
         onShowAnswer = viewModel::showAnswer,
@@ -100,6 +112,8 @@ fun ReviewScreen(
 @Composable
 fun ReviewContent(
     state: ReviewUiState,
+    canSpeak: Boolean,
+    onSpeak: () -> Unit,
     onInputChange: (String) -> Unit,
     onSubmit: () -> Unit,
     onShowAnswer: () -> Unit,
@@ -181,6 +195,8 @@ fun ReviewContent(
                     value = state.input,
                     phase = state.phase,
                     focusRequester = focusRequester,
+                    canSpeak = canSpeak,
+                    onSpeak = onSpeak,
                     onValueChange = onInputChange,
                     onSubmit = onSubmit,
                 )
@@ -312,6 +328,8 @@ private fun AnswerField(
     value: String,
     phase: ReviewPhase,
     focusRequester: FocusRequester,
+    canSpeak: Boolean,
+    onSpeak: () -> Unit,
     onValueChange: (String) -> Unit,
     onSubmit: () -> Unit,
 ) {
@@ -336,6 +354,17 @@ private fun AnswerField(
             )
         },
         isError = phase is ReviewPhase.Corrective,
+        // A touch on a clickable doesn't move focus, so the field keeps it and the keyboard
+        // stays up while the word is spoken.
+        trailingIcon = if (canSpeak) {
+            {
+                IconButton(onClick = onSpeak, modifier = Modifier.testTag(TestTags.REVIEW_SPEAK)) {
+                    Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Hear the word")
+                }
+            }
+        } else {
+            null
+        },
         // The single most important configuration in the app: if the keyboard
         // autocorrects a misspelling into the right word — or just offers it in the
         // suggestion strip — the exercise is worthless. autoCorrectEnabled +

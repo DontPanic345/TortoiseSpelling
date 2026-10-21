@@ -1,6 +1,7 @@
 package io.github.dontpanic345.tortoisespelling.component
 
 import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -33,12 +34,15 @@ class ReviewContentTest {
     private var submits = 0
     private var shownAnswers = 0
     private var quits = 0
+    private var spoken = 0
 
-    private fun show(state: ReviewUiState) {
+    private fun show(state: ReviewUiState, canSpeak: Boolean = false) {
         compose.setContent {
             TortoiseSpellingTheme(darkTheme = false) {
                 ReviewContent(
                     state = state,
+                    canSpeak = canSpeak,
+                    onSpeak = { spoken++ },
                     onInputChange = { inputs += it },
                     onSubmit = { submits++ },
                     onShowAnswer = { shownAnswers++ },
@@ -184,5 +188,52 @@ class ReviewContentTest {
         show(state())
         compose.onNodeWithContentDescription("End session").performClick()
         assertEquals(1, quits)
+    }
+
+    @Test
+    fun theSpeakButtonIsShownOnlyWhenTheDeviceCanSpeak() {
+        show(state(), canSpeak = true)
+        compose.onNodeWithTag(TestTags.REVIEW_SPEAK).assertExists()
+        compose.onNodeWithContentDescription("Hear the word").assertExists()
+    }
+
+    @Test
+    fun theSpeakButtonIsAbsentWhenTheDeviceCannotSpeak() {
+        show(state(), canSpeak = false)
+        compose.onNodeWithTag(TestTags.REVIEW_SPEAK).assertDoesNotExist()
+    }
+
+    @Test
+    fun tappingTheSpeakButtonCallsOnSpeak() {
+        show(state(), canSpeak = true)
+        compose.onNodeWithTag(TestTags.REVIEW_SPEAK).performClick()
+        assertEquals(1, spoken)
+    }
+
+    private fun assertSpeakButtonIn(phase: ReviewPhase) {
+        show(state(phase = phase), canSpeak = true)
+        compose.onNodeWithTag(TestTags.REVIEW_SPEAK).performClick()
+        assertEquals(1, spoken)
+    }
+
+    @Test
+    fun theSpeakButtonIsThereWhilePrompting() = assertSpeakButtonIn(ReviewPhase.Prompting)
+
+    @Test
+    fun theSpeakButtonIsThereAfterAMissBeforeShowAnswer() = assertSpeakButtonIn(missed(revealed = false))
+
+    @Test
+    fun theSpeakButtonIsThereAfterShowAnswer() = assertSpeakButtonIn(missed(revealed = true))
+
+    @Test
+    fun theSpeakButtonIsThereWhenCorrect() = assertSpeakButtonIn(ReviewPhase.Correct)
+
+    @Test
+    fun theAnswerFieldKeepsFocusAfterATapOnTheSpeakButton() {
+        show(state(), canSpeak = true)
+        compose.onNodeWithTag(TestTags.REVIEW_ANSWER).performClick()
+        compose.onNodeWithTag(TestTags.REVIEW_ANSWER).assertIsFocused()
+        compose.onNodeWithTag(TestTags.REVIEW_SPEAK).performClick()
+        compose.onNodeWithTag(TestTags.REVIEW_ANSWER).assertIsFocused()
     }
 }
