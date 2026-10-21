@@ -61,3 +61,7 @@ The brief's first bite check was wrong: dropping `?: today` fails the new-word c
 ## 2026-10-21 14:30 review-outcome/build-2 (opus)
 Both repositories now call `reviewed`; Android's read, update and log run in `TortoiseSpellingDao.recordReview`'s one transaction, and a deleted word records nothing instead of failing the log's foreign key. New instrumented tests: a deleted word logs nothing, and a refused log rolls back the word's update (fails with `@Transaction` removed). CLAUDE.md "Scheduling" and a CHANGELOG "Fixed" line.
 Unit, lint, data and integration layers, review/completion/daily_allowance e2e on Android and the web specs in Chromium and WebKit all pass; the emulator held a release-signed install that had to be removed before connected tests.
+
+## 2026-10-21 14:15 review-outcome/review (opus)
+Reviewed the whole piece: the nine golden cases match the removed `recordReview` (SM-2 numbers rechecked), the DAO's read, update and log run in one `@Transaction`, the web transaction still awaits only its own requests, and no caller passes a `Word` any more. No scheduling outcome changed; CHANGELOG's "Fixed" line covers both user-visible fixes. No fixes needed.
+`assembleRelease` and the release e2e (20 passing) pass, as do the review unit/golden tests and the web golden and repository tests.
