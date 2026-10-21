@@ -257,8 +257,7 @@
           "model": "sonnet",
           "effort": "medium",
           "why": "Sonnet: one scenario from existing steps plus prose.",
-          "status": "pending",
-          "awaitingCi": "375347bd81c07c8ca6f8ad16ee6aac610818b930"
+          "status": "done"
         },
         {
           "id": "review",
