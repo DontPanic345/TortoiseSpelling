@@ -44,9 +44,8 @@
           "title": "Web: SpeechPlatform over speechSynthesis, the e2e fake, the review button and its tests",
           "model": "sonnet",
           "effort": "high",
-          "status": "pending",
-          "why": "Sonnet: mirrors build-2 in the web's Platform and fake pattern; high effort because the iOS keyboard rule (focus, never remount) is easy to break.",
-          "awaitingCi": "10a3ee02a4e1e698f8de9d68de2744c255771182"
+          "status": "done",
+          "why": "Sonnet: mirrors build-2 in the web's Platform and fake pattern; high effort because the iOS keyboard rule (focus, never remount) is easy to break."
         },
         {
           "id": "build-4",
