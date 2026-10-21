@@ -63,7 +63,8 @@
           "model": "sonnet",
           "effort": "high",
           "status": "pending",
-          "why": "Sonnet: a small piece with no data or reminder risk, held together by golden cases and a shared scenario; high effort for both apps and the on-device-voices privacy rule."
+          "why": "Sonnet: a small piece with no data or reminder risk, held together by golden cases and a shared scenario; high effort for both apps and the on-device-voices privacy rule.",
+          "awaitingCi": "8b1032547c532fd96a89c5977d94af4025b102a1"
         }
       ],
       "release": "minor",
