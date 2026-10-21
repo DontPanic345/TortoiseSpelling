@@ -48,6 +48,7 @@ output, and a `name` saying what it checks (the Kotlin test it came from, in wor
 | `blank.json` | `blankWordIn`, `hideWordInDefinition` |
 | `diff.json` | `spellingDiff` |
 | `sm2.json` | `Sm2Scheduler.next`, `fuzzedDueDay`, the constants and `Grade` |
+| `review.json` | `reviewed`: one review's word and log row |
 | `days.json` | `today`, `dayOf` (in `Pacific/Auckland` and `America/Los_Angeles`), `relativeLabel`, `currentStreak` |
 | `progress.json` | `learningStage`, `wordProgress`, `WordFilter.matches`, `wordFilterCounts`, `recentDays`, `greeting` |
 | `session.json` | `remainingNewToday`, `interleaveSession` |
@@ -59,9 +60,10 @@ output, and a `name` saying what it checks (the Kotlin test it came from, in wor
 | `backup.json` | `parseBackup`, `toImport`, `toBackup`: whole files in `backup/` (`files`: what each imports as, and what exporting those words writes back), refusals with their messages, `quirks`, and the `envelope` (the version a file reads as, and the exact text an export writes) |
 | `ui.json` | The UI helpers both apps share: `statusLabel`, `noMatchesBody`, `filterRows`, `completionHeadline`, `importMessage`, `blankedExample`, `canSave`, `applying` (Kotlin: the ViewModels and `CompletionPanel`; TypeScript: `web/src/ui/<screen>/*State.ts`) |
 
-Not golden: the DAO's SQL queries and the repositories. They have no pure Kotlin twin, so the
-web's queries (`domain/queries.ts`) and repository (`data/repository.ts`) are tested in
-`web/test/`, and Android's in `app/src/androidTest/.../data/` and `integration/`.
+Not golden: the DAO's SQL queries and the repositories' reads and writes. They have no pure
+Kotlin twin, so the web's queries (`domain/queries.ts`) and repository (`data/repository.ts`)
+are tested in `web/test/`, and Android's in `app/src/androidTest/.../data/` and `integration/`.
+The rule a review applies (`reviewed`) is golden, in `review.json`.
 
 ## Known differences
 

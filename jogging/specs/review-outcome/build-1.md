@@ -9,8 +9,8 @@ Write each golden case's `out` from what today's `recordReview` does before writ
 
 Prove the cases bite, then revert each change:
 
-- Drop `?: today` from `firstReviewedOn` (Kotlin) and `?? today` (TypeScript): case 3
-  fails on each runner.
+- Drop `?: today` from `firstReviewedOn` (Kotlin) and `?? today` (TypeScript): cases 1
+  and 2 fail on each runner. Write `today` in its place: case 3 fails.
 - Pass the old `intervalDays` to `fuzz`: case 4 fails on each runner.
 
 ## Design

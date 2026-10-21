@@ -1,0 +1,21 @@
+import { describe, it } from "vitest";
+import { reviewed } from "../../src/domain/review";
+import { cases, expectFunctions, expectSame, loadGolden, wordFrom } from "./load";
+
+const file = loadGolden("review");
+
+describe("review golden cases", () => {
+  it("has a runner for every function", () => {
+    expectFunctions(file, ["reviewed"]);
+  });
+
+  describe.each(cases(file, "reviewed"))("reviewed: $name", (c) => {
+    it("matches", () => {
+      const result = reviewed(wordFrom(c.word), c.correctFirstTry, c.typedAnswer, c.today, c.now, (t, i) => t + i);
+      // Only the word fields the case lists.
+      const word = Object.fromEntries(Object.keys(c.out.word).map((k) => [k, (result.word as any)[k]]));
+      expectSame(word, c.out.word);
+      expectSame(result.log, c.out.log);
+    });
+  });
+});

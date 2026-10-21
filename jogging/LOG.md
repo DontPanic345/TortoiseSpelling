@@ -53,3 +53,7 @@ Reviewed the whole piece against the spec, goals and standards. Acceptance passe
 
 ## 2026-10-21 18:55 speak-word/review (sonnet)
 The red `ci.yml` run was infrastructure, not code: the accessibility job's emulator download got HTTP 502 from dl.google.com, so no test ran. The next run, on the same code (only `state.json` differed), passed all ten jobs including accessibility. No code change; the review stands as logged above.
+
+## 2026-10-21 13:45 review-outcome/build-1 (opus)
+`reviewed` in `domain/Review.kt` and `web/src/domain/review.ts`, with nine cases in `golden/review.json` taken from today's `recordReview`, both runners, `ReviewTest` for the scheduler and fuzz parameters, and the `golden/README.md` row and "Not golden" paragraph. The repositories don't call it yet.
+The brief's first bite check was wrong: dropping `?: today` fails the new-word cases (1, 2, 7, 8), not case 3. Writing `today` in its place is what fails case 3. Fixed in `build-1.md`. Ran both mutations and old-interval fuzz (case 4 alone fails) on both runners, then reverted.
