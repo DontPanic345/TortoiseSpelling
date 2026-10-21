@@ -1,5 +1,6 @@
 import { fakePush, type FakePush } from "../../src/debug/fakePush";
 import type { InstallState, Platform } from "../../src/ui/platform";
+import type { SpeechPlatform } from "../../src/ui/speechPlatform";
 
 export { fakePush, type FakePush };
 
@@ -14,6 +15,35 @@ export interface FakePlatform extends Platform {
   installed: InstallState;
   saved: { name: string; text: string }[];
   push: FakePush;
+  speech: FakeSpeech;
+}
+
+/** Speech that is never ready until a test says so, and records what it was asked to say. */
+export interface FakeSpeech extends SpeechPlatform {
+  spoken: string[];
+  /** Changes readiness and tells the listeners, as the voices loading would. */
+  setReady(ready: boolean): void;
+}
+
+function fakeSpeech(): FakeSpeech {
+  const listeners = new Set<() => void>();
+  const spoken: string[] = [];
+  let ready = false;
+  return {
+    spoken,
+    ready: () => ready,
+    onReadyChange(listener) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    speak(text) {
+      spoken.push(text);
+    },
+    setReady(value) {
+      ready = value;
+      listeners.forEach((listener) => listener());
+    },
+  };
 }
 
 export function fakePlatform(): FakePlatform {
@@ -27,6 +57,7 @@ export function fakePlatform(): FakePlatform {
     installed: "unavailable",
     saved: [],
     push: fakePush(),
+    speech: fakeSpeech(),
     async copyText(text) {
       platform.calls.push(`copyText:${text}`);
       return platform.copyResult;

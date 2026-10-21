@@ -710,8 +710,15 @@ button {
   color: var(--on-surface-variant);
 }
 
+.answer-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .answer-field input {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   min-height: 56px;
   padding: 8px 16px;
   border: 1px solid var(--outline);

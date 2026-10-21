@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 import { useContainer } from "../container";
 import { back, replace } from "../router";
+import type { SpeechPlatform } from "../speechPlatform";
 import { ReviewContent } from "./ReviewContent";
 import {
   autoAdvanceDue,
+  current,
   initialReviewState,
   inputChanged,
   loaded,
@@ -14,8 +16,20 @@ import {
   type ReviewStep,
 } from "./reviewState";
 
+/** Whether the voices are ready, re-read when they change (they load after the page does). */
+function useSpeechReady(speech: SpeechPlatform): boolean {
+  const [ready, setReady] = useState(speech.ready);
+  useEffect(() => {
+    const update = () => setReady(speech.ready());
+    update();
+    return speech.onReadyChange(update);
+  }, [speech]);
+  return ready;
+}
+
 export function ReviewScreen({ practiceMode }: { practiceMode: boolean }) {
-  const { repository, autoAdvanceMillis } = useContainer();
+  const { repository, autoAdvanceMillis, platform } = useContainer();
+  const canSpeak = useSpeechReady(platform.speech);
   const [state, setState] = useState(() => initialReviewState(practiceMode));
   // Transitions read the latest state and run their effects at once, so a fast double tap
   // sees the first tap's result rather than a stale render.
@@ -71,6 +85,11 @@ export function ReviewScreen({ practiceMode }: { practiceMode: boolean }) {
       onSubmit={() => dispatch(submit)}
       onShowAnswer={() => dispatch(showAnswer)}
       onQuit={() => back({ name: "home" })}
+      canSpeak={canSpeak}
+      onSpeak={() => {
+        const card = current(state);
+        if (card) platform.speech.speak(card.form);
+      }}
     />
   );
 }
