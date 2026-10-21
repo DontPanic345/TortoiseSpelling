@@ -99,10 +99,8 @@ then the same two writes. Its imports of `Grade`, `sm2Scheduler`, `RESET_BELOW_Q
 
 ### Tests
 
-- Golden: as above, both runners.
-- Android JVM: `domain/ReviewTest.kt` only for what golden can't say: that `scheduler` is
-  used (a fake `Scheduler` returning a fixed state) and `fuzz` receives
-  `(today, next.intervalDays)` (a recording lambda).
+- Golden (`golden/review.json`, both runners) and `domain/ReviewTest.kt`: built in build-1;
+  they must still pass.
 - Android instrumented (`data/WordRepositoryTest.kt`):
   - `recordReviewWithAStaleSnapshotKeepsALaterWrite` now passes `stale.id`; it still passes.
   - New: a word deleted before `recordReview` writes no log row and doesn't throw
@@ -110,7 +108,8 @@ then the same two writes. Its imports of `Grade`, `sm2Scheduler`, `RESET_BELOW_Q
   - New, on the DAO (`TortoiseSpellingDaoTest`): `recordReview` with a lambda that
     returns a changed word and a `ReviewLog` whose `wordId` points at a missing word makes
     `insertLog` fail on the foreign key; the word row must be unchanged afterwards, proving
-    the `updateWord` before it was rolled back.
+    the `updateWord` before it was rolled back. Catch it as `aLogForAMissingWordIsRefused`
+    does (`assertThrows(SQLiteConstraintException::class.java) { runBlocking { … } }`).
 - Web: `test/data/repository.test.ts`'s `recordReview` tests pass unchanged. No new web
   repository test is needed; the rule's cases are golden.
 
@@ -119,7 +118,7 @@ then the same two writes. Its imports of `Grade`, `sm2Scheduler`, `RESET_BELOW_Q
 - `CLAUDE.md`, "Scheduling": `reviewed` (`domain/Review.kt`) applies `Sm2Scheduler` and
   builds the log row; `WordRepository.recordReview` reads, applies and writes in one
   transaction, and records nothing for a deleted word. Keep the rest of the paragraph.
-- `golden/README.md`: as above.
+- `golden/README.md`: done in build-1.
 - `CHANGELOG.md`, under `[Unreleased]`, `### Fixed`: a review is saved in one step, so a
   crash can't leave a word rescheduled with the day missing from the streak; and finishing
   a card whose word was deleted meanwhile no longer closes the app.

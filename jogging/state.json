@@ -89,10 +89,10 @@
           "id": "build-1",
           "phase": 2,
           "title": "The rule on both apps: reviewed() in domain, golden/review.json and both runners",
-          "model": "sonnet",
-          "effort": "high",
+          "model": "opus",
+          "effort": "medium",
           "status": "pending",
-          "why": "Sonnet: one pure function lifted from existing code on each side; high effort because the cases must pin today's behaviour exactly (goal 4) on two runners."
+          "why": "Opus: the step's whole point is that both apps agree (goal 5), and its golden cases must pin today's scheduling exactly (goal 4); medium effort for one pure function lifted from existing code on each side."
         },
         {
           "id": "build-2",
