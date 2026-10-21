@@ -65,3 +65,14 @@ Given("I have practised today's words correctly", async ({ page, scenario }) => 
   await home.startSession(page);
   await review.practiceAllCorrectly(page, scenario);
 });
+
+When("I tap Hear the word", async ({ page }) => {
+  await review.speakButton(page).click();
+});
+
+// The e2e build swaps in a fake voice that records each spoken text on window.
+Then("{string} was spoken", async ({ page }, word: string) => {
+  await expect
+    .poll(() => page.evaluate(() => window.__tortoiseSpellingSpoken ?? []))
+    .toContain(word);
+});

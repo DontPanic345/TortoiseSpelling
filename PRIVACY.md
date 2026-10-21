@@ -38,6 +38,10 @@ carries your words and settings across, whether or not this switch is on.
 **Backups you export.** **Export** in Settings writes your words and progress to a file
 wherever you choose.
 
+**Hearing a word.** The speaker button on the review screen has your device say the word
+with a voice installed on it. The apps never use a network voice, so the word isn't sent
+anywhere.
+
 ## Notifications
 
 On Android, the daily reminder is scheduled on your phone and posted by your phone. There's

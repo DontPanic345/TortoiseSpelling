@@ -49,3 +49,10 @@ Feature: Reviewing words
     Then I am told "Not yet: type it exactly as shown above."
     When I retype it as "necessary"
     Then I see "All done — see you tomorrow"
+
+  Scenario: Hearing the word
+    Given I have added the word "necessary" defined as "needed or required"
+    And I go back to Home
+    When I start today's session
+    And I tap Hear the word
+    Then "necessary" was spoken

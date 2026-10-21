@@ -13,6 +13,8 @@ spaced repetition and a once-a-day reminder so the habit sticks. Slow and steady
 - ✍️ **You spell it from memory.** Each review shows the definition and an example
   sentence with the word blanked out — no multiple choice. Sentences rotate, so a word
   with several examples is asked in turn, in the form each one uses.
+- 🔊 **Hear the word.** Tap the speaker to hear the word spoken by your phone's or
+  browser's own voice.
 - ✅ **Immediate correction.** A miss shows a character-level diff, then makes you
   retype the word correctly before moving on.
 - 🐢 **Spaced repetition (SM-2).** Correct spellings push the word further out

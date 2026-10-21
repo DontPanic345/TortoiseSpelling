@@ -107,6 +107,11 @@ and has no Internet permission.
   no `VisualTransformation`, so it isn't masked.
 - The blank is a fixed `_____`. The blank and answer are the asked form's, and
   `hideWordInDefinition` scrubs every form from every definition on save.
+- The speaker (`ui/review/Speaker.kt`) uses on-device voices only and the button is hidden
+  when there are none. Debug builds wrap it in `RecordingSpeaker`, which is always ready and
+  logs `spoke "<text>"` under `TortoiseSpeech` for e2e; the manifest `<queries>` entry lets
+  Android 11+ see the TTS engine. The web button's `preventDefault` on `pointerdown` keeps
+  the answer field focused, so the keyboard stays up.
 - Word-list search matches the root and every form's spelling, never definitions.
 
 **Generated files.** The launcher and notification icons and `docs/icon.svg` come from

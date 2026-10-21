@@ -9,6 +9,10 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+### Added
+
+- **Hear the word**: a speaker button on the review screen, on Android and the web, says the word aloud in your phone's or browser's own voice. It is hidden when the device has no voice installed.
+
 ## [0.8.0] - 2026-10-18
 
 ### Added
