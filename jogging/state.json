@@ -341,7 +341,8 @@
           "model": "sonnet",
           "effort": "high",
           "why": "Sonnet: a small piece with no schema, backup or reminder change; high effort to check the two apps agree on whitespace and that warnings never block.",
-          "status": "pending"
+          "status": "pending",
+          "awaitingCi": "8a1f18b4792f9733cdb5a0cb519acba1007286cf"
         }
       ],
       "release": "minor",
