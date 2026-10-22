@@ -127,7 +127,7 @@
         "docs/icon-redraw.md"
       ],
       "dependsOn": [],
-      "status": "active",
+      "status": "done",
       "spec": "jogging/specs/icon-redraw.md",
       "steps": [
         {
@@ -187,8 +187,7 @@
           "model": "opus",
           "effort": "medium",
           "why": "Opus: the notification icon is the reminder's face (goal 2) and the piece spent paid units; medium effort for a piece with no data or behaviour change.",
-          "status": "pending",
-          "awaitingCi": "0ae2d1cbe881f45565e11633fe410ca46d894583"
+          "status": "done"
         }
       ],
       "release": "minor",
