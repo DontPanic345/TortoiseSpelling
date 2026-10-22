@@ -8,6 +8,11 @@
   workflow that runs `dependabot/fetch-metadata` and `gh pr merge --auto --squash`
   unless the update is a semver major. Merges made with `GITHUB_TOKEN` don't trigger
   the `push` workflows on `main`.
+- [ ] Build Relay, Jogging's successor: issues and sub-issues as pieces and steps, a
+  Projects board, one draft PR per piece, a GitHub App identity and `/relay` commands.
+  The plan is a Claude Doc, and that doc is the master copy for now:
+  [Tortoise Spelling — GitHub-Centred Development Plan](https://claude.ai/artifact/RmLuziXWQdBFKi6FH1iB7C).
+  Its phase 0 includes the Dependabot auto-merge above.
 - [ ] Copy prompt evals on local models, once the word forms have been tried by hand: see
   [copy-prompt-evals.md](copy-prompt-evals.md).
 - [ ] Retro on some of the Jogging build steps' transcripts: what went well, what wasted
