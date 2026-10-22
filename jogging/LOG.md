@@ -118,3 +118,7 @@ Wrote it into `build-2.md` as "Alan's choice" with the prompt, model, colours an
 ## 2026-10-21 22:30 icon-redraw/build-1 (opus)
 CI was red for an e2e flake that has now hit twice (here and form-warnings/build-2): the scenario after "Open settings" fails in `resetApp`, as Android's notification settings sit in the app's task and `pm clear` tears them down under the relaunch, leaving no readable window for 30 s. It didn't reproduce locally (12 runs, some under CPU load).
 `resetApp` now presses Home before clearing, and the failure hook saves the screenshot before the page source, which threw first here and left no image. Full Android e2e (207), typecheck and `check-steps --all` pass; acceptance passes. No Recraft requests (1,920 of 10,000 units).
+
+## 2026-10-22 00:30 icon-redraw/build-1 (opus)
+Alan replied "go again" to the red CI. Run 39685948045 failed before any test ran: the emulator package download was corrupt ("Error on ZipFile unknown archive"), so nothing came up on port 5554. That's a runner flake, not this step's code. `ci.yml` has since passed on every later main commit (6da8934, b29d4f0, 6dd55e1, 6c2649d), all of which include this step's work.
+No code change. Acceptance passes; no Recraft requests (1,920 of 10,000 units).
