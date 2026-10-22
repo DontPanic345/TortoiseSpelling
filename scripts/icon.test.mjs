@@ -107,13 +107,16 @@ test("gaps are holes, not paint: nothing is the background colour or sits inside
     for (const part of launcher) {
         assert.notEqual(part.fill.toUpperCase(), background.toUpperCase(), `${part.id} is painted in the background colour`);
     }
-    const contours = contoursOf(launcher);
-    for (const a of contours) {
-        for (const b of contours) {
-            if (a === b || (a.part === b.part && a.part.evenOdd)) {
-                continue;
+    // Both sets: a notification-only part could otherwise cover parts the launcher keeps.
+    for (const [name, set] of [["launcher", launcher], ["notification", notificationSet]]) {
+        const contours = contoursOf(set);
+        for (const a of contours) {
+            for (const b of contours) {
+                if (a === b || (a.part === b.part && a.part.evenOdd)) {
+                    continue;
+                }
+                assert.ok(!inside(a.points[0], b.points), `${a.part.id} starts inside ${b.part.id} in the ${name} set`);
             }
-            assert.ok(!inside(a.points[0], b.points), `${a.part.id} starts inside ${b.part.id}`);
         }
     }
 });
