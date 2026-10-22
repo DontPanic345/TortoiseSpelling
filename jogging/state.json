@@ -160,8 +160,7 @@
           "model": "opus",
           "effort": "medium",
           "why": "Opus: design judgement and prompt tightening against the criteria, spending paid units; medium effort with the tools already built.",
-          "status": "pending",
-          "awaitingCi": "0d255dcef0d411a51cb00a177fc7ad36b8ef16b9"
+          "status": "done"
         },
         {
           "id": "build-3",
