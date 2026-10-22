@@ -4,9 +4,9 @@ name: Release
 # Store distribution for this app -- users sideload the APK from the release page.
 #
 # To cut a release: run `node scripts/bump-version.mjs <major|minor|patch>`, commit, and
-# merge to main. Every push to main checks whether versionName already has a v<version>
-# tag; if it doesn't, this runs the CI workflow, builds, and only then creates the tag
-# along with the release. Nobody pushes tags by hand.
+# merge to main. A push to main that changes app/build.gradle.kts checks whether
+# versionName already has a v<version> tag; if it doesn't, this runs the CI workflow,
+# builds, and only then creates the tag along with the release. Nobody pushes tags by hand.
 #
 # Nothing is built unless versionCode is higher than the previous release's and
 # CHANGELOG.md has notes for the version. The release notes are that section. A release
@@ -16,6 +16,10 @@ name: Release
 on:
   push:
     branches: [main]
+    # Only a version bump can need a release.
+    paths:
+      - app/build.gradle.kts
+      - .github/workflows/release.yml
   workflow_dispatch:
 
 # One release at a time; a second push to main waits rather than racing for the tag.

@@ -12,6 +12,9 @@ name: CI
 on:
   push:
     branches: [main]
+    # The Jogging crew's own commits change only its state, and would rerun everything.
+    paths-ignore:
+      - jogging/state.json
   pull_request:
   workflow_call:
 
@@ -144,6 +147,14 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      # Downloaded fresh on every run, the system image sometimes fails ("unknown archive")
+      # and takes the job with it. ANDROID_HOME is this path on ubuntu-latest.
+      - name: Cache the emulator system image
+        uses: actions/cache@v6
+        with:
+          path: /usr/local/lib/android/sdk/system-images/android-${{ matrix.api-level }}/default/x86_64
+          key: system-image-${{ matrix.api-level }}-default-x86_64
+
       - name: ${{ matrix.layer }} tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -194,6 +205,14 @@ jobs:
       - name: Install e2e dependencies
         working-directory: e2e
         run: npm ci
+
+      # Downloaded fresh on every run, the system image sometimes fails ("unknown archive")
+      # and takes the job with it. ANDROID_HOME is this path on ubuntu-latest.
+      - name: Cache the emulator system image
+        uses: actions/cache@v6
+        with:
+          path: /usr/local/lib/android/sdk/system-images/android-34/google_apis/x86_64
+          key: system-image-34-google_apis-x86_64
 
       # The same emulator Jogging sessions use: API 34 for the notification permission.
       - name: e2e suite

@@ -54,6 +54,14 @@ jobs:
         working-directory: e2e
         run: npm ci
 
+      # Downloaded fresh on every run, the system image sometimes fails ("unknown archive")
+      # and takes the job with it. ANDROID_HOME is this path on ubuntu-latest.
+      - name: Cache the emulator system image
+        uses: actions/cache@v6
+        with:
+          path: /usr/local/lib/android/sdk/system-images/android-34/google_apis/x86_64
+          key: system-image-34-google_apis-x86_64
+
       # API 33+ is needed for the notification permission the scenario's reset grants.
       - name: Release smoke journey
         uses: reactivecircus/android-emulator-runner@v2

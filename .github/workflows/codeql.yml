@@ -7,6 +7,9 @@ name: CodeQL
 on:
   push:
     branches: [main]
+    # The Jogging crew's own commits change only its state, and would rerun everything.
+    paths-ignore:
+      - jogging/state.json
   pull_request:
   schedule:
     - cron: "17 18 * * 0"

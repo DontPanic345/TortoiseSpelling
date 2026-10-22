@@ -42,6 +42,9 @@ export const SECRETS = ["CLAUDE_CODE_OAUTH_TOKEN", "GH_TOKEN", "BOT_TOKEN", "REC
 const CI_TIMEOUT_MS = 75 * 60_000;
 const CI_POLL_MS = 30_000;
 const CI_GRACE_MS = 5 * 60_000;
+// A red run gets its failed jobs re-run once before it counts: emulator jobs flake on the
+// runner (a system image download, an emulator that never boots).
+const CI_RUNS = 2;
 // An Acceptance block gets this long, and never runs past the job's time limit.
 const CHECK_TIMEOUT_MS = 45 * 60_000;
 // The job's own limit (jogging.yml), less a margin to record the outcome.
@@ -270,17 +273,44 @@ export const ciVerdict = (runs) => {
     return { state: last.conclusion === "success" ? "green" : "red", run: last };
 };
 
-// What the next attempt is told about a red run: which jobs and steps failed, and the
-// end of each failed job's log.
-export const ciFailureText = (run, jobs, tails = {}) => {
+// Whether a red run gets its failed jobs re-run before it counts.
+export const ciRerun = (run) => (run.run_attempt ?? 1) < CI_RUNS;
+
+// The part of a job's log that says why it failed: the lines before its first `##[error]`.
+// The log's last lines are always the post-job cleanup, which says nothing.
+export const failedStepLog = (text, lines = 80) => {
+    const all = text.split("\n").map((l) => l.replace(/^\S+Z /, ""));
+    let end = all.findIndex((l) => l.startsWith("##[error]"));
+    if (end >= 0) {
+        while (all[end + 1]?.startsWith("##[error]")) end++;
+    } else {
+        end = all.findIndex((l) => l.startsWith("Post job cleanup."));
+        end = (end >= 0 ? end : all.length) - 1;
+    }
+    return all.slice(Math.max(0, end + 1 - lines), end + 1).join("\n");
+};
+
+// What the next attempt is told about a red run: which jobs and steps failed, the failing
+// step's log, and the artifacts that hold the rest.
+export const ciFailureText = (run, jobs, tails = {}, artifacts = []) => {
     const failed = jobs.filter((j) => j.conclusion && !["success", "skipped"].includes(j.conclusion));
     const lines = [`\`ci.yml\` run ${run.html_url ?? run.id} ended ${run.conclusion}.`];
+    if ((run.run_attempt ?? 1) > 1) lines.push("It failed again when its failed jobs were re-run, so it isn't a runner flake.");
     for (const job of failed) {
         const steps = (job.steps ?? []).filter((s) => s.conclusion === "failure").map((s) => s.name);
         lines.push(`\n**${job.name}** failed${steps.length ? ` at: ${steps.join(", ")}` : ""}.`);
         if (tails[job.id]) lines.push("```\n" + tails[job.id].trim() + "\n```");
     }
+    if (artifacts.length) {
+        lines.push(`\nThe run's artifacts (reports, e2e screenshots and page source): \`gh run download ${run.id} -n <name> -D /tmp/ci\`, one of ${artifacts.map((a) => `\`${a.name}\``).join(", ")}.`);
+    }
     return lines.join("\n");
+};
+
+// The log issue's note on a run that went green only when its failed jobs were re-run.
+export const ciFlakeNote = (run, firstJobs) => {
+    const failed = firstJobs.filter((j) => j.conclusion === "failure").map((j) => `**${j.name}**`);
+    return `🔁 \`ci.yml\` on ${run.head_sha.slice(0, 7)} passed on a rerun; ${failed.join(", ") || "a job"} failed the first time. ${run.html_url}`;
 };
 
 // The session's init frame says what it really got. A model the user's default
@@ -748,21 +778,16 @@ const githubText = async (route) => {
     return res.ok ? res.text() : "";
 };
 
-const logTail = (text, lines = 40) =>
-    redact(
-        text
-            .split("\n")
-            .map((l) => l.replace(/^\S+Z /, ""))
-            .slice(-lines)
-            .join("\n"),
-        SECRETS.map((k) => process.env[k]),
-    );
+const logTail = (text, lines = 40) => redact(text.split("\n").slice(-lines).join("\n"), SECRETS.map((k) => process.env[k]));
 
 // Waits for `ci.yml` on `sha`, until the timeout or the job's end. Returns the verdict
-// ("green", "red", "none", or "running" when time ran out) and, for red, what failed.
+// ("green", "red", "none", or "running" when time ran out), for red what failed, and for
+// a green that took a rerun, the log issue's note on it. A red run's failed jobs are re-run
+// once (see CI_RUNS) before it counts.
 const waitForCi = async (sha) => {
     const started = Date.now();
     const until = Math.min(started + CI_TIMEOUT_MS, STARTED + JOB_END_MS);
+    const rerunAsked = new Set();
     for (;;) {
         let runs;
         try {
@@ -773,12 +798,34 @@ const waitForCi = async (sha) => {
         }
         const verdict = ciVerdict(runs);
         if (verdict.state === "none" && Date.now() - started < CI_GRACE_MS) verdict.state = "running";
+        if (verdict.state === "red" && ciRerun(verdict.run)) {
+            // Until the rerun starts, the run still reads as the finished first attempt.
+            if (rerunAsked.has(verdict.run.id)) verdict.state = "running";
+            else {
+                try {
+                    await github("POST", `/actions/runs/${verdict.run.id}/rerun-failed-jobs`);
+                    rerunAsked.add(verdict.run.id);
+                    verdict.state = "running";
+                    log(`ci.yml on ${sha.slice(0, 7)} is red; re-running its failed jobs once`);
+                } catch (e) {
+                    log(`could not re-run ci.yml on ${sha.slice(0, 7)}: ${e.message}`);
+                }
+            }
+        }
         if (verdict.state === "red") {
-            const { jobs } = await github("GET", `/actions/runs/${verdict.run.id}/jobs?per_page=100`).catch(() => ({ jobs: [] }));
+            const { run } = verdict;
+            const { jobs } = await github("GET", `/actions/runs/${run.id}/jobs?per_page=100`).catch(() => ({ jobs: [] }));
+            const { artifacts } = await github("GET", `/actions/runs/${run.id}/artifacts`).catch(() => ({ artifacts: [] }));
             const failed = jobs.filter((j) => j.conclusion === "failure").slice(0, 3);
             const tails = {};
-            for (const job of failed) tails[job.id] = logTail(await githubText(`/actions/jobs/${job.id}/logs`));
-            return { state: "red", failure: ciFailureText(verdict.run, jobs, tails) };
+            for (const job of failed) {
+                tails[job.id] = redact(failedStepLog(await githubText(`/actions/jobs/${job.id}/logs`)), SECRETS.map((k) => process.env[k]));
+            }
+            return { state: "red", failure: ciFailureText(run, jobs, tails, artifacts) };
+        }
+        if (verdict.state === "green" && verdict.run.run_attempt > 1) {
+            const { jobs } = await github("GET", `/actions/runs/${verdict.run.id}/attempts/1/jobs?per_page=100`).catch(() => ({ jobs: [] }));
+            return { ...verdict, flake: ciFlakeNote(verdict.run, jobs) };
         }
         if (verdict.state !== "running") return verdict;
         if (Date.now() + CI_POLL_MS > until) return { state: "running" };
@@ -792,8 +839,9 @@ const settleCi = async (state, logIssue) => {
     for (const piece of state.pieces) {
         for (const step of piece.steps.filter((s) => s.awaitingCi)) {
             log(`waiting for ci.yml on ${step.awaitingCi.slice(0, 7)} (${piece.id}/${step.id})`);
-            const { state: verdict, failure } = await waitForCi(step.awaitingCi);
+            const { state: verdict, failure, flake } = await waitForCi(step.awaitingCi);
             if (verdict === "running") return false;
+            if (flake) await comment(logIssue, flake).catch((e) => log(`could not note the flake: ${e.message}`));
             const outcome = applyCi(state, piece.id, step.id, verdict, failure);
             log(`${piece.id}/${step.id}: ${outcome}`);
             await raiseBlockers(state);

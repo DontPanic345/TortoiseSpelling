@@ -97,6 +97,15 @@ jobs:
             echo "RELEASE_KEY_PASSWORD=android"
           } >> "$GITHUB_ENV"
 
+      # Downloaded fresh on every run, the system image sometimes fails ("unknown archive")
+      # and takes the job with it. ANDROID_HOME is this path on ubuntu-latest.
+      - name: Cache the emulator system image
+        if: inputs.command != 'status'
+        uses: actions/cache@v6
+        with:
+          path: /usr/local/lib/android/sdk/system-images/android-34/google_apis/x86_64
+          key: system-image-34-google_apis-x86_64
+
       - name: Run the crew
         if: inputs.command != 'status'
         uses: reactivecircus/android-emulator-runner@v2

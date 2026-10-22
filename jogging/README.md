@@ -55,8 +55,10 @@ A session commits and pushes its work and a `LOG.md` entry, then reports `done`,
 `pending` or `blocked` in `runs/result.json`. Only the crew changes a step's status:
 
 - A phase 2 `done` counts once the brief's `## Acceptance` block passes when the crew runs
-  it, and `ci.yml` is green on the session's last push. A failure goes back, with its
-  output, to the next attempt.
+  it, and `ci.yml` is green on the session's last push. A red run has its failed jobs
+  re-run once first, and a pass on the rerun is noted on the log issue as a flake. A
+  failure goes back to the next attempt, with the failing step's log and the run's
+  artifacts to download.
 - Two unfinished attempts block the step. A `blocked` result, or a brief that's missing,
   blocks the piece. The crew opens an issue for it, and Alan's reply or closing the issue
   unblocks it.

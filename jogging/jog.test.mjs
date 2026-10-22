@@ -8,7 +8,10 @@ import {
     applyReplies,
     applyResult,
     ciFailureText,
+    ciFlakeNote,
+    ciRerun,
     ciVerdict,
+    failedStepLog,
     initProblem,
     modelCheckBody,
     nextStep,
@@ -315,6 +318,48 @@ test("ciFailureText names the failed jobs and steps, with their log tails", () =
     assert.match(text, /\*\*Unit tests and lint\*\* failed at: Unit tests and lint/);
     assert.match(text, /Lint found errors/);
     assert.doesNotMatch(text, /Web checks/);
+});
+
+test("a red run is re-run once before it counts", () => {
+    assert.equal(ciRerun({ run_attempt: 1 }), true);
+    assert.equal(ciRerun({}), true);
+    assert.equal(ciRerun({ run_attempt: 2 }), false);
+});
+
+test("ciFailureText says a failure survived its rerun, and how to get the artifacts", () => {
+    const text = ciFailureText({ id: 9, run_attempt: 2, conclusion: "failure" }, [], {}, [{ name: "e2e-logs" }, { name: "data-reports" }]);
+    assert.match(text, /isn't a runner flake/);
+    assert.match(text, /gh run download 9 -n <name>/);
+    assert.match(text, /`e2e-logs`, `data-reports`/);
+    assert.doesNotMatch(ciFailureText({ id: 9, run_attempt: 1, conclusion: "failure" }, []), /flake|gh run download/);
+});
+
+test("failedStepLog keeps the failing step's lines, not the post-job cleanup", () => {
+    const log = [
+        "2026-10-21T22:10:00.0000000Z ##[group]Run reactivecircus/android-emulator-runner@v2",
+        "2026-10-21T22:12:00.0000000Z [0-0] 1 failing scenario: Open settings",
+        "2026-10-21T22:12:01.0000000Z ##[error]The process '/usr/bin/sh' failed with exit code 1",
+        "2026-10-21T22:12:02.0000000Z ##[group]Run actions/upload-artifact@v7",
+        "2026-10-21T22:12:03.0000000Z Post job cleanup.",
+        "2026-10-21T22:12:04.0000000Z [command]/usr/bin/git version",
+    ].join("\n");
+    const out = failedStepLog(log);
+    assert.match(out, /^##\[group\]Run reactivecircus/);
+    assert.match(out, /1 failing scenario/);
+    assert.match(out, /##\[error\]The process/);
+    assert.doesNotMatch(out, /upload-artifact|Post job cleanup|git version/);
+    assert.equal(failedStepLog(log, 2).split("\n").length, 2);
+    // No error line: everything before the cleanup.
+    assert.doesNotMatch(failedStepLog("a\nb\nPost job cleanup.\ngit"), /cleanup|git/);
+});
+
+test("a run that passed on its rerun names the jobs that flaked", () => {
+    const note = ciFlakeNote({ head_sha: "452453e726", html_url: "https://example/9" }, [
+        { name: "data tests (emulator)", conclusion: "failure" },
+        { name: "Web checks", conclusion: "success" },
+    ]);
+    assert.match(note, /452453e passed on a rerun; \*\*data tests \(emulator\)\*\* failed the first time/);
+    assert.doesNotMatch(note, /Web checks/);
 });
 
 const brief = `# p/build-1: Android
