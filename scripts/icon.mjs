@@ -17,7 +17,7 @@ import { REPO_ROOT, readRepoFile, writeRepoFile } from "./repo-files.mjs";
 export const CANVAS = 108;
 export const CENTRE = 54;
 export const SAFE_RADIUS = 33;
-export const GAP = 3.4; // keep it so that GAP × notification scale ≥ 1
+export const GAP = 3.1; // keep it so that GAP × notification scale ≥ 1 (the art is about 60 across)
 export const SOURCE = "scripts/icon-source.svg";
 
 const WHITE = "#FFFFFFFF";

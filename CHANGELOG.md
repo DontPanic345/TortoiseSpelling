@@ -16,6 +16,10 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 - **Hear the word**: a speaker button on the review screen, on Android and the web, says the word aloud in your phone's or browser's own voice. It is hidden when the device has no voice installed.
 - **How it works** on Home, on Android and the web: the ⓘ button in the top bar explains a day's practice and spaced repetition, including how many days each review is from the last if you spell the word right every time (1, 6, 17, 49 and 147 days, then once a year).
 
+### Changed
+
+- A new app icon, with a matching themed icon and notification icon.
+
 ### Fixed
 
 - A review is saved in one step, so a crash can no longer leave a word rescheduled with the day missing from your streak; and finishing a card whose word was deleted meanwhile no longer closes the app.

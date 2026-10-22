@@ -66,3 +66,17 @@ then.
 | 3 | `refine-1/b-04.svg` | Closest to `explore/b-04`: biggest head, compact body |
 | 4 | `refine-2/a-05.svg` | Side view, small head on a neck, calm smile |
 | 5 | `refine-2/a-01.svg` | Side view, walking stride, high domed shell |
+
+## final
+
+Alan picked finalist 1 (`refine-2/b-04.svg`) and asked for no changes. It was redrawn by
+hand as 11 paths in [`scripts/icon-source.svg`](../../scripts/icon-source.svg), which
+generates every icon both apps ship; the Recraft SVG was only the reference.
+[`final.png`](final.png) (`node scripts/icon-sheet.mjs final`) shows it beside the
+placeholder, with the notification set at 24 px.
+
+What changed in the redraw: the gaps are wider, as every gap has to stay a full pixel in
+the 24 dp notification icon (`GAP` is 3.1 of 108); the chest and the far front leg are one
+shape; and the notification icon draws the shell as one solid dome (`data-only`), as the
+plates' gaps speckle at that size.
+
