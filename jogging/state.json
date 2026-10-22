@@ -178,7 +178,8 @@
           "model": "opus",
           "effort": "high",
           "why": "Opus: hand-building art from a traced reference to pass strict geometry and look as good at 24 dp, including the reminder's notification icon (goal 2); high effort for visual iteration.",
-          "status": "pending"
+          "status": "pending",
+          "awaitingCi": "5de99a78e1f50efba36cc1da46f44607127e2809"
         },
         {
           "id": "review",
