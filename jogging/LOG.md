@@ -126,3 +126,7 @@ No code change. Acceptance passes; no Recraft requests (1,920 of 10,000 units).
 ## 2026-10-22 00:49 icon-redraw/build-2 (opus)
 Two refining rounds in direction b (`refine-1`, `refine-2`, 12 images each, 1,920 units; 3,840 of 10,000 spent). Round 2 tightened the prompt to three plates, no slivers and a clear margin after round 1 cropped five images in the mask.
 Five finalists on `docs/icon-concepts/finalists/sheet.png`, prompts and picks in `docs/icon-concepts/README.md`. Blocked for Alan to pick the final.
+
+## 2026-10-22 01:07 icon-redraw/build-2 (opus)
+Alan replied "1.svg": finalist 1, `refine-2/b-04.svg` (three-quarter view, big smiling head, fewest shell plates), with no changes asked for.
+Wrote it into `build-4.md` as "Alan's choice" with the source file, model, colours and prompt. No Recraft requests this session (3,840 of 10,000 units spent).

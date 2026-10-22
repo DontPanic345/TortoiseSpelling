@@ -1,5 +1,16 @@
 # icon-redraw/build-4: Rebuild the chosen design as the app icon
 
+## Alan's choice
+
+Finalist **1**: `docs/icon-concepts/finalists/1.svg`, a copy of
+`docs/icon-concepts/refine-2/b-04.svg` (three-quarter view, big smiling head, the fewest
+shell plates). It came from refine-2's `b` prompt, on `recraftv4_1_vector` with
+`--colors "#2F5D50,#E7BE8A,#F7F4EE"`:
+
+> App icon: a friendly, cheerful cartoon tortoise in three-quarter view facing right, a big round parchment head with a wide gentle smile and one dot eye, one chunky parchment body with four short rounded legs and no other pieces. A high domed amber shell with exactly three big soft plates and one thick amber rim band along its lower edge, every part separated by a wide bold even gap. The whole tortoise sits well inside the frame with a clear margin on every side, nothing touching or cut by the edge. Single app icon, centred, on a plain flat evergreen background, very few big flat shapes, no small slivers, no gradients, no shading, no text, no outlines. Palette: evergreen #2F5D50 background, shell amber #E7BE8A, parchment #F7F4EE skin.
+
+His reply, verbatim: "1.svg". He asked for no changes.
+
 The app icon was designed with Recraft in build-1 and build-2, and Alan picked a final;
 his choice is under "Alan's choice" below (build-2 writes it there, or build-1 if he chose
 the fallback early). Recraft's SVGs are traced pictures: they are the reference to rebuild
