@@ -9,6 +9,8 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-22
+
 ### Added
 
 - **Form warnings.** A pasted form of more than one word, like “most curious”, is flagged before you save, and words already saved with one show **Check forms** in the word list.
@@ -190,7 +192,8 @@ The first release.
 - Backup export and import as JSON. Importing adds new words and never overwrites the
   progress of words you already have.
 
-[unreleased]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.8.0...HEAD
+[unreleased]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.7.0...v0.8.0
 [0.7.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/DontPanic345/TortoiseSpelling/compare/v0.5.0...v0.6.0
