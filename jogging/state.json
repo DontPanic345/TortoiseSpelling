@@ -127,7 +127,7 @@
         "docs/icon-redraw.md"
       ],
       "dependsOn": [],
-      "status": "active",
+      "status": "blocked",
       "spec": "jogging/specs/icon-redraw.md",
       "steps": [
         {
@@ -160,7 +160,7 @@
           "model": "opus",
           "effort": "medium",
           "why": "Opus: design judgement and prompt tightening against the criteria, spending paid units; medium effort with the tools already built.",
-          "status": "pending"
+          "status": "blocked"
         },
         {
           "id": "build-3",
@@ -192,7 +192,10 @@
       ],
       "release": "minor",
       "modelsChecked": true,
-      "baseSha": "7425f584f3a69f34fe84943e16516b5e064b02c1"
+      "baseSha": "7425f584f3a69f34fe84943e16516b5e064b02c1",
+      "blocker": "Pick the final: https://github.com/DontPanic345/TortoiseSpelling/blob/main/docs/icon-concepts/finalists/sheet.png (details in docs/icon-concepts/README.md). Reply with its number and any changes you want, or `fallback` to keep the ChatGPT placeholder.",
+      "blockerIssue": 35,
+      "blockedAt": "2026-10-22T00:50:02.792Z"
     },
     {
       "id": "edit-after-miss",
