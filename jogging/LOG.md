@@ -130,3 +130,7 @@ Five finalists on `docs/icon-concepts/finalists/sheet.png`, prompts and picks in
 ## 2026-10-22 01:07 icon-redraw/build-2 (opus)
 Alan replied "1.svg": finalist 1, `refine-2/b-04.svg` (three-quarter view, big smiling head, fewest shell plates), with no changes asked for.
 Wrote it into `build-4.md` as "Alan's choice" with the source file, model, colours and prompt. No Recraft requests this session (3,840 of 10,000 units spent).
+
+## 2026-10-22 01:25 icon-redraw/build-3 (sonnet)
+`scripts/icon.mjs` now reads `scripts/icon-source.svg` (`readSource`, `flatten`; `M L H V C Q Z` only, errors name the command/element and path) and writes the same five outputs. Interim art is today's shapes as polygons; I dropped the neck (it overlapped the head), moved the tail 0.5 left and shrank/moved the eye so every wall is ≥ `GAP − 0.05`. Ground blanks are now solid, so the web PNGs changed.
+Tests follow the brief (contour-gap, no-background-paint/containment, `readSource` errors, `flatten`). Script tests, web tests, `lintDebug` and `validateDebugScreenshotTest` pass; the brief has no Acceptance block. `CLAUDE.md` "Generated files" updated.

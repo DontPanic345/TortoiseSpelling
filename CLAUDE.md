@@ -120,8 +120,9 @@ calls no AI API and has no Internet permission.
   the answer field focused, so the keyboard stays up.
 - Word-list search matches the root and every form's spelling, never definitions.
 
-**Generated files.** The launcher and notification icons and `docs/icon.svg` come from
-`scripts/icon.mjs`; edit it and re-run (`icon.test.mjs` catches drift).
+**Generated files.** The launcher, themed and notification icons and `docs/icon.svg` come
+from `scripts/icon-source.svg` through `scripts/icon.mjs`; edit the source, run
+`node scripts/icon.mjs` then `npm run icons` in `web/` (`icon.test.mjs` catches drift).
 
 **Test tags.** `ui/TestTags.kt` tags are Appium resource-ids via `testTagsAsResourceId`
 (dialogs and popups need their own). Mirror every tag in `e2e/support/testIds.ts`.
