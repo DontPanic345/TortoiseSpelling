@@ -169,7 +169,8 @@
           "model": "sonnet",
           "effort": "high",
           "why": "Sonnet: a contained Node script with exact tests; high effort for the path flattener and the contour-distance rules.",
-          "status": "pending"
+          "status": "pending",
+          "awaitingCi": "cfe23322d75759ca11bc54945b4b29cb4984d3e5"
         },
         {
           "id": "build-4",
