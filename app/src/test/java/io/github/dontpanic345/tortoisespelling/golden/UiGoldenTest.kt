@@ -11,6 +11,7 @@ import io.github.dontpanic345.tortoisespelling.golden.Golden.wordWithContentFrom
 import io.github.dontpanic345.tortoisespelling.ui.add.AddWordUiState
 import io.github.dontpanic345.tortoisespelling.ui.add.PasteDraft
 import io.github.dontpanic345.tortoisespelling.ui.complete.completionHeadline
+import io.github.dontpanic345.tortoisespelling.ui.home.howItWorksParagraphs as computeHowItWorksParagraphs
 import io.github.dontpanic345.tortoisespelling.ui.review.ReviewUiState
 import io.github.dontpanic345.tortoisespelling.ui.settings.importMessage
 import io.github.dontpanic345.tortoisespelling.ui.words.filterRows
@@ -19,6 +20,7 @@ import io.github.dontpanic345.tortoisespelling.ui.words.statusLabel
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -30,8 +32,8 @@ class UiGoldenTest {
     fun everyFunctionHasARunner() = Golden.assertFunctions(
         file,
         setOf(
-            "statusLabel", "noMatchesBody", "filterRows", "completionHeadline", "importMessage",
-            "blankedExample", "canSave", "applying",
+            "statusLabel", "noMatchesBody", "filterRows", "completionHeadline", "howItWorksParagraphs",
+            "importMessage", "blankedExample", "canSave", "applying",
         ),
     )
 
@@ -57,6 +59,11 @@ class UiGoldenTest {
     @Test
     fun completionHeadline() = forEachCase(file, "completionHeadline") { c ->
         assertEquals(c.str("out"), completionHeadline(c.longOrNull("nextDueDay"), c.long("today")))
+    }
+
+    @Test
+    fun howItWorksParagraphs() = forEachCase(file, "howItWorksParagraphs") { c ->
+        assertEquals(c.array("out").map { it.jsonPrimitive.content }, computeHowItWorksParagraphs())
     }
 
     @Test

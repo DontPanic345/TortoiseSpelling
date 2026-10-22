@@ -19,7 +19,7 @@ spaced repetition and a once-a-day reminder so the habit sticks. Slow and steady
   retype the word correctly before moving on. If the word itself was wrong, Edit word
   fixes it and the miss doesn't count.
 - 🐢 **Spaced repetition (SM-2).** Correct spellings push the word further out
-  (1 day → 6 days → longer); a miss brings it back tomorrow. See
+  (1 day → 6 → 17 → 49 → 147 → yearly); a miss brings it back tomorrow. See
   [Spaced repetition](#-spaced-repetition) below.
 - 🏁 **A real finish line.** Sessions end with an explicit "all done" screen;
   an optional "practice more" mode doesn't touch your schedule.
@@ -51,9 +51,15 @@ Anki 🃏 — reviewing a word right as you're about to forget it.
 - 🎯 **Per-word schedule.** Each word tracks its own repetition count, ease factor,
   and due date.
 - ✅ **Right → interval grows.** 1 day, then 6, then multiplied by the ease factor
-  each time, capped at a year.
-- ❌ **Wrong → resets to tomorrow**, and the ease factor drops a little.
-- 🎲 **Fuzzed intervals** so words added together don't all come due the same day.
+  each time, capped at a year. The ease factor starts at 2.5 and goes up by 0.1 with
+  every first-try spelling, so a word you always get right comes back after 1, 6, 17,
+  49 and 147 days, then yearly: reviews on days 1, 7, 24, 73 and 220 after you first
+  see it. The ⓘ button on Home shows the same gaps.
+- ❌ **Wrong → resets to tomorrow**, and the ease factor drops by 0.32, so the
+  gaps grow more slowly afterwards. Getting it right only on the retype still counts as
+  wrong.
+- 🎲 **Fuzzed intervals** so words added together don't all come due the same day:
+  gaps of 3 days or more move by up to a day either way, or 5% once that is more.
 - 🐰🐇 **Two rabbits, one tortoise.** The hares sprint ahead early, but SM-2 makes
   sure the tortoise 🐢 wins: small, correctly-spaced daily reviews beat cramming.
 - 🌱 **New words trickle in.** Adding a whole bunch at once? Limit how many new words

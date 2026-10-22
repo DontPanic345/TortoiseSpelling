@@ -69,6 +69,20 @@ class HomeContentTest {
     }
 
     @Test
+    fun theInfoButtonExplainsTheReviewGapsUntilDismissed() {
+        show(withWords(due = 2))
+        compose.onNodeWithText("How Tortoise Spelling works").assertDoesNotExist()
+        compose.onNodeWithContentDescription("How it works").performClick()
+        compose.onNodeWithText("How Tortoise Spelling works").assertExists()
+        compose.onNodeWithText(
+            "after 1 day, then 6 days, 17 days, 49 days, 147 days, and then once a year",
+            substring = true,
+        ).assertExists()
+        compose.onNodeWithText("Got it").performClick()
+        compose.onNodeWithText("How Tortoise Spelling works").assertDoesNotExist()
+    }
+
+    @Test
     fun theAddWordButtonCallsOnAddWord() {
         show(HomeUiState(loading = false))
         compose.onNodeWithTag(TestTags.HOME_ADD_WORD).performClick()

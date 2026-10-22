@@ -57,6 +57,10 @@
     { "name": "twenty give-ups leave the ease factor at its floor", "qualities": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
       "out": { "repetitions": 0, "easeFactor": 1.3, "intervalDays": 1 } }
   ],
+  "allCorrectIntervals": [
+    { "name": "right first time every review: 1, 6, then times the growing ease factor, capped at a year",
+      "out": [1, 6, 17, 49, 147, 365] }
+  ],
   "fuzzedDueDay": [
     { "name": "short intervals are not fuzzed", "today": 100, "intervalDays": 1, "within": [101, 101] },
     { "name": "two days is still not fuzzed", "today": 100, "intervalDays": 2, "within": [102, 102] },

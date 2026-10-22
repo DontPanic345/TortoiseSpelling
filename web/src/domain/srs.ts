@@ -64,6 +64,21 @@ export const sm2Scheduler: Scheduler = {
 };
 
 /**
+ * The gaps, in days, between the reviews of a word spelled right first time at every review,
+ * up to `MAX_INTERVAL_DAYS`, after which it comes back yearly. Home's info dialog shows
+ * these, so the copy can't drift from the scheduler. Unfuzzed.
+ */
+export function allCorrectIntervals(scheduler: Scheduler = sm2Scheduler): number[] {
+  const intervals: number[] = [];
+  let state = NEW_WORD_STATE;
+  while (state.intervalDays < MAX_INTERVAL_DAYS) {
+    state = scheduler.next(state, Grade.FIRST_TRY);
+    intervals.push(state.intervalDays);
+  }
+  return intervals;
+}
+
+/**
  * Due day for `intervalDays` from `today`, with a little spread so words added on the same
  * day don't stay clumped on the same due dates. Short intervals are left alone.
  */

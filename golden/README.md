@@ -47,7 +47,7 @@ output, and a `name` saying what it checks (the Kotlin test it came from, in wor
 | `text.json` | `normalizeWord`, Kotlin's `trim()` and `isBlank()` (`ktTrim`, `ktIsBlank`) |
 | `blank.json` | `blankWordIn`, `hideWordInDefinition` |
 | `diff.json` | `spellingDiff` |
-| `sm2.json` | `Sm2Scheduler.next`, `fuzzedDueDay`, the constants and `Grade` |
+| `sm2.json` | `Sm2Scheduler.next`, `allCorrectIntervals`, `fuzzedDueDay`, the constants and `Grade` |
 | `review.json` | `reviewed`, `undone`: one review's word and log row, and taking it back |
 | `days.json` | `today`, `dayOf` (in `Pacific/Auckland` and `America/Los_Angeles`), `relativeLabel`, `currentStreak` |
 | `progress.json` | `learningStage`, `wordProgress`, `WordFilter.matches`, `wordFilterCounts`, `recentDays`, `greeting` |
