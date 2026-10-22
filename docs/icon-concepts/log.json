@@ -115,6 +115,82 @@
         "docs/icon-concepts/explore/f-03.svg",
         "docs/icon-concepts/explore/f-04.svg"
       ]
+    },
+    {
+      "at": "2026-10-22T00:48:20.691Z",
+      "round": "refine-1",
+      "direction": "a",
+      "model": "recraftv4_1_vector",
+      "style": null,
+      "prompt": "App icon: a friendly, cheerful cartoon tortoise walking to the right in side view, its big round parchment head raised on a short thick neck, a gentle smile and one dot eye, four chunky rounded stubby legs. A high domed amber shell made of only three big soft rounded plates, separated by wide bold gaps, with a thick amber rim band along the bottom edge of the shell. The tortoise fills most of the frame. Single app icon, centred, on a plain flat evergreen background, very few flat shapes, wide gaps between parts, no gradients, no shading, no text, no outlines, no small details. Palette: evergreen #2F5D50 background, shell amber #E7BE8A, parchment #F7F4EE skin.",
+      "colors": "#2F5D50,#E7BE8A,#F7F4EE",
+      "n": 6,
+      "units": 480,
+      "files": [
+        "docs/icon-concepts/refine-1/a-01.svg",
+        "docs/icon-concepts/refine-1/a-02.svg",
+        "docs/icon-concepts/refine-1/a-03.svg",
+        "docs/icon-concepts/refine-1/a-04.svg",
+        "docs/icon-concepts/refine-1/a-05.svg",
+        "docs/icon-concepts/refine-1/a-06.svg"
+      ]
+    },
+    {
+      "at": "2026-10-22T00:48:32.589Z",
+      "round": "refine-1",
+      "direction": "b",
+      "model": "recraftv4_1_vector",
+      "style": null,
+      "prompt": "App icon: a friendly, cheerful cartoon tortoise in three-quarter view facing right, a very big round parchment head tilted slightly up with a wide gentle smile and one dot eye, a chunky body with four short rounded legs. A high domed amber shell with three big soft plates on top and one thick amber rim band around its lower edge, each part separated by a bold even gap. The tortoise fills most of the frame. Single app icon, centred, on a plain flat evergreen background, very few flat shapes, wide gaps between parts, no gradients, no shading, no text, no outlines, no small details. Palette: evergreen #2F5D50 background, shell amber #E7BE8A, parchment #F7F4EE skin.",
+      "colors": "#2F5D50,#E7BE8A,#F7F4EE",
+      "n": 6,
+      "units": 480,
+      "files": [
+        "docs/icon-concepts/refine-1/b-01.svg",
+        "docs/icon-concepts/refine-1/b-02.svg",
+        "docs/icon-concepts/refine-1/b-03.svg",
+        "docs/icon-concepts/refine-1/b-04.svg",
+        "docs/icon-concepts/refine-1/b-05.svg",
+        "docs/icon-concepts/refine-1/b-06.svg"
+      ]
+    },
+    {
+      "at": "2026-10-22T00:49:13.359Z",
+      "round": "refine-2",
+      "direction": "b",
+      "model": "recraftv4_1_vector",
+      "style": null,
+      "prompt": "App icon: a friendly, cheerful cartoon tortoise in three-quarter view facing right, a big round parchment head with a wide gentle smile and one dot eye, one chunky parchment body with four short rounded legs and no other pieces. A high domed amber shell with exactly three big soft plates and one thick amber rim band along its lower edge, every part separated by a wide bold even gap. The whole tortoise sits well inside the frame with a clear margin on every side, nothing touching or cut by the edge. Single app icon, centred, on a plain flat evergreen background, very few big flat shapes, no small slivers, no gradients, no shading, no text, no outlines. Palette: evergreen #2F5D50 background, shell amber #E7BE8A, parchment #F7F4EE skin.",
+      "colors": "#2F5D50,#E7BE8A,#F7F4EE",
+      "n": 6,
+      "units": 480,
+      "files": [
+        "docs/icon-concepts/refine-2/b-01.svg",
+        "docs/icon-concepts/refine-2/b-02.svg",
+        "docs/icon-concepts/refine-2/b-03.svg",
+        "docs/icon-concepts/refine-2/b-04.svg",
+        "docs/icon-concepts/refine-2/b-05.svg",
+        "docs/icon-concepts/refine-2/b-06.svg"
+      ]
+    },
+    {
+      "at": "2026-10-22T00:49:25.251Z",
+      "round": "refine-2",
+      "direction": "a",
+      "model": "recraftv4_1_vector",
+      "style": null,
+      "prompt": "App icon: a friendly, cheerful cartoon tortoise walking to the right in side view, a big round parchment head raised on a short thick neck with a gentle smile and one dot eye, four chunky rounded legs, no other pieces. A high domed amber shell with exactly three big soft plates and one thick amber rim band along its lower edge, every part separated by a wide bold even gap. The whole tortoise sits well inside the frame with a clear margin on every side, nothing touching or cut by the edge. Single app icon, centred, on a plain flat evergreen background, very few big flat shapes, no small slivers, no gradients, no shading, no text, no outlines. Palette: evergreen #2F5D50 background, shell amber #E7BE8A, parchment #F7F4EE skin.",
+      "colors": "#2F5D50,#E7BE8A,#F7F4EE",
+      "n": 6,
+      "units": 480,
+      "files": [
+        "docs/icon-concepts/refine-2/a-01.svg",
+        "docs/icon-concepts/refine-2/a-02.svg",
+        "docs/icon-concepts/refine-2/a-03.svg",
+        "docs/icon-concepts/refine-2/a-04.svg",
+        "docs/icon-concepts/refine-2/a-05.svg",
+        "docs/icon-concepts/refine-2/a-06.svg"
+      ]
     }
   ]
 }

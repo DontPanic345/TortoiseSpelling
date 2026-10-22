@@ -122,3 +122,7 @@ CI was red for an e2e flake that has now hit twice (here and form-warnings/build
 ## 2026-10-22 00:30 icon-redraw/build-1 (opus)
 Alan replied "go again" to the red CI. Run 39685948045 failed before any test ran: the emulator package download was corrupt ("Error on ZipFile unknown archive"), so nothing came up on port 5554. That's a runner flake, not this step's code. `ci.yml` has since passed on every later main commit (6da8934, b29d4f0, 6dd55e1, 6c2649d), all of which include this step's work.
 No code change. Acceptance passes; no Recraft requests (1,920 of 10,000 units).
+
+## 2026-10-22 00:49 icon-redraw/build-2 (opus)
+Two refining rounds in direction b (`refine-1`, `refine-2`, 12 images each, 1,920 units; 3,840 of 10,000 spent). Round 2 tightened the prompt to three plates, no slivers and a clear margin after round 1 cropped five images in the mask.
+Five finalists on `docs/icon-concepts/finalists/sheet.png`, prompts and picks in `docs/icon-concepts/README.md`. Blocked for Alan to pick the final.
