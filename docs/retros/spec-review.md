@@ -159,8 +159,15 @@ in-session instead: the "spec correction" notes above.
 3. **Name the API version you rely on.** For a DSL, plugin or framework option, give the
    version you checked: Vite 8 `oxc.jsx` (bda7f56), the Compose accessibility API
    (2d76fcb), the AGP screenshot DSL (037809d), the Workers typings (00bacbf).
-4. **Size the review to the piece in `state.json`.** Opus/medium when the piece touches
-   goals 1, 2 or 5 (data, the reminder, both apps in agreement), has a migration or
-   transaction, or has four or more build steps. Otherwise Sonnet/high, which should
-   still catch the loud cross-step issues. Try that on the next two small pieces and
-   compare. `form-warnings` (all-Sonnet builds, $1.55 in total) is the case it targets.
+4. **Size the spec-review step to the piece.** This is about the `spec-review` step's
+   model, not the piece's final `review` step. Today the `spec-review` step is in
+   `state.json` as Opus/medium from the moment the piece is queued (62bc135). The spec
+   step may edit only its own steps and `release`, so it can't change it. Let the spec
+   step set the `spec-review` step's model and effort once it has sized the builds:
+   - Opus/medium when the piece touches goals 1, 2 or 5 (data, the reminder, both apps
+     in agreement), has a migration or transaction, or has four or more build steps;
+   - otherwise Sonnet/high, which should still catch the loud cross-step issues.
+
+   Alternatively, whoever queues the piece picks the model by the same rule. Try it on
+   the next two small pieces and compare. `form-warnings` (all-Sonnet builds, $1.55 in
+   total, against a $1.12 Opus spec-review) is the case it targets.
