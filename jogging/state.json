@@ -1,6 +1,6 @@
 {
-  "enabled": true,
-  "done": false,
+  "enabled": false,
+  "done": true,
   "logIssue": 30,
   "pieces": [
     {
@@ -345,6 +345,5 @@
       "modelsChecked": true,
       "baseSha": "a6661216864da12974324975ad3a5aadef3d61e9"
     }
-  ],
-  "release": "minor"
+  ]
 }
