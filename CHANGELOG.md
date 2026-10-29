@@ -9,6 +9,10 @@ GitHub are taken from here; see [Releases](README.md#-releases) for how a versio
 
 ## [Unreleased]
 
+### Changed
+
+- **Copy prompt asks for the JSON in a code block** and for about a dozen example sentences in all, rather than one or two per form.
+
 ## [0.9.0] - 2026-10-22
 
 ### Added
